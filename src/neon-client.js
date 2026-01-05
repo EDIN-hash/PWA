@@ -42,7 +42,7 @@ const NeonClient = {
             query += ' WHERE category = $1';
             return neonQuery(query, [category]);
         }
-        return neonQuery(query);
+        return neonQuery(query, []);
     },
 
     // Добавление предмета

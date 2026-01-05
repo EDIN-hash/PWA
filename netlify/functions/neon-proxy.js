@@ -5,8 +5,11 @@ export async function handler(event, context) {
     console.log('Starting database connection...');
 
     // Проверяем доступность переменной
-    if (!process.env.NETLIFY_DATABASE_URL) {
-      console.error('NETLIFY_DATABASE_URL is missing!');
+    // В локальной разработке используем DATABASE_URL, в продакшене - NETLIFY_DATABASE_URL
+    const dbUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL;
+    
+    if (!dbUrl) {
+      console.error('Database URL is missing!');
       return {
         statusCode: 500,
         body: JSON.stringify({
@@ -16,10 +19,10 @@ export async function handler(event, context) {
       };
     }
 
-    console.log('NETLIFY_DATABASE_URL is set, connecting...');
+    console.log('Database URL is set, connecting...');
 
-    // Используем правильную переменную окружения
-    const sql = neon(process.env.NETLIFY_DATABASE_URL);
+    // Используем доступную переменную окружения
+    const sql = neon(dbUrl);
 
     // Обрабатываем POST запросы с SQL запросом
     if (event.httpMethod === 'POST') {
@@ -29,7 +32,18 @@ export async function handler(event, context) {
       console.log('Executing query:', query);
       console.log('With params:', params);
 
-      const result = await sql(query, params);
+      // Используем правильный синтаксис для вызова SQL запроса
+      // Для запросов с параметрами используем sql.query()
+      let result;
+      if (params && params.length > 0) {
+        // Если есть параметры, используем sql.query()
+        result = await sql.query(query, params);
+      } else {
+        // Если нет параметров, используем tagged template
+        result = await sql`${query}`;
+      }
+      
+      console.log('Query executed successfully:', result);
       
       return {
         statusCode: 200,
