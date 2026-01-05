@@ -2,7 +2,7 @@
 const neonQuery = async (sql, params = []) => {
     // В разработке используем локальный URL, в продакшене - Netlify функцию
     const functionUrl = import.meta.env.DEV 
-        ? '/.netlify/functions/neon-proxy'
+        ? 'http://localhost:8888/.netlify/functions/neon-proxy'
         : '/.netlify/functions/neon-proxy';
 
     try {
