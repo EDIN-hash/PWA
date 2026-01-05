@@ -185,8 +185,13 @@ export default function App() {
         }
     };
 
-    const filteredItems = items.filter(
+    // Ensure items is an array before filtering
+    const itemsArray = Array.isArray(items) ? items : [];
+    
+    const filteredItems = itemsArray.filter(
         (item) => {
+            if (!item || !item.name) return false;
+            
             const query = searchQuery.toLowerCase();
             const nameMatch = item.name.toLowerCase().includes(query);
             const descriptionMatch = (item.description || "").toLowerCase().includes(query);
