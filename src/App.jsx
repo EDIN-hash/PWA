@@ -451,53 +451,53 @@ return (
         <Modal
             isOpen={isRegisterModalOpen}
             onRequestClose={() => setIsRegisterModalOpen(false)}
-            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6"
+            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 login-modal-dark"
             overlayClassName="modal-backdrop p-2 sm:p-0"
             contentLabel="Register Modal"
         >
             <>
-                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-slate-800 dark:text-slate-100">Register New User</h2>
+                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">Register New User</h2>
                 <form onSubmit={handleRegister} className="space-y-3 sm:space-y-4">
                     <div className="form-control">
-                        <label className="form-label text-sm sm:text-base text-slate-700 dark:text-slate-300">Username</label>
+                        <label className="form-label text-sm sm:text-base text-white">Username</label>
                         <input
                             type="text"
                             value={registerUsername}
                             onChange={(e) => setRegisterUsername(e.target.value)}
-                            className="input input-bordered w-full"
+                            className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
                             required
                         />
                     </div>
                     <div className="form-control">
-                        <label className="form-label text-sm sm:text-base text-slate-700 dark:text-slate-300">Password</label>
+                        <label className="form-label text-sm sm:text-base text-white">Password</label>
                         <input
                             type="password"
                             value={registerPassword}
                             onChange={(e) => setRegisterPassword(e.target.value)}
-                            className="input input-bordered w-full"
+                            className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
                             required
                         />
                     </div>
                     <div className="form-control">
-                        <label className="form-label text-sm sm:text-base text-slate-700 dark:text-slate-300">Role</label>
+                        <label className="form-label text-sm sm:text-base text-white">Role</label>
                         <select
                             value={registerRole}
                             onChange={(e) => setRegisterRole(e.target.value)}
-                            className="select select-bordered w-full"
+                            className="select select-bordered w-full bg-gray-700 border-gray-600 text-white"
                         >
                             <option value="spectator">Spectator</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
-                    <div className="button-group mt-4">
+                    <div className="button-group mt-4 flex gap-2">
                         <button
                             type="button"
                             onClick={() => setIsRegisterModalOpen(false)}
-                            className="btn btn-ghost w-full sm:w-auto"
+                            className="btn btn-ghost bg-gray-600 hover:bg-gray-500 text-white w-full sm:w-auto"
                         >
                             Cancel
                         </button>
-                        <button type="submit" className="btn btn-primary w-full sm:w-auto">
+                        <button type="submit" className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
                             Register
                         </button>
                     </div>
