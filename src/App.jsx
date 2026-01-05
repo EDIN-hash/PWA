@@ -113,7 +113,11 @@ export default function App() {
             setRegisterRole("spectator");
         } catch (err) {
             console.error("Registration error:", err);
-            alert(err.message);
+            if (err.message.includes('Username already exists')) {
+                alert("This username is already taken. Please choose a different username.");
+            } else {
+                alert("Registration failed: " + err.message);
+            }
         }
     };
 

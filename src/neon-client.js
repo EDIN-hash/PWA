@@ -131,7 +131,14 @@ const NeonClient = {
         // В реальном приложении нужно хэшировать пароль на сервере
         // Здесь для простоты мы сохраняем пароль как есть (небезопасно!)
         const query = 'INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING *';
-        return neonQuery(query, [username, password, role]);
+        try {
+            return await neonQuery(query, [username, password, role]);
+        } catch (error) {
+            if (error.message.includes('duplicate key value violates unique constraint')) {
+                throw new Error('Username already exists. Please choose a different username.');
+            }
+            throw error;
+        }
     },
 
     // Логин пользователя
