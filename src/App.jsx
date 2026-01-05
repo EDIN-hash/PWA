@@ -30,6 +30,7 @@ export default function App() {
     const [currentUser, setCurrentUser] = useState(null);
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [showLoginModal, setShowLoginModal] = useState(false);
     const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
     const [registerUsername, setRegisterUsername] = useState("");
     const [registerPassword, setRegisterPassword] = useState("");
@@ -263,27 +264,12 @@ return (
             
             {!currentUser ? (
                 <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto auth-section">
-                    <form onSubmit={handleLogin} className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                        <input
-                            type="text"
-                            placeholder="Username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            className="input input-bordered w-full"
-                            required
-                        />
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="input input-bordered w-full"
-                            required
-                        />
-                        <button type="submit" className="btn btn-primary w-full sm:w-auto ripple hover-lift">
-                            Login
-                        </button>
-                    </form>
+                    <button
+                        onClick={() => setShowLoginModal(true)}
+                        className="btn btn-primary w-full sm:w-auto ripple hover-lift"
+                    >
+                        Login
+                    </button>
                     <button
                         onClick={() => setIsRegisterModalOpen(true)}
                         className="btn btn-secondary w-full sm:w-auto ripple hover-lift"
@@ -407,6 +393,53 @@ return (
                         Save
                     </button>
                 </div>
+            </>
+        </Modal>
+
+        {/* Login Modal */}
+        <Modal
+            isOpen={showLoginModal}
+            onRequestClose={() => setShowLoginModal(false)}
+            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6"
+            overlayClassName="modal-backdrop p-2 sm:p-0"
+            contentLabel="Login Modal"
+        >
+            <>
+                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-slate-800 dark:text-slate-100">Login</h2>
+                <form onSubmit={handleLogin} className="space-y-3 sm:space-y-4">
+                    <div className="form-control">
+                        <label className="form-label text-sm sm:text-base text-slate-700 dark:text-slate-300">Username</label>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            className="input input-bordered w-full"
+                            required
+                        />
+                    </div>
+                    <div className="form-control">
+                        <label className="form-label text-sm sm:text-base text-slate-700 dark:text-slate-300">Password</label>
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="input input-bordered w-full"
+                            required
+                        />
+                    </div>
+                    <div className="button-group mt-4">
+                        <button
+                            type="button"
+                            onClick={() => setShowLoginModal(false)}
+                            className="btn btn-ghost w-full sm:w-auto"
+                        >
+                            Cancel
+                        </button>
+                        <button type="submit" className="btn btn-primary w-full sm:w-auto">
+                            Login
+                        </button>
+                    </div>
+                </form>
             </>
         </Modal>
 
