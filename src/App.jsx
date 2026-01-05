@@ -1,0 +1,467 @@
+import React, { useState, useEffect } from "react";
+import Card from "./Card.jsx";
+import Modal from "react-modal";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import "./styles.css";
+import NeonClient from "./neon-client";
+
+// Настройка Modal до определения компонента
+Modal.setAppElement("#root");
+
+const categories = ["Telewizory", "Lodowki", "Ekspresy", "Krzesla", "NM"];
+
+const defaultModalData = {
+    name: "",
+    quantity: 1,
+    description: "",
+    photo_url: "",
+    category: "NM",
+    wysokosc: 0,
+    szerokosc: 0,
+    glebokosc: 0,
+    dataWyjazdu: null,
+    stoisko: "",
+    stan: false,
+    linknadysk: "",
+};
+
+export default function App() {
+    const [currentUser, setCurrentUser] = useState(null);
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+    const [registerUsername, setRegisterUsername] = useState("");
+    const [registerPassword, setRegisterPassword] = useState("");
+    const [registerRole, setRegisterRole] = useState("spectator");
+    const [items, setItems] = useState([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [modalData, setModalData] = useState(defaultModalData);
+    const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState("NM");
+    const [darkMode, setDarkMode] = useState(false);
+    const [SERVER_URL, setServerUrl] = useState(import.meta.env.VITE_SERVER_URL || "http://localhost:3001");
+
+    // Load dark mode preference from localStorage
+    useEffect(() => {
+        const savedDarkMode = localStorage.getItem('darkMode');
+        if (savedDarkMode) {
+            setDarkMode(savedDarkMode === 'true');
+        }
+    }, []);
+
+    // Apply dark mode class to body
+    useEffect(() => {
+        if (darkMode) {
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
+        localStorage.setItem('darkMode', darkMode);
+    }, [darkMode]);
+
+    const toggleDarkMode = () => {
+        setDarkMode(!darkMode);
+    };
+
+    const fetchItems = async () => {
+        setIsLoading(true);
+        try {
+            const items = await NeonClient.getItems(selectedCategory || null);
+            setItems(items);
+        } catch (err) {
+            console.error("Fetch items error:", err);
+            alert("Failed to load items: " + err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchItems();
+    }, [selectedCategory]);
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        try {
+            const user = await NeonClient.loginUser(username, password);
+            if (user) {
+                setCurrentUser(user);
+                setUsername('');
+                setPassword('');
+                setShowLoginModal(false);
+            } else {
+                alert('Invalid username or password');
+            }
+        } catch (err) {
+            console.error("Login error:", err);
+            alert("Login failed: " + err.message);
+        }
+    };
+
+    const handleRegister = async (e) => {
+        e.preventDefault();
+        try {
+            await NeonClient.registerUser(registerUsername, registerPassword, registerRole);
+            alert("Registration successful. You may log in.");
+            setIsRegisterModalOpen(false);
+            setRegisterUsername("");
+            setRegisterPassword("");
+            setRegisterRole("spectator");
+        } catch (err) {
+            console.error("Registration error:", err);
+            alert(err.message);
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            const validUrl = getValidServerUrl();
+            await fetch(`${validUrl}/users/logout`, {
+                method: "POST",
+                credentials: "include",
+            });
+        } catch (err) {
+            console.error("Logout error:", err);
+        }
+        setCurrentUser(null);
+    };
+
+    const openItemModal = (item = null) => {
+        setModalData(
+            item
+                ? {
+                    ...item,
+                    dataWyjazdu: item.data_wyjazdu ? new Date(item.data_wyjazdu) : null,
+                    stan: item.stan === 1,
+                }
+                : defaultModalData
+        );
+        setEditingItem(item || null);
+        setIsItemModalOpen(true);
+    };
+
+    const closeItemModal = () => setIsItemModalOpen(false);
+
+    const handleSaveItem = async () => {
+        if (!modalData.name || !modalData.quantity) {
+            alert("Name and quantity are required");
+            return;
+        }
+        const itemData = {
+            ...modalData,
+            data_wyjazdu: modalData.dataWyjazdu
+                ? modalData.dataWyjazdu.toISOString().split("T")[0]
+                : null,
+            stan: modalData.stan ? 1 : 0,
+            updatedBy: currentUser?.username || "Unknown",
+            deviceId: navigator.userAgent || "Unknown"
+        };
+        try {
+            if (editingItem) {
+                await NeonClient.updateItem(editingItem.name, itemData);
+            } else {
+                await NeonClient.addItem(itemData);
+            }
+            await fetchItems();
+            closeItemModal();
+        } catch (err) {
+            console.error("Save item error:", err);
+            alert(err.message);
+        }
+    };
+
+
+    const handleDeleteItem = async (itemName) => {
+        if (!window.confirm("Delete this item?")) return;
+        try {
+            await NeonClient.deleteItem(itemName);
+            await fetchItems();
+        } catch (err) {
+            console.error("Delete item error:", err);
+            alert(err.message);
+        }
+    };
+
+    const filteredItems = items.filter(
+        (item) => {
+            const query = searchQuery.toLowerCase();
+            const nameMatch = item.name.toLowerCase().includes(query);
+            const descriptionMatch = (item.description || "").toLowerCase().includes(query);
+            
+            // Search in dimensions (wysokosc, szerokosc, glebokosc)
+            const dimensionsMatch = 
+                (item.wysokosc && item.wysokosc.toString().includes(query)) ||
+                (item.szerokosc && item.szerokosc.toString().includes(query)) ||
+                (item.glebokosc && item.glebokosc.toString().includes(query));
+            
+            return nameMatch || descriptionMatch || dimensionsMatch;
+        }
+    );
+
+    const renderItemFormField = ([label, key, type = "input"]) => (
+        <div className="form-control" key={key}>
+            <label className="label">
+                <span className="label-text">{label}</span>
+            </label>
+            {type === "textarea" ? (
+                <textarea
+                    value={modalData[key]}
+                    onChange={(e) => setModalData({ ...modalData, [key]: e.target.value })}
+                    className="textarea textarea-bordered h-24 w-full"
+                />
+            ) : key === "category" ? (
+                <select
+                    value={modalData[key]}
+                    onChange={(e) => setModalData({ ...modalData, [key]: e.target.value })}
+                    className="select select-bordered w-full"
+                >
+                    {categories.map((category) => (
+                        <option key={category} value={category}>
+                            {category}
+                        </option>
+                    ))}
+                </select>
+            ) : (
+                <input
+                    type={
+                        ["quantity", "wysokosc", "szerokosc", "glebokosc"].includes(key)
+                            ? "number"
+                            : "text"
+                    }
+                    value={modalData[key]}
+                    onChange={(e) =>
+                        setModalData({
+                            ...modalData,
+                            [key]:
+                                ["name", "description", "photo_url", "linknadysk", "stoisko"].includes(key)
+                                    ? e.target.value
+                                    : Number(e.target.value),
+                        })
+                    }
+                    className="input input-bordered w-full"
+                />
+            )}
+        </div>
+    );
+
+return (
+    <div className="min-h-screen bg-black p-2 sm:p-6 transition-colors duration-300 main-container flex flex-col gradient-bg">
+        <header className="header-section flex flex-col sm:flex-row justify-between items-center mb-4 gap-2 header-modern glass-effect">
+            <div className="flex items-center gap-4 w-full">
+                <h1 className="text-2xl sm:text-3xl font-bold main-title text-center sm:text-left text-gradient fade-in-up green-accent">
+                    Inventory Management
+                </h1>
+                 </div>
+            
+            {!currentUser ? (
+                <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto auth-section">
+                    <form onSubmit={handleLogin} className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                        <input
+                            type="text"
+                            placeholder="Username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            className="input input-bordered w-full"
+                            required
+                        />
+                        <input
+                            type="password"
+                            placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="input input-bordered w-full"
+                            required
+                        />
+                        <button type="submit" className="btn btn-primary w-full sm:w-auto ripple hover-lift">
+                            Login
+                        </button>
+                    </form>
+                    <button
+                        onClick={() => setIsRegisterModalOpen(true)}
+                        className="btn btn-secondary w-full sm:w-auto ripple hover-lift"
+                    >
+                        Register
+                    </button>
+                </div>
+            ) : (
+                <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
+                    <input
+                        type="text"
+                        placeholder="Search..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="input input-bordered w-full"
+                    />
+                    {currentUser.role === "admin" && (
+                        <button
+                            onClick={() => openItemModal()}
+                            className="btn btn-success w-full sm:w-auto ripple hover-lift bounce-in"
+                        >
+                            Add Item
+                        </button>
+                    )}
+                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                        <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Logged in as: {currentUser.username}</span>
+                        <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Role: {currentUser.role}</span>
+                        <button onClick={handleLogout} className="btn btn-error w-full sm:w-auto">
+                            Logout
+                        </button>
+                    </div>
+                </div>
+            )}
+        </header>
+
+        {/* Category Tabs */}
+        <div className="tabs-section pb-2">
+            <div className="tabs-container flex flex-wrap gap-2 justify-center">
+                {categories.map((category) => (
+                    <button
+                        key={category}
+                        className={`tab-modern text-sm sm:text-base px-4 py-2 rounded-md ${selectedCategory === category ? "active" : ""} slide-in`}
+                        onClick={() => setSelectedCategory(category)}
+                    >
+                        {category}
+                    </button>
+                ))}
+            </div>
+        </div>
+
+        {/* Items Grid */}
+        {isLoading ? (
+            <div className="flex justify-center py-8">
+                <div className="loading-pulse"></div>
+            </div>
+        ) : (
+            <div className="items-grid grid-modern">
+                {filteredItems.map((item) => (
+                    <Card
+                        key={item.name}
+                        item={item}
+                        editItem={openItemModal}
+                        deleteItem={handleDeleteItem}
+                        role={currentUser?.role}
+                    />
+                ))}
+            </div>
+        )}
+
+        {/* Item Modal */}
+        <Modal
+            isOpen={isItemModalOpen}
+            onRequestClose={closeItemModal}
+            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 modal-content"
+            overlayClassName="modal-backdrop p-2 sm:p-0"
+            contentLabel="Item Modal"
+        >
+            <>
+                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-slate-800 dark:text-slate-100">
+                    {editingItem ? "Edit Item" : "Add New Item"}
+                </h2>
+                <div className="grid grid-cols-1 gap-3 sm:gap-4 modal-content">
+                    {[
+                        ["Name", "name"],
+                        ["Quantity", "quantity"],
+                        ["Category", "category"],
+                        ["Description", "description", "textarea"],
+                        ["Photo URL", "photo_url"],
+                        ["Stoisko", "stoisko"],
+                        ["Height (cm)", "wysokosc"],
+                        ["Width (cm)", "szerokosc"],
+                        ["Depth (cm)", "glebokosc"],
+                        ["Google Drive Link", "linknadysk"],
+                    ].map(renderItemFormField)}
+                    <div className="form-control">
+                        <label className="form-label text-slate-700 dark:text-slate-300 text-sm sm:text-base">Data Wyjazdu</label>
+                        <DatePicker
+                            selected={modalData.dataWyjazdu}
+                            onChange={(date) => setModalData({ ...modalData, dataWyjazdu: date })}
+                            className="input input-bordered w-full text-slate-800 dark:text-slate-100"
+                            dateFormat="yyyy-MM-dd"
+                        />
+                    </div>
+                    <div className="form-control">
+                        <label className="form-label cursor-pointer text-slate-700 dark:text-slate-300 text-sm sm:text-base">
+                            <span className="label-text">Na stanie?</span>
+                            <input
+                                type="checkbox"
+                                checked={modalData.stan}
+                                onChange={(e) => setModalData({ ...modalData, stan: e.target.checked })}
+                                className="checkbox"
+                            />
+                        </label>
+                    </div>
+                </div>
+                <div className="button-group mt-4">
+                    <button onClick={closeItemModal} className="btn btn-ghost bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 w-full sm:w-auto">
+                        Cancel
+                    </button>
+                    <button onClick={handleSaveItem} className="btn btn-primary bg-indigo-600 text-white w-full sm:w-auto">
+                        Save
+                    </button>
+                </div>
+            </>
+        </Modal>
+
+        {/* Register Modal */}
+        <Modal
+            isOpen={isRegisterModalOpen}
+            onRequestClose={() => setIsRegisterModalOpen(false)}
+            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6"
+            overlayClassName="modal-backdrop p-2 sm:p-0"
+            contentLabel="Register Modal"
+        >
+            <>
+                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-slate-800 dark:text-slate-100">Register New User</h2>
+                <form onSubmit={handleRegister} className="space-y-3 sm:space-y-4">
+                    <div className="form-control">
+                        <label className="form-label text-sm sm:text-base text-slate-700 dark:text-slate-300">Username</label>
+                        <input
+                            type="text"
+                            value={registerUsername}
+                            onChange={(e) => setRegisterUsername(e.target.value)}
+                            className="input input-bordered w-full"
+                            required
+                        />
+                    </div>
+                    <div className="form-control">
+                        <label className="form-label text-sm sm:text-base text-slate-700 dark:text-slate-300">Password</label>
+                        <input
+                            type="password"
+                            value={registerPassword}
+                            onChange={(e) => setRegisterPassword(e.target.value)}
+                            className="input input-bordered w-full"
+                            required
+                        />
+                    </div>
+                    <div className="form-control">
+                        <label className="form-label text-sm sm:text-base text-slate-700 dark:text-slate-300">Role</label>
+                        <select
+                            value={registerRole}
+                            onChange={(e) => setRegisterRole(e.target.value)}
+                            className="select select-bordered w-full"
+                        >
+                            <option value="spectator">Spectator</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div className="button-group mt-4">
+                        <button
+                            type="button"
+                            onClick={() => setIsRegisterModalOpen(false)}
+                            className="btn btn-ghost w-full sm:w-auto"
+                        >
+                            Cancel
+                        </button>
+                        <button type="submit" className="btn btn-primary w-full sm:w-auto">
+                            Register
+                        </button>
+                    </div>
+                </form>
+            </>
+        </Modal>
+    </div>
+);
+}

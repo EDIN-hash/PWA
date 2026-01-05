@@ -1,0 +1,145 @@
+// Функция для выполнения SQL запросов к Neon через Netlify функцию
+const neonQuery = async (sql, params = []) => {
+    // В разработке используем локальный URL, в продакшене - Netlify функцию
+    const functionUrl = import.meta.env.DEV 
+        ? '/.netlify/functions/neon-proxy'
+        : '/.netlify/functions/neon-proxy';
+
+    try {
+        const response = await fetch(functionUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                query: sql,
+                params: params
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Neon query failed: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Neon query error:', error);
+        throw error;
+    }
+};
+
+// Функции для работы с данными
+const NeonClient = {
+    // Экспортируем функцию для тестирования
+    query: neonQuery,
+    // Получение всех предметов
+    async getItems(category = null) {
+        let query = 'SELECT * FROM items';
+        if (category) {
+            query += ' WHERE category = $1';
+            return neonQuery(query, [category]);
+        }
+        return neonQuery(query);
+    },
+
+    // Добавление предмета
+    async addItem(item) {
+        const query = `
+            INSERT INTO items (
+                name, quantity, description, photo_url, category,
+                wysokosc, szerokosc, glebokosc, data_wyjazdu, stan, linknadysk,
+                updatedAt, updatedBy, deviceId, stoisko
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+            ) RETURNING *
+        `;
+        
+        const params = [
+            item.name,
+            item.quantity,
+            item.description || '',
+            item.photo_url || '',
+            item.category || 'NM',
+            item.wysokosc || 0,
+            item.szerokosc || 0,
+            item.glebokosc || 0,
+            item.data_wyjazdu || null,
+            item.stan || 0,
+            item.linknadysk || '',
+            new Date().toISOString(),
+            item.updatedBy || 'Unknown',
+            item.deviceId || 'Unknown',
+            item.stoisko || ''
+        ];
+        
+        return neonQuery(query, params);
+    },
+
+    // Обновление предмета
+    async updateItem(name, item) {
+        const query = `
+            UPDATE items SET
+                quantity = $1,
+                description = $2,
+                photo_url = $3,
+                category = $4,
+                wysokosc = $5,
+                szerokosc = $6,
+                glebokosc = $7,
+                data_wyjazdu = $8,
+                stan = $9,
+                linknadysk = $10,
+                updatedAt = $11,
+                updatedBy = $12,
+                deviceId = $13,
+                stoisko = $14
+            WHERE name = $15 RETURNING *
+        `;
+        
+        const params = [
+            item.quantity,
+            item.description || '',
+            item.photo_url || '',
+            item.category || 'NM',
+            item.wysokosc || 0,
+            item.szerokosc || 0,
+            item.glebokosc || 0,
+            item.data_wyjazdu || null,
+            item.stan || 0,
+            item.linknadysk || '',
+            new Date().toISOString(),
+            item.updatedBy || 'Unknown',
+            item.deviceId || 'Unknown',
+            item.stoisko || '',
+            name
+        ];
+        
+        return neonQuery(query, params);
+    },
+
+    // Удаление предмета
+    async deleteItem(name) {
+        const query = 'DELETE FROM items WHERE name = $1 RETURNING *';
+        return neonQuery(query, [name]);
+    },
+
+    // Регистрация пользователя
+    async registerUser(username, password, role = 'spectator') {
+        // В реальном приложении нужно хэшировать пароль на сервере
+        // Здесь для простоты мы сохраняем пароль как есть (небезопасно!)
+        const query = 'INSERT INTO users (username, password, role) VALUES ($1, $2, $3) RETURNING *';
+        return neonQuery(query, [username, password, role]);
+    },
+
+    // Логин пользователя
+    async loginUser(username, password) {
+        const query = 'SELECT * FROM users WHERE username = $1 AND password = $2';
+        const result = await neonQuery(query, [username, password]);
+        return result.length > 0 ? result[0] : null;
+    }
+};
+
+export default NeonClient;
