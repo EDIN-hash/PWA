@@ -16,6 +16,7 @@ tmp/
 # IDE files
 .idea/
 .vscode/
+.vs/
 *.swp
 *.swo
 
@@ -29,3 +30,8 @@ tmp/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Temporary and test files
+.server-port
+*.bat
+*.js.map
