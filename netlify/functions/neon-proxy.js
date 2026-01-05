@@ -24,6 +24,18 @@ export async function handler(event, context) {
     // Используем доступную переменную окружения
     const sql = neon(dbUrl);
 
+    // Обрабатываем OPTIONS запросы для CORS
+    if (event.httpMethod === 'OPTIONS') {
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type'
+        }
+      };
+    }
+
     // Обрабатываем POST запросы с SQL запросом
     if (event.httpMethod === 'POST') {
       const body = JSON.parse(event.body);
@@ -96,14 +108,3 @@ export async function handler(event, context) {
   }
 }
 
-// Обработка OPTIONS запросов для CORS
-export const handlerOptions = async () => {
-    return {
-        statusCode: 200,
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type'
-        }
-    };
-};
