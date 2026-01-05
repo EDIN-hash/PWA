@@ -26,4 +26,4 @@
 
 # Environment variables for production
 [context.production.environment]
-  NETLIFY_DATABASE_URL = "postgresql://neondb_owner:npg_ABRkZgWrSw34@ep-floral-feather-aebzwqna-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
+  DATABASE_URL = "postgresql://neondb_owner:npg_ABRkZgWrSw34@ep-floral-feather-aebzwqna-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
