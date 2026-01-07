@@ -217,19 +217,19 @@ export default function App() {
     const renderItemFormField = ([label, key, type = "input"]) => (
         <div className="form-control" key={key}>
             <label className="label">
-                <span className="label-text">{label}</span>
+                <span className="label-text text-white">{label}</span>
             </label>
             {type === "textarea" ? (
                 <textarea
                     value={modalData[key]}
                     onChange={(e) => setModalData({ ...modalData, [key]: e.target.value })}
-                    className="textarea textarea-bordered h-24 w-full"
+                    className="textarea textarea-bordered h-24 w-full bg-gray-700 border-gray-600 text-white"
                 />
             ) : key === "category" ? (
                 <select
                     value={modalData[key]}
                     onChange={(e) => setModalData({ ...modalData, [key]: e.target.value })}
-                    className="select select-bordered w-full"
+                    className="select select-bordered w-full bg-gray-700 border-gray-600 text-white"
                 >
                     {categories.map((category) => (
                         <option key={category} value={category}>
@@ -254,7 +254,7 @@ export default function App() {
                                     : Number(e.target.value),
                         })
                     }
-                    className="input input-bordered w-full"
+                    className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
                 />
             )}
         </div>
@@ -350,12 +350,12 @@ return (
         <Modal
             isOpen={isItemModalOpen}
             onRequestClose={closeItemModal}
-            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 modal-content"
+            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 login-modal-dark"
             overlayClassName="modal-backdrop p-2 sm:p-0"
             contentLabel="Item Modal"
         >
             <>
-                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-slate-800 dark:text-slate-100">
+                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">
                     {editingItem ? "Edit Item" : "Add New Item"}
                 </h2>
                 <div className="grid grid-cols-1 gap-3 sm:gap-4 modal-content">
@@ -373,17 +373,17 @@ return (
                         ["Quantity (разновидность)", "quantity"],
                     ].map(renderItemFormField)}
                     <div className="form-control">
-                        <label className="form-label text-slate-700 dark:text-slate-300 text-sm sm:text-base">Data Wyjazdu</label>
+                        <label className="form-label text-white text-sm sm:text-base">Data Wyjazdu</label>
                         <DatePicker
                             selected={modalData.dataWyjazdu}
                             onChange={(date) => setModalData({ ...modalData, dataWyjazdu: date })}
-                            className="input input-bordered w-full text-slate-800 dark:text-slate-100"
+                            className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
                             dateFormat="yyyy-MM-dd"
                         />
                     </div>
                     <div className="form-control">
-                        <label className="form-label cursor-pointer text-slate-700 dark:text-slate-300 text-sm sm:text-base">
-                            <span className="label-text">Na stanie?</span>
+                        <label className="form-label cursor-pointer text-white text-sm sm:text-base">
+                            <span className="label-text text-white">Na stanie?</span>
                             <input
                                 type="checkbox"
                                 checked={modalData.stan}
@@ -393,11 +393,11 @@ return (
                         </label>
                     </div>
                 </div>
-                <div className="button-group mt-4">
-                    <button onClick={closeItemModal} className="btn btn-ghost bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-100 w-full sm:w-auto">
+                <div className="button-group mt-4 flex gap-2">
+                    <button onClick={closeItemModal} className="btn btn-ghost bg-gray-600 hover:bg-gray-500 text-white w-full sm:w-auto">
                         Cancel
                     </button>
-                    <button onClick={handleSaveItem} className="btn btn-primary bg-indigo-600 text-white w-full sm:w-auto">
+                    <button onClick={handleSaveItem} className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
                         Save
                     </button>
                 </div>
