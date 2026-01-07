@@ -2,14 +2,14 @@ import React, { useState, useEffect } from "react";
 
 export default function ModalItemForm({ item, onSave, onClose }) {
     const [name, setName] = useState("");
-    const [quantity, setQuantity] = useState(0);
+    const [ilosc, setIlosc] = useState(0);
     const [photo_url, setPhotoUrl] = useState("");
     const [description, setDescription] = useState("");
 
     useEffect(() => {
         if (item) {
             setName(item.name || "");
-            setQuantity(item.quantity || 0);
+            setIlosc(item.ilosc || 0);
             setPhotoUrl(item.photo_url || "");
             setDescription(item.description || "");
         }
@@ -17,7 +17,7 @@ export default function ModalItemForm({ item, onSave, onClose }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSave({ name, quantity, photo_url, description });
+        onSave({ name, ilosc, photo_url, description });
     };
 
     return (
@@ -26,7 +26,7 @@ export default function ModalItemForm({ item, onSave, onClose }) {
                 <h2 className="text-xl font-bold mb-4">{item ? "Edit Item" : "Add Item"}</h2>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-3">
                     <input type="text" placeholder="Name" value={name} onChange={e => setName(e.target.value)} className="input input-bordered" required />
-                    <input type="number" placeholder="Quantity" value={quantity} onChange={e => setQuantity(parseInt(e.target.value))} className="input input-bordered" required />
+                    <input type="number" placeholder="Ilość" value={ilosc} onChange={e => setIlosc(parseInt(e.target.value))} className="input input-bordered" required />
                     <input type="text" placeholder="Photo URL" value={photo_url} onChange={e => setPhotoUrl(e.target.value)} className="input input-bordered" />
                     <textarea placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} className="textarea textarea-bordered" />
                     <div className="flex justify-end gap-2 mt-2">

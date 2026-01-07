@@ -8,9 +8,16 @@ export default function Card({ item, editItem, deleteItem, role }) {
             <div className="card card-premium card-hover-effect fade-in-up">
                 <div className="flex justify-between items-start mb-3">
                     <h2 className="text-lg font-semibold text-slate-800 truncate max-w-[70%]">{item.name}</h2>
-                    <span className={`badge-modern`}>
-                        {item.category}
-                    </span>
+                    <div className="flex gap-1">
+                        <span className={`badge-modern`}>
+                            {item.category}
+                        </span>
+                        {item.quantity && (
+                            <span className="badge-modern bg-purple-900/50 border-purple-500/50 text-purple-400">
+                                {item.quantity}
+                            </span>
+                        )}
+                    </div>
                 </div>
                 
                 <div className="flex justify-between items-center mb-3">
@@ -18,7 +25,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
                         {item.stan ? 'Na stanie' : 'Wyjechało'}
                     </span>
                     <span className="badge-modern bg-blue-900/50 border-blue-500/50 text-blue-400">
-                        Ilość: {item.quantity}
+                        Ilość: {item.ilosc}
                     </span>
                 </div>
                 

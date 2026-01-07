@@ -13,7 +13,8 @@ const categories = ["Telewizory", "Lodowki", "Ekspresy", "Krzesla", "NM"];
 
 const defaultModalData = {
     name: "",
-    quantity: 1,
+    quantity: "",
+    ilosc: 1,
     description: "",
     photo_url: "",
     category: "NM",
@@ -237,7 +238,7 @@ export default function App() {
             ) : (
                 <input
                     type={
-                        ["quantity", "wysokosc", "szerokosc", "glebokosc"].includes(key)
+                        ["ilosc", "wysokosc", "szerokosc", "glebokosc"].includes(key)
                             ? "number"
                             : "text"
                     }
@@ -246,7 +247,7 @@ export default function App() {
                         setModalData({
                             ...modalData,
                             [key]:
-                                ["name", "description", "photo_url", "linknadysk", "stoisko"].includes(key)
+                                ["name", "quantity", "description", "photo_url", "linknadysk", "stoisko"].includes(key)
                                     ? e.target.value
                                     : Number(e.target.value),
                         })
@@ -358,7 +359,7 @@ return (
                 <div className="grid grid-cols-1 gap-3 sm:gap-4 modal-content">
                     {[
                         ["Name", "name"],
-                        ["Quantity", "quantity"],
+                        ["Ilość", "ilosc"],
                         ["Category", "category"],
                         ["Description", "description", "textarea"],
                         ["Photo URL", "photo_url"],
@@ -367,6 +368,7 @@ return (
                         ["Width (cm)", "szerokosc"],
                         ["Depth (cm)", "glebokosc"],
                         ["Google Drive Link", "linknadysk"],
+                        ["Quantity (разновидность)", "quantity"],
                     ].map(renderItemFormField)}
                     <div className="form-control">
                         <label className="form-label text-slate-700 dark:text-slate-300 text-sm sm:text-base">Data Wyjazdu</label>

@@ -49,17 +49,18 @@ const NeonClient = {
     async addItem(item) {
         const query = `
             INSERT INTO items (
-                name, quantity, description, photo_url, category,
+                name, quantity, ilosc, description, photo_url, category,
                 wysokosc, szerokosc, glebokosc, data_wyjazdu, stan, linknadysk,
                 updatedAt, updatedBy, deviceId, stoisko
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
             ) RETURNING *
         `;
         
         const params = [
             item.name,
-            item.quantity,
+            item.quantity || '',
+            item.ilosc || 0,
             item.description || '',
             item.photo_url || '',
             item.category || 'NM',
@@ -83,24 +84,26 @@ const NeonClient = {
         const query = `
             UPDATE items SET
                 quantity = $1,
-                description = $2,
-                photo_url = $3,
-                category = $4,
-                wysokosc = $5,
-                szerokosc = $6,
-                glebokosc = $7,
-                data_wyjazdu = $8,
-                stan = $9,
-                linknadysk = $10,
-                updatedAt = $11,
-                updatedBy = $12,
-                deviceId = $13,
-                stoisko = $14
-            WHERE name = $15 RETURNING *
+                ilosc = $2,
+                description = $3,
+                photo_url = $4,
+                category = $5,
+                wysokosc = $6,
+                szerokosc = $7,
+                glebokosc = $8,
+                data_wyjazdu = $9,
+                stan = $10,
+                linknadysk = $11,
+                updatedAt = $12,
+                updatedBy = $13,
+                deviceId = $14,
+                stoisko = $15
+            WHERE name = $16 RETURNING *
         `;
         
         const params = [
-            item.quantity,
+            item.quantity || '',
+            item.ilosc || 0,
             item.description || '',
             item.photo_url || '',
             item.category || 'NM',
