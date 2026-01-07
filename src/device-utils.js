@@ -60,7 +60,7 @@ export function generateDeviceId() {
 /**
  * Get a more detailed device information string for display
  */
-export function getDeviceInfo() {
+export function getDeviceId() {
     try {
         const info = [];
         

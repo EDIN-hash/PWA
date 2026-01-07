@@ -47,17 +47,28 @@ const NeonClient = {
 
     // Добавление предмета
     async addItem(item) {
-        const query = `
+        // Try with deviceId first, fallback to version without it if column doesn't exist
+        const queryWithDeviceId = `
             INSERT INTO items (
                 name, quantity, ilosc, description, photo_url, category,
                 wysokosc, szerokosc, glebokosc, data_wyjazdu, stan, linknadysk,
-                updatedAt, updatedBy, deviceId, deviceInfo, stoisko
+                updatedAt, updatedBy, deviceId, stoisko
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
             ) RETURNING *
         `;
         
-        const params = [
+        const queryWithoutDeviceId = `
+            INSERT INTO items (
+                name, quantity, ilosc, description, photo_url, category,
+                wysokosc, szerokosc, glebokosc, data_wyjazdu, stan, linknadysk,
+                updatedAt, updatedBy, stoisko
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+            ) RETURNING *
+        `;
+        
+        const paramsWithDeviceId = [
             item.name,
             item.quantity || '',
             item.ilosc || 0,
@@ -73,16 +84,42 @@ const NeonClient = {
             new Date().toISOString(),
             item.updatedBy || 'Unknown',
             item.deviceId || 'Unknown',
-            item.deviceInfo || '',
             item.stoisko || ''
         ];
         
-        return neonQuery(query, params);
+        const paramsWithoutDeviceId = [
+            item.name,
+            item.quantity || '',
+            item.ilosc || 0,
+            item.description || '',
+            item.photo_url || '',
+            item.category || 'NM',
+            item.wysokosc || 0,
+            item.szerokosc || 0,
+            item.glebokosc || 0,
+            item.data_wyjazdu || null,
+            item.stan || 0,
+            item.linknadysk || '',
+            new Date().toISOString(),
+            item.updatedBy || 'Unknown',
+            item.stoisko || ''
+        ];
+        
+        try {
+            return await neonQuery(queryWithDeviceId, paramsWithDeviceId);
+        } catch (error) {
+            if (error.message.includes('column "deviceId" does not exist') || error.message.includes('column "deviceid" does not exist')) {
+                console.warn('deviceId column not found, using fallback query');
+                return await neonQuery(queryWithoutDeviceId, paramsWithoutDeviceId);
+            }
+            throw error;
+        }
     },
 
     // Обновление предмета
     async updateItem(name, item) {
-        const query = `
+        // Try with deviceId first, fallback to version without it if column doesn't exist
+        const queryWithDeviceId = `
             UPDATE items SET
                 quantity = $1,
                 ilosc = $2,
@@ -98,12 +135,30 @@ const NeonClient = {
                 updatedAt = $12,
                 updatedBy = $13,
                 deviceId = $14,
-                deviceInfo = $15,
-                stoisko = $16
-            WHERE name = $17 RETURNING *
+                stoisko = $15
+            WHERE name = $16 RETURNING *
         `;
         
-        const params = [
+        const queryWithoutDeviceId = `
+            UPDATE items SET
+                quantity = $1,
+                ilosc = $2,
+                description = $3,
+                photo_url = $4,
+                category = $5,
+                wysokosc = $6,
+                szerokosc = $7,
+                glebokosc = $8,
+                data_wyjazdu = $9,
+                stan = $10,
+                linknadysk = $11,
+                updatedAt = $12,
+                updatedBy = $13,
+                stoisko = $14
+            WHERE name = $15 RETURNING *
+        `;
+        
+        const paramsWithDeviceId = [
             item.quantity || '',
             item.ilosc || 0,
             item.description || '',
@@ -118,12 +173,37 @@ const NeonClient = {
             new Date().toISOString(),
             item.updatedBy || 'Unknown',
             item.deviceId || 'Unknown',
-            item.deviceInfo || '',
             item.stoisko || '',
             name
         ];
         
-        return neonQuery(query, params);
+        const paramsWithoutDeviceId = [
+            item.quantity || '',
+            item.ilosc || 0,
+            item.description || '',
+            item.photo_url || '',
+            item.category || 'NM',
+            item.wysokosc || 0,
+            item.szerokosc || 0,
+            item.glebokosc || 0,
+            item.data_wyjazdu || null,
+            item.stan || 0,
+            item.linknadysk || '',
+            new Date().toISOString(),
+            item.updatedBy || 'Unknown',
+            item.stoisko || '',
+            name
+        ];
+        
+        try {
+            return await neonQuery(queryWithDeviceId, paramsWithDeviceId);
+        } catch (error) {
+            if (error.message.includes('column "deviceId" does not exist') || error.message.includes('column "deviceid" does not exist')) {
+                console.warn('deviceId column not found in update, using fallback query');
+                return await neonQuery(queryWithoutDeviceId, paramsWithoutDeviceId);
+            }
+            throw error;
+        }
     },
 
     // Удаление предмета

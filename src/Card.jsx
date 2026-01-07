@@ -126,10 +126,10 @@ export default function Card({ item, editItem, deleteItem, role }) {
                                 <span className="font-medium">Urządzenie:</span>
                                 <span>{item.deviceId || 'Nieznane'}</span>
                             </div>
-                            {item.deviceInfo && (
+                            {item.deviceId && (
                                 <div className="flex justify-between">
                                     <span className="font-medium">Info urządzenia:</span>
-                                    <span className="text-right">{item.deviceInfo}</span>
+                                    <span className="text-right">{item.deviceId}</span>
                                 </div>
                             )}
                             <div className="flex justify-between">
