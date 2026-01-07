@@ -10,6 +10,10 @@
 </head>
 <body>
     <div id="root"></div>
+    <script nonce="<%= nonce %>">
+        // CSP workaround for inline scripts
+        window.CSP_NONCE = '<%= nonce %>';
+    </script>
     <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

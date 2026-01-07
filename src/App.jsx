@@ -141,7 +141,15 @@ export default function App() {
             item
                 ? {
                     ...item,
-                    dataWyjazdu: item.data_wyjazdu ? new Date(item.data_wyjazdu) : null,
+                    dataWyjazdu: item.data_wyjazdu ? (() => {
+                        try {
+                            const date = new Date(item.data_wyjazdu);
+                            return isNaN(date.getTime()) ? null : date;
+                        } catch (e) {
+                            console.error("Invalid date format:", item.data_wyjazdu, e);
+                            return null;
+                        }
+                    })() : null,
                     stan: item.stan === 1,
                 }
                 : defaultModalData
@@ -157,11 +165,24 @@ export default function App() {
             alert("Name and quantity are required");
             return;
         }
+        
+        // Safe date handling
+        let dataWyjazduValue = null;
+        if (modalData.dataWyjazdu) {
+            try {
+                const date = new Date(modalData.dataWyjazdu);
+                if (!isNaN(date.getTime())) {
+                    dataWyjazduValue = date.toISOString().split("T")[0];
+                }
+            } catch (e) {
+                console.error("Invalid date in handleSaveItem:", modalData.dataWyjazdu, e);
+                dataWyjazduValue = null;
+            }
+        }
+        
         const itemData = {
             ...modalData,
-            data_wyjazdu: modalData.dataWyjazdu
-                ? modalData.dataWyjazdu.toISOString().split("T")[0]
-                : null,
+            data_wyjazdu: dataWyjazduValue,
             stan: modalData.stan ? 1 : 0,
             updatedBy: currentUser?.username || "Unknown",
             deviceId: generateDeviceId(),
@@ -375,10 +396,12 @@ return (
                     <div className="form-control">
                         <label className="form-label text-white text-sm sm:text-base">Data Wyjazdu</label>
                         <DatePicker
-                            selected={modalData.dataWyjazdu}
+                            selected={modalData.dataWyjazdu && new Date(modalData.dataWyjazdu) instanceof Date && !isNaN(new Date(modalData.dataWyjazdu).getTime()) ? new Date(modalData.dataWyjazdu) : null}
                             onChange={(date) => setModalData({ ...modalData, dataWyjazdu: date })}
                             className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
                             dateFormat="yyyy-MM-dd"
+                            isClearable
+                            placeholderText="Select a date"
                         />
                     </div>
                     <div className="form-control">

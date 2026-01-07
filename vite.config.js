@@ -1,9 +1,32 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
+import { createHtmlPlugin } from 'vite-plugin-html';
+
+// Generate a random nonce for CSP
+const generateNonce = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let nonce = '';
+    for (let i = 0; i < 16; i++) {
+        nonce += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return nonce;
+};
+
+const nonce = generateNonce();
 
 export default defineConfig({
-    plugins: [react()],
+    plugins: [
+        react(),
+        createHtmlPlugin({
+            minify: true,
+            inject: {
+                data: {
+                    nonce: nonce
+                }
+            }
+        })
+    ],
     root: resolve(__dirname, "."),
     build: {
         outDir: "dist",
@@ -18,8 +41,23 @@ export default defineConfig({
         port: 5173,
         strictPort: false,
         open: true,
+        headers: {
+            'Content-Security-Policy': `
+                default-src 'self';
+                script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.google.com https://*.gstatic.com;
+                style-src 'self' 'unsafe-inline' https://*.google.com https://*.gstatic.com;
+                img-src 'self' data: https://*.google.com https://*.gstatic.com;
+                font-src 'self' https://*.google.com https://*.gstatic.com;
+                connect-src 'self' https://*.google.com https://*.gstatic.com;
+                frame-src 'self' https://*.google.com;
+                object-src 'none';
+                base-uri 'self';
+                form-action 'self';
+            `
+        }
     },
     define: {
-        'process.env': {}
+        'process.env': {},
+        'global.nonce': JSON.stringify(nonce)
     }
 });
