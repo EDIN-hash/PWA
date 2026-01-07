@@ -284,13 +284,13 @@ export default function App() {
                 </label>
                 {type === "textarea" ? (
                     <textarea
-                        value={modalData[key]}
+                        value={state.modalData[key]}
                         onChange={handleChange}
                         className="textarea textarea-bordered h-24 w-full bg-gray-700 border-gray-600 text-white"
                     />
                 ) : key === "category" ? (
                     <select
-                        value={modalData[key]}
+                        value={state.modalData[key]}
                         onChange={(e) => setState(prev => ({
                             ...prev,
                             modalData: { ...prev.modalData, [key]: e.target.value }
@@ -306,14 +306,14 @@ export default function App() {
                 ) : (
                     <input
                         type={numericFields.includes(key) ? "number" : "text"}
-                        value={modalData[key]}
+                        value={state.modalData[key]}
                         onChange={handleChange}
                         className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
                     />
                 )}
             </div>
         );
-    }, [modalData]);
+    }, [state.modalData]);
 
 return (
     <div className="min-h-screen ecommerce-body p-2 sm:p-6 transition-colors duration-300 ecommerce-container flex flex-col">
@@ -403,7 +403,7 @@ return (
         {/* Category Tabs */}
         <div className="ecommerce-section">
             <div className="ecommerce-tabs">
-                {categories.map((category) => (
+                {CATEGORIES.map((category) => (
                     <button
                         key={category}
                         className={`ecommerce-tab ${selectedCategory === category ? "active" : ""}`}
@@ -488,7 +488,7 @@ return (
                             onChange={(e) => setModalData({ ...modalData, category: e.target.value })}
                             className="ecommerce-form-input"
                         >
-                            {categories.map((category) => (
+                            {CATEGORIES.map((category) => (
                                 <option key={category} value={category}>
                                     {category}
                                 </option>
