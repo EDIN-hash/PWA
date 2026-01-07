@@ -38,7 +38,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
                 
                 <div className="flex gap-2 mb-3">
                     <span className={`ecommerce-badge ${item.stan ? 'ecommerce-badge-success' : 'ecommerce-badge-danger'}`}>
-                        {item.stan ? 'In Stock' : 'Out of Stock'}
+                        {item.stan ? 'Na stanie' : 'Wyjechało'}
                     </span>
                     <span className="ecommerce-badge ecommerce-badge-primary">
                         Qty: {item.ilosc}
