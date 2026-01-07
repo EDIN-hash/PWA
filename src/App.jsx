@@ -294,9 +294,8 @@ return (
                     </div>
                             Inventory Pro
                         </a>
-                    </div>
-                    
-                    {!currentUser ? (
+                        
+                        {!currentUser ? (
                 <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto auth-section">
                     <button
                         onClick={() => setShowLoginModal(true)}
@@ -363,7 +362,9 @@ return (
                     </div>
                 </div>
             )}
-        </header>
+                    </div>
+                </div>
+            </header>
 
         {/* Category Tabs */}
         <div className="ecommerce-section">
