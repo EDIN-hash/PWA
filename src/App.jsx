@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import Card from "./Card.jsx";
 import Modal from "react-modal";
 import DatePicker from "react-datepicker";
@@ -11,9 +11,13 @@ import { generateDeviceId, getDeviceId } from "./device-utils";
 // Настройка Modal до определения компонента
 Modal.setAppElement("#root");
 
-const categories = ["Telewizory", "Lodowki", "Ekspresy", "Krzesla", "NM"];
+// Константы
+const CATEGORIES = ["Telewizory", "Lodowki", "Ekspresy", "Krzesla", "NM"];
+const STORAGE_KEYS = {
+  DARK_MODE: 'darkMode'
+};
 
-const defaultModalData = {
+const DEFAULT_MODAL_DATA = {
     name: "",
     quantity: "",
     ilosc: 1,
@@ -29,102 +33,140 @@ const defaultModalData = {
     linknadysk: "",
 };
 
-export default function App() {
-    const [currentUser, setCurrentUser] = useState(null);
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
-    const [showLoginModal, setShowLoginModal] = useState(false);
-    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
-    const [registerUsername, setRegisterUsername] = useState("");
-    const [registerPassword, setRegisterPassword] = useState("");
-    const [registerRole, setRegisterRole] = useState("spectator");
-    const [items, setItems] = useState([]);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-    const [modalData, setModalData] = useState(defaultModalData);
-    const [isItemModalOpen, setIsItemModalOpen] = useState(false);
-    const [editingItem, setEditingItem] = useState(null);
-    const [selectedCategory, setSelectedCategory] = useState("NM");
-    const [darkMode, setDarkMode] = useState(false);
-    const [SERVER_URL, setServerUrl] = useState(import.meta.env.VITE_SERVER_URL || "http://localhost:3001");
+// Утилиты
+const safeParseDate = (dateString) => {
+  if (!dateString) return null;
+  try {
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? null : date;
+  } catch (e) {
+    console.error("Invalid date format:", dateString, e);
+    return null;
+  }
+};
 
-    // Load dark mode preference from localStorage
+const formatDateToISO = (date) => {
+  if (!date) return null;
+  try {
+    return new Date(date).toISOString().split("T")[0];
+  } catch (e) {
+    console.error("Invalid date in formatDateToISO:", date, e);
+    return null;
+  }
+};
+
+export default function App() {
+    // Состояния
+    const [state, setState] = useState({
+        currentUser: null,
+        username: "",
+        password: "",
+        showLoginModal: false,
+        isRegisterModalOpen: false,
+        registerUsername: "",
+        registerPassword: "",
+        registerRole: "spectator",
+        items: [],
+        searchQuery: "",
+        isLoading: false,
+        modalData: DEFAULT_MODAL_DATA,
+        isItemModalOpen: false,
+        editingItem: null,
+        selectedCategory: "NM",
+        darkMode: false,
+        SERVER_URL: import.meta.env.VITE_SERVER_URL || "http://localhost:3001"
+    });
+
+    // Мемоизированные значения для оптимизации рендеринга
+    const {
+        currentUser, username, password, showLoginModal, isRegisterModalOpen,
+        registerUsername, registerPassword, registerRole, items, searchQuery,
+        isLoading, modalData, isItemModalOpen, editingItem, selectedCategory,
+        darkMode, SERVER_URL
+    } = state;
+
+    // Оптимизированный useEffect для darkMode
     useEffect(() => {
-        const savedDarkMode = localStorage.getItem('darkMode');
+        // Загрузка предпочтений darkMode из localStorage
+        const savedDarkMode = localStorage.getItem(STORAGE_KEYS.DARK_MODE);
         if (savedDarkMode) {
-            setDarkMode(savedDarkMode === 'true');
+            setState(prev => ({ ...prev, darkMode: savedDarkMode === 'true' }));
         }
     }, []);
 
-    // Apply dark mode class to body
     useEffect(() => {
-        if (darkMode) {
-            document.body.classList.add('dark-mode');
-        } else {
-            document.body.classList.remove('dark-mode');
-        }
-        localStorage.setItem('darkMode', darkMode);
+        // Применение класса dark-mode к body
+        document.body.classList.toggle('dark-mode', darkMode);
+        localStorage.setItem(STORAGE_KEYS.DARK_MODE, darkMode);
     }, [darkMode]);
 
-    const toggleDarkMode = () => {
-        setDarkMode(!darkMode);
-    };
+    // Мемоизированные функции для оптимизации производительности
+    const toggleDarkMode = useCallback(() => {
+        setState(prev => ({ ...prev, darkMode: !prev.darkMode }));
+    }, []);
 
-    const fetchItems = async () => {
-        setIsLoading(true);
+    // Мемоизированные функции для работы с данными
+    const fetchItems = useCallback(async () => {
+        setState(prev => ({ ...prev, isLoading: true }));
         try {
-            const items = await NeonClient.getItems(selectedCategory || null);
-            setItems(items);
+            const fetchedItems = await NeonClient.getItems(selectedCategory || null);
+            setState(prev => ({ ...prev, items: fetchedItems }));
         } catch (err) {
             console.error("Fetch items error:", err);
-            alert("Failed to load items: " + err.message);
+            alert(`Failed to load items: ${err.message}`);
         } finally {
-            setIsLoading(false);
+            setState(prev => ({ ...prev, isLoading: false }));
         }
-    };
+    }, [selectedCategory]);
 
     useEffect(() => {
         fetchItems();
-    }, [selectedCategory]);
+    }, [fetchItems]);
 
-    const handleLogin = async (e) => {
+    const handleLogin = useCallback(async (e) => {
         e.preventDefault();
         try {
             const user = await NeonClient.loginUser(username, password);
             if (user) {
-                setCurrentUser(user);
-                setUsername('');
-                setPassword('');
-                setShowLoginModal(false);
+                setState(prev => ({
+                    ...prev,
+                    currentUser: user,
+                    username: '',
+                    password: '',
+                    showLoginModal: false
+                }));
             } else {
                 alert('Invalid username or password');
             }
         } catch (err) {
             console.error("Login error:", err);
-            alert("Login failed: " + err.message);
+            alert(`Login failed: ${err.message}`);
         }
-    };
+    }, [username, password]);
 
-    const handleRegister = async (e) => {
+    const handleRegister = useCallback(async (e) => {
         e.preventDefault();
         try {
             await NeonClient.registerUser(registerUsername, registerPassword, registerRole);
             alert("Registration successful. You may log in.");
-            setIsRegisterModalOpen(false);
-            setRegisterUsername("");
-            setRegisterPassword("");
-            setRegisterRole("spectator");
+            setState(prev => ({
+                ...prev,
+                isRegisterModalOpen: false,
+                registerUsername: "",
+                registerPassword: "",
+                registerRole: "spectator"
+            }));
         } catch (err) {
             console.error("Registration error:", err);
             if (err.message.includes('Username already exists')) {
                 alert("This username is already taken. Please choose a different username.");
             } else {
-                alert("Registration failed: " + err.message);
+                alert(`Registration failed: ${err.message}`);
             }
         }
-    };
+    }, [registerUsername, registerPassword, registerRole]);
 
-    const handleLogout = async () => {
+    const handleLogout = useCallback(async () => {
         try {
             const validUrl = getValidServerUrl();
             await fetch(`${validUrl}/users/logout`, {
@@ -134,60 +176,42 @@ export default function App() {
         } catch (err) {
             console.error("Logout error:", err);
         }
-        setCurrentUser(null);
-    };
+        setState(prev => ({ ...prev, currentUser: null }));
+    }, []);
 
-    const openItemModal = (item = null) => {
-        setModalData(
-            item
+    const openItemModal = useCallback((item = null) => {
+        setState(prev => ({
+            ...prev,
+            modalData: item
                 ? {
                     ...item,
-                    dataWyjazdu: item.data_wyjazdu ? (() => {
-                        try {
-                            const date = new Date(item.data_wyjazdu);
-                            return isNaN(date.getTime()) ? null : date;
-                        } catch (e) {
-                            console.error("Invalid date format:", item.data_wyjazdu, e);
-                            return null;
-                        }
-                    })() : null,
+                    dataWyjazdu: safeParseDate(item.data_wyjazdu),
                     stan: item.stan === 1,
                 }
-                : defaultModalData
-        );
-        setEditingItem(item || null);
-        setIsItemModalOpen(true);
-    };
+                : DEFAULT_MODAL_DATA,
+            editingItem: item || null,
+            isItemModalOpen: true
+        }));
+    }, []);
 
-    const closeItemModal = () => setIsItemModalOpen(false);
+    const closeItemModal = useCallback(() => {
+        setState(prev => ({ ...prev, isItemModalOpen: false }));
+    }, []);
 
-    const handleSaveItem = async () => {
+    const handleSaveItem = useCallback(async () => {
         if (!modalData.name || !modalData.quantity) {
             alert("Name and quantity are required");
             return;
         }
-        
-        // Safe date handling
-        let dataWyjazduValue = null;
-        if (modalData.dataWyjazdu) {
-            try {
-                const date = new Date(modalData.dataWyjazdu);
-                if (!isNaN(date.getTime())) {
-                    dataWyjazduValue = date.toISOString().split("T")[0];
-                }
-            } catch (e) {
-                console.error("Invalid date in handleSaveItem:", modalData.dataWyjazdu, e);
-                dataWyjazduValue = null;
-            }
-        }
-        
+
         const itemData = {
             ...modalData,
-            data_wyjazdu: dataWyjazduValue,
+            data_wyjazdu: formatDateToISO(modalData.dataWyjazdu),
             stan: modalData.stan ? 1 : 0,
             updatedBy: currentUser?.username || "Unknown",
             deviceId: generateDeviceId()
         };
+
         try {
             if (editingItem) {
                 await NeonClient.updateItem(editingItem.name, itemData);
@@ -200,7 +224,7 @@ export default function App() {
             console.error("Save item error:", err);
             alert(err.message);
         }
-    };
+    }, [modalData, editingItem, currentUser, fetchItems, closeItemModal]);
 
 
     const handleDeleteItem = async (itemName) => {
@@ -214,72 +238,82 @@ export default function App() {
         }
     };
 
-    // Ensure items is an array before filtering
-    const itemsArray = Array.isArray(items) ? items : [];
-    
-    const filteredItems = itemsArray.filter(
-        (item) => {
+    // Мемоизированная фильтрация элементов для оптимизации производительности
+    const filteredItems = useMemo(() => {
+        const itemsArray = Array.isArray(items) ? items : [];
+        
+        if (!searchQuery.trim()) return itemsArray;
+        
+        const query = searchQuery.toLowerCase();
+        
+        return itemsArray.filter((item) => {
             if (!item || !item.name) return false;
             
-            const query = searchQuery.toLowerCase();
             const nameMatch = item.name.toLowerCase().includes(query);
             const descriptionMatch = (item.description || "").toLowerCase().includes(query);
             
-            // Search in dimensions (wysokosc, szerokosc, glebokosc)
+            // Поиск по размерам (wysokosc, szerokosc, glebokosc)
             const dimensionsMatch = 
                 (item.wysokosc && item.wysokosc.toString().includes(query)) ||
                 (item.szerokosc && item.szerokosc.toString().includes(query)) ||
                 (item.glebokosc && item.glebokosc.toString().includes(query));
             
             return nameMatch || descriptionMatch || dimensionsMatch;
-        }
-    );
+        });
+    }, [items, searchQuery]);
 
-    const renderItemFormField = ([label, key, type = "input"]) => (
-        <div className="form-control" key={key}>
-            <label className="label">
-                <span className="label-text text-white">{label}</span>
-            </label>
-            {type === "textarea" ? (
-                <textarea
-                    value={modalData[key]}
-                    onChange={(e) => setModalData({ ...modalData, [key]: e.target.value })}
-                    className="textarea textarea-bordered h-24 w-full bg-gray-700 border-gray-600 text-white"
-                />
-            ) : key === "category" ? (
-                <select
-                    value={modalData[key]}
-                    onChange={(e) => setModalData({ ...modalData, [key]: e.target.value })}
-                    className="select select-bordered w-full bg-gray-700 border-gray-600 text-white"
-                >
-                    {categories.map((category) => (
-                        <option key={category} value={category}>
-                            {category}
-                        </option>
-                    ))}
-                </select>
-            ) : (
-                <input
-                    type={
-                        ["ilosc", "wysokosc", "szerokosc", "glebokosc"].includes(key)
-                            ? "number"
-                            : "text"
-                    }
-                    value={modalData[key]}
-                    onChange={(e) =>
-                        setModalData({
-                            ...modalData,
-                            [key]:
-                                ["name", "quantity", "description", "photo_url", "linknadysk", "stoisko"].includes(key)
-                                    ? e.target.value
-                                    : Number(e.target.value),
-                        })
-                    }
-                    className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
-                />
-            )}
-        </div>
-    );
+    // Мемоизированный рендеринг полей формы для оптимизации производительности
+    const renderItemFormField = useCallback(([label, key, type = "input"]) => {
+        const numericFields = ["ilosc", "wysokosc", "szerokosc", "glebokosc"];
+        const textFields = ["name", "quantity", "description", "photo_url", "linknadysk", "stoisko"];
+        
+        const handleChange = (e) => {
+            setState(prev => ({
+                ...prev,
+                modalData: {
+                    ...prev.modalData,
+                    [key]: textFields.includes(key) ? e.target.value : Number(e.target.value)
+                }
+            }));
+        };
+
+        return (
+            <div className="form-control" key={key}>
+                <label className="label">
+                    <span className="label-text text-white">{label}</span>
+                </label>
+                {type === "textarea" ? (
+                    <textarea
+                        value={modalData[key]}
+                        onChange={handleChange}
+                        className="textarea textarea-bordered h-24 w-full bg-gray-700 border-gray-600 text-white"
+                    />
+                ) : key === "category" ? (
+                    <select
+                        value={modalData[key]}
+                        onChange={(e) => setState(prev => ({
+                            ...prev,
+                            modalData: { ...prev.modalData, [key]: e.target.value }
+                        }))}
+                        className="select select-bordered w-full bg-gray-700 border-gray-600 text-white"
+                    >
+                        {CATEGORIES.map((category) => (
+                            <option key={category} value={category}>
+                                {category}
+                            </option>
+                        ))}
+                    </select>
+                ) : (
+                    <input
+                        type={numericFields.includes(key) ? "number" : "text"}
+                        value={modalData[key]}
+                        onChange={handleChange}
+                        className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
+                    />
+                )}
+            </div>
+        );
+    }, [modalData]);
 
 return (
     <div className="min-h-screen ecommerce-body p-2 sm:p-6 transition-colors duration-300 ecommerce-container flex flex-col">
