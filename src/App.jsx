@@ -4,6 +4,7 @@ import Modal from "react-modal";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./styles.css";
+import "./ecommerce-styles.css";
 import NeonClient from "./neon-client";
 import { generateDeviceId, getDeviceId } from "./device-utils";
 
@@ -281,50 +282,82 @@ export default function App() {
     );
 
 return (
-    <div className="min-h-screen bg-black p-2 sm:p-6 transition-colors duration-300 main-container flex flex-col gradient-bg">
-        <header className="header-section flex flex-col sm:flex-row justify-between items-center mb-4 gap-2 header-modern glass-effect">
-            <div className="flex items-center gap-4 w-full">
-                <h1 className="text-2xl sm:text-3xl font-bold main-title text-center sm:text-left text-gradient fade-in-up green-accent">
-                    Inventory Management
-                </h1>
-                 </div>
-            
-            {!currentUser ? (
+    <div className="min-h-screen ecommerce-body p-2 sm:p-6 transition-colors duration-300 ecommerce-container flex flex-col">
+        <header className="ecommerce-header">
+            <div className="ecommerce-navbar">
+                <div className="flex items-center gap-4 w-full">
+                    <a href="/" className="ecommerce-logo">
+                        <div className="ecommerce-logo-icon">
+                        <svg className="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
+                        </svg>
+                    </div>
+                            Inventory Pro
+                        </a>
+                    </div>
+                    
+                    {!currentUser ? (
                 <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto auth-section">
                     <button
                         onClick={() => setShowLoginModal(true)}
-                        className="btn btn-primary w-full sm:w-auto ripple hover-lift"
+                        className="ecommerce-btn-primary w-full sm:w-auto"
                     >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                        </svg>
                         Login
                     </button>
                     <button
                         onClick={() => setIsRegisterModalOpen(true)}
-                        className="btn btn-secondary w-full sm:w-auto ripple hover-lift"
+                        className="ecommerce-btn-secondary w-full sm:w-auto"
                     >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                        </svg>
                         Register
                     </button>
                 </div>
             ) : (
                 <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
-                    <input
-                        type="text"
-                        placeholder="Search..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="input input-bordered w-full"
-                    />
+                    <div className="ecommerce-search">
+                        <svg className="ecommerce-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <input
+                            type="text"
+                            placeholder="Search products..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="ecommerce-search-input w-full"
+                        />
+                    </div>
                     {currentUser.role === "admin" && (
                         <button
                             onClick={() => openItemModal()}
-                            className="btn btn-success w-full sm:w-auto ripple hover-lift bounce-in"
+                            className="ecommerce-btn-primary w-full sm:w-auto"
                         >
-                            Add Item
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            Add Product
                         </button>
                     )}
-                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-                        <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Logged in as: {currentUser.username}</span>
-                        <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Role: {currentUser.role}</span>
-                        <button onClick={handleLogout} className="btn btn-error w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
+                                <svg className="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div className="font-semibold text-white">{currentUser.username}</div>
+                                <div className="text-sm text-indigo-100 capitalize">{currentUser.role}</div>
+                            </div>
+                        </div>
+                        <button onClick={handleLogout} className="ecommerce-btn-secondary w-full sm:w-auto">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
                             Logout
                         </button>
                     </div>
@@ -333,12 +366,12 @@ return (
         </header>
 
         {/* Category Tabs */}
-        <div className="tabs-section pb-2">
-            <div className="tabs-container flex flex-wrap gap-2 justify-center">
+        <div className="ecommerce-section">
+            <div className="ecommerce-tabs">
                 {categories.map((category) => (
                     <button
                         key={category}
-                        className={`tab-modern text-sm sm:text-base px-4 py-2 rounded-md ${selectedCategory === category ? "active" : ""} slide-in`}
+                        className={`ecommerce-tab ${selectedCategory === category ? "active" : ""}`}
                         onClick={() => setSelectedCategory(category)}
                     >
                         {category}
@@ -350,10 +383,15 @@ return (
         {/* Items Grid */}
         {isLoading ? (
             <div className="flex justify-center py-8">
-                <div className="loading-pulse"></div>
+                <div className="ecommerce-fade-in">
+                    <svg className="w-12 h-12 text-indigo-600 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
             </div>
         ) : (
-            <div className="items-grid grid-modern">
+            <div className="ecommerce-grid">
                 {filteredItems.map((item) => (
                     <Card
                         key={item.name}
@@ -370,28 +408,79 @@ return (
         <Modal
             isOpen={isItemModalOpen}
             onRequestClose={closeItemModal}
-            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 login-modal-dark"
-            overlayClassName="modal-backdrop p-2 sm:p-0"
+            className="ecommerce-modal mx-auto mt-8 mb-4"
+            overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
             contentLabel="Item Modal"
         >
             <>
-                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">
-                    {editingItem ? "Edit Item" : "Add New Item"}
-                </h2>
-                <div className="grid grid-cols-1 gap-3 sm:gap-4 modal-content">
-                    {[
-                        ["Name", "name"],
-                        ["Ilość", "ilosc"],
-                        ["Category", "category"],
-                        ["Description", "description", "textarea"],
-                        ["Photo URL", "photo_url"],
-                        ["Stoisko", "stoisko"],
-                        ["Height (cm)", "wysokosc"],
-                        ["Width (cm)", "szerokosc"],
-                        ["Depth (cm)", "glebokosc"],
-                        ["Google Drive Link", "linknadysk"],
-                        ["Quantity (разновидность)", "quantity"],
-                    ].map(renderItemFormField)}
+                <div className="ecommerce-modal-header">
+                    <h2 className="ecommerce-modal-title">
+                        {editingItem ? "Edit Product" : "Add New Product"}
+                    </h2>
+                    <button onClick={closeItemModal} className="ecommerce-modal-close">
+                        ×
+                    </button>
+                </div>
+                <div className="space-y-4">
+                    <div className="ecommerce-form-group">
+                        <label className="ecommerce-form-label">Product Name</label>
+                        <input
+                            type="text"
+                            value={modalData.name}
+                            onChange={(e) => setModalData({ ...modalData, name: e.target.value })}
+                            className="ecommerce-form-input"
+                            placeholder="Enter product name"
+                            required
+                        />
+                    </div>
+                    
+                    <div className="ecommerce-form-group">
+                        <label className="ecommerce-form-label">Quantity</label>
+                        <input
+                            type="number"
+                            value={modalData.ilosc}
+                            onChange={(e) => setModalData({ ...modalData, ilosc: Number(e.target.value) })}
+                            className="ecommerce-form-input"
+                            placeholder="Enter quantity"
+                            min="0"
+                        />
+                    </div>
+                    
+                    <div className="ecommerce-form-group">
+                        <label className="ecommerce-form-label">Category</label>
+                        <select
+                            value={modalData.category}
+                            onChange={(e) => setModalData({ ...modalData, category: e.target.value })}
+                            className="ecommerce-form-input"
+                        >
+                            {categories.map((category) => (
+                                <option key={category} value={category}>
+                                    {category}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    
+                    <div className="ecommerce-form-group">
+                        <label className="ecommerce-form-label">Description</label>
+                        <textarea
+                            value={modalData.description}
+                            onChange={(e) => setModalData({ ...modalData, description: e.target.value })}
+                            className="ecommerce-form-input h-32"
+                            placeholder="Enter product description"
+                        />
+                    </div>
+                    
+                    <div className="ecommerce-form-group">
+                        <label className="ecommerce-form-label">Photo URL</label>
+                        <input
+                            type="text"
+                            value={modalData.photo_url}
+                            onChange={(e) => setModalData({ ...modalData, photo_url: e.target.value })}
+                            className="ecommerce-form-input"
+                            placeholder="https://example.com/image.jpg"
+                        />
+                    </div>
                     <div className="form-control">
                         <label className="form-label text-white text-sm sm:text-base">Data Wyjazdu</label>
                         <DatePicker
@@ -415,12 +504,15 @@ return (
                         </label>
                     </div>
                 </div>
-                <div className="button-group mt-4 flex gap-2">
-                    <button onClick={closeItemModal} className="btn btn-ghost bg-gray-600 hover:bg-gray-500 text-white w-full sm:w-auto">
+                <div className="flex gap-2 mt-6">
+                    <button onClick={closeItemModal} className="ecommerce-btn-secondary w-full sm:w-auto">
                         Cancel
                     </button>
-                    <button onClick={handleSaveItem} className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
-                        Save
+                    <button onClick={handleSaveItem} className="ecommerce-btn-primary w-full sm:w-auto">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                        </svg>
+                        Save Product
                     </button>
                 </div>
             </>
@@ -430,42 +522,52 @@ return (
         <Modal
             isOpen={showLoginModal}
             onRequestClose={() => setShowLoginModal(false)}
-            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 login-modal-dark"
-            overlayClassName="modal-backdrop p-2 sm:p-0"
+            className="ecommerce-modal mx-auto mt-8 mb-4"
+            overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
             contentLabel="Login Modal"
         >
             <>
-                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">Login</h2>
-                <form onSubmit={handleLogin} className="space-y-3 sm:space-y-4">
-                    <div className="form-control">
-                        <label className="form-label text-sm sm:text-base text-white">Username</label>
+                <div className="ecommerce-modal-header">
+                    <h2 className="ecommerce-modal-title">Welcome Back</h2>
+                    <button onClick={() => setShowLoginModal(false)} className="ecommerce-modal-close">
+                        ×
+                    </button>
+                </div>
+                <form onSubmit={handleLogin} className="space-y-4">
+                    <div className="ecommerce-form-group">
+                        <label className="ecommerce-form-label">Username</label>
                         <input
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
+                            className="ecommerce-form-input"
+                            placeholder="Enter your username"
                             required
                         />
                     </div>
-                    <div className="form-control">
-                        <label className="form-label text-sm sm:text-base text-white">Password</label>
+                    <div className="ecommerce-form-group">
+                        <label className="ecommerce-form-label">Password</label>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
+                            className="ecommerce-form-input"
+                            placeholder="Enter your password"
                             required
                         />
                     </div>
-                    <div className="button-group mt-4 flex gap-2">
+                    <div className="flex gap-2 mt-6">
                         <button
                             type="button"
                             onClick={() => setShowLoginModal(false)}
-                            className="btn btn-ghost bg-gray-600 hover:bg-gray-500 text-white w-full sm:w-auto"
+                            className="ecommerce-btn-secondary w-full sm:w-auto"
                         >
                             Cancel
                         </button>
-                        <button type="submit" className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
+                        <button type="submit" className="ecommerce-btn-primary w-full sm:w-auto">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                            </svg>
                             Login
                         </button>
                     </div>
@@ -477,54 +579,64 @@ return (
         <Modal
             isOpen={isRegisterModalOpen}
             onRequestClose={() => setIsRegisterModalOpen(false)}
-            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 login-modal-dark"
-            overlayClassName="modal-backdrop p-2 sm:p-0"
+            className="ecommerce-modal mx-auto mt-8 mb-4"
+            overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
             contentLabel="Register Modal"
         >
             <>
-                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">Register New User</h2>
-                <form onSubmit={handleRegister} className="space-y-3 sm:space-y-4">
-                    <div className="form-control">
-                        <label className="form-label text-sm sm:text-base text-white">Username</label>
+                <div className="ecommerce-modal-header">
+                    <h2 className="ecommerce-modal-title">Create Account</h2>
+                    <button onClick={() => setIsRegisterModalOpen(false)} className="ecommerce-modal-close">
+                        ×
+                    </button>
+                </div>
+                <form onSubmit={handleRegister} className="space-y-4">
+                    <div className="ecommerce-form-group">
+                        <label className="ecommerce-form-label">Username</label>
                         <input
                             type="text"
                             value={registerUsername}
                             onChange={(e) => setRegisterUsername(e.target.value)}
-                            className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
+                            className="ecommerce-form-input"
+                            placeholder="Choose a username"
                             required
                         />
                     </div>
-                    <div className="form-control">
-                        <label className="form-label text-sm sm:text-base text-white">Password</label>
+                    <div className="ecommerce-form-group">
+                        <label className="ecommerce-form-label">Password</label>
                         <input
                             type="password"
                             value={registerPassword}
                             onChange={(e) => setRegisterPassword(e.target.value)}
-                            className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
+                            className="ecommerce-form-input"
+                            placeholder="Create a password"
                             required
                         />
                     </div>
-                    <div className="form-control">
-                        <label className="form-label text-sm sm:text-base text-white">Role</label>
+                    <div className="ecommerce-form-group">
+                        <label className="ecommerce-form-label">Role</label>
                         <select
                             value={registerRole}
                             onChange={(e) => setRegisterRole(e.target.value)}
-                            className="select select-bordered w-full bg-gray-700 border-gray-600 text-white"
+                            className="ecommerce-form-input"
                         >
                             <option value="spectator">Spectator</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
-                    <div className="button-group mt-4 flex gap-2">
+                    <div className="flex gap-2 mt-6">
                         <button
                             type="button"
                             onClick={() => setIsRegisterModalOpen(false)}
-                            className="btn btn-ghost bg-gray-600 hover:bg-gray-500 text-white w-full sm:w-auto"
+                            className="ecommerce-btn-secondary w-full sm:w-auto"
                         >
                             Cancel
                         </button>
-                        <button type="submit" className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
-                            Register
+                        <button type="submit" className="ecommerce-btn-primary w-full sm:w-auto">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                            </svg>
+                            Create Account
                         </button>
                     </div>
                 </form>
