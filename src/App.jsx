@@ -150,7 +150,7 @@ export default function App() {
                             return null;
                         }
                     })() : null,
-                    stan: item.stan === 1,
+                    stan: item.stan === 1 || item.stan === true,
                 }
                 : defaultModalData
         );

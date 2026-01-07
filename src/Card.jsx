@@ -21,8 +21,8 @@ export default function Card({ item, editItem, deleteItem, role }) {
                 </div>
                 
                 <div className="flex justify-between items-center mb-3">
-                    <span className={`badge-modern ${item.stan ? 'bg-green-900/50 border-green-500/50 text-green-400' : 'bg-red-900/50 border-red-500/50 text-red-400'}`}>
-                        {item.stan ? 'Na stanie' : 'Wyjechało'}
+                    <span className={`badge-modern ${item.stan === 1 || item.stan === true ? 'bg-green-900/50 border-green-500/50 text-green-400' : 'bg-red-900/50 border-red-500/50 text-red-400'}`}>
+                        {item.stan === 1 || item.stan === true ? 'Na stanie' : 'Wyjechało'}
                     </span>
                     <span className="badge-modern bg-blue-900/50 border-blue-500/50 text-blue-400">
                         Ilość: {item.ilosc}
