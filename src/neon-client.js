@@ -51,9 +51,9 @@ const NeonClient = {
             INSERT INTO items (
                 name, quantity, ilosc, description, photo_url, category,
                 wysokosc, szerokosc, glebokosc, data_wyjazdu, stan, linknadysk,
-                updatedAt, updatedBy, deviceId, stoisko
+                updatedAt, updatedBy, deviceId, deviceInfo, stoisko
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
             ) RETURNING *
         `;
         
@@ -73,6 +73,7 @@ const NeonClient = {
             new Date().toISOString(),
             item.updatedBy || 'Unknown',
             item.deviceId || 'Unknown',
+            item.deviceInfo || '',
             item.stoisko || ''
         ];
         
@@ -97,8 +98,9 @@ const NeonClient = {
                 updatedAt = $12,
                 updatedBy = $13,
                 deviceId = $14,
-                stoisko = $15
-            WHERE name = $16 RETURNING *
+                deviceInfo = $15,
+                stoisko = $16
+            WHERE name = $17 RETURNING *
         `;
         
         const params = [
@@ -116,6 +118,7 @@ const NeonClient = {
             new Date().toISOString(),
             item.updatedBy || 'Unknown',
             item.deviceId || 'Unknown',
+            item.deviceInfo || '',
             item.stoisko || '',
             name
         ];

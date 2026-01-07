@@ -5,6 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./styles.css";
 import NeonClient from "./neon-client";
+import { generateDeviceId, getDeviceInfo } from "./device-utils";
 
 // Настройка Modal до определения компонента
 Modal.setAppElement("#root");
@@ -163,7 +164,8 @@ export default function App() {
                 : null,
             stan: modalData.stan ? 1 : 0,
             updatedBy: currentUser?.username || "Unknown",
-            deviceId: navigator.userAgent || "Unknown"
+            deviceId: generateDeviceId(),
+            deviceInfo: getDeviceInfo()
         };
         try {
             if (editingItem) {
