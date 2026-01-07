@@ -46,6 +46,8 @@ export default function App() {
     const [selectedCategory, setSelectedCategory] = useState("NM");
     const [darkMode, setDarkMode] = useState(false);
     const [SERVER_URL, setServerUrl] = useState(import.meta.env.VITE_SERVER_URL || "http://localhost:3001");
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+    const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'na-stanie', 'wyjechalo'
 
     // Load dark mode preference from localStorage
     useEffect(() => {
@@ -216,7 +218,8 @@ export default function App() {
     // Ensure items is an array before filtering
     const itemsArray = Array.isArray(items) ? items : [];
     
-    const filteredItems = itemsArray.filter(
+    // Filter by search query
+    const searchFilteredItems = itemsArray.filter(
         (item) => {
             if (!item || !item.name) return false;
             
@@ -233,6 +236,30 @@ export default function App() {
             return nameMatch || descriptionMatch || dimensionsMatch;
         }
     );
+    
+    // Filter by status
+    const statusFilteredItems = searchFilteredItems.filter(item => {
+        if (statusFilter === 'all') return true;
+        if (statusFilter === 'na-stanie') return item.stan === 1 || item.stan === true;
+        if (statusFilter === 'wyjechalo') return item.stan === 0 || item.stan === false || item.stan === null || item.stan === undefined;
+        return true;
+    });
+    
+    // Sort items
+    const filteredItems = [...statusFilteredItems].sort((a, b) => {
+        if (!sortConfig.key) return 0;
+        
+        const aValue = a[sortConfig.key] || 0;
+        const bValue = b[sortConfig.key] || 0;
+        
+        if (aValue < bValue) {
+            return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+            return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+    });
 
     const renderItemFormField = ([label, key, type = "input"]) => (
         <div className="form-control" key={key}>
@@ -344,6 +371,93 @@ return (
                         {category}
                     </button>
                 ))}
+            </div>
+        </div>
+
+        {/* Sorting and Filter Controls */}
+        <div className="controls-section mb-4 p-3 bg-gray-900/50 rounded-lg border border-gray-700">
+            <div className="flex flex-wrap gap-3 items-center justify-center">
+                {/* Status Filter */}
+                <div className="filter-group">
+                    <span className="text-white text-sm font-medium mr-2">Status:</span>
+                    <button
+                        className={`filter-btn ${statusFilter === 'all' ? 'active-filter' : ''}`}
+                        onClick={() => setStatusFilter('all')}
+                    >
+                        Wszystkie
+                    </button>
+                    <button
+                        className={`filter-btn ${statusFilter === 'na-stanie' ? 'active-filter' : ''} bg-green-900/50 border-green-500/50 text-green-400`}
+                        onClick={() => setStatusFilter('na-stanie')}
+                    >
+                        Na stanie
+                    </button>
+                    <button
+                        className={`filter-btn ${statusFilter === 'wyjechalo' ? 'active-filter' : ''} bg-red-900/50 border-red-500/50 text-red-400`}
+                        onClick={() => setStatusFilter('wyjechalo')}
+                    >
+                        Wyjechało
+                    </button>
+                </div>
+
+                {/* Sorting Controls */}
+                <div className="sort-group">
+                    <span className="text-white text-sm font-medium mr-2">Sortuj:</span>
+                    <button
+                        className={`sort-btn ${sortConfig.key === 'wysokosc' ? 'active-sort' : ''}`}
+                        onClick={() => {
+                            if (sortConfig.key === 'wysokosc') {
+                                setSortConfig({ key: 'wysokosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+                            } else {
+                                setSortConfig({ key: 'wysokosc', direction: 'asc' });
+                            }
+                        }}
+                    >
+                        Wysokość {sortConfig.key === 'wysokosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </button>
+                    <button
+                        className={`sort-btn ${sortConfig.key === 'szerokosc' ? 'active-sort' : ''}`}
+                        onClick={() => {
+                            if (sortConfig.key === 'szerokosc') {
+                                setSortConfig({ key: 'szerokosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+                            } else {
+                                setSortConfig({ key: 'szerokosc', direction: 'asc' });
+                            }
+                        }}
+                    >
+                        Szerokość {sortConfig.key === 'szerokosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </button>
+                    <button
+                        className={`sort-btn ${sortConfig.key === 'glebokosc' ? 'active-sort' : ''}`}
+                        onClick={() => {
+                            if (sortConfig.key === 'glebokosc') {
+                                setSortConfig({ key: 'glebokosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+                            } else {
+                                setSortConfig({ key: 'glebokosc', direction: 'asc' });
+                            }
+                        }}
+                    >
+                        Głębokość {sortConfig.key === 'glebokosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </button>
+                    <button
+                        className={`sort-btn ${sortConfig.key === 'ilosc' ? 'active-sort' : ''}`}
+                        onClick={() => {
+                            if (sortConfig.key === 'ilosc') {
+                                setSortConfig({ key: 'ilosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+                            } else {
+                                setSortConfig({ key: 'ilosc', direction: 'asc' });
+                            }
+                        }}
+                    >
+                        Ilość {sortConfig.key === 'ilosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </button>
+                    <button
+                        className={`sort-btn ${sortConfig.key === null ? 'active-sort' : ''}`}
+                        onClick={() => setSortConfig({ key: null, direction: 'asc' })}
+                    >
+                        Reset
+                    </button>
+                </div>
             </div>
         </div>
 
