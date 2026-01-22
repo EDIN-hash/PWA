@@ -370,6 +370,19 @@ return (
                             Add Item
                         </button>
                     )}
+                    <button
+                        onClick={() => {
+                            const firstItemWithPhoto = items.find(item => item.photo_url);
+                            if (firstItemWithPhoto) {
+                                window.open(firstItemWithPhoto.photo_url, '_blank');
+                            } else {
+                                alert('No items with photo URLs found');
+                            }
+                        }}
+                        className="btn btn-info w-full sm:w-auto ripple hover-lift"
+                    >
+                        Open Main Photo
+                    </button>
                     <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                         <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Logged in as: {currentUser.username}</span>
                         <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Role: {currentUser.role}</span>

@@ -24,9 +24,6 @@ export default function NMCard({ item, editItem, deleteItem, role }) {
                     <span className={`badge-modern ${item.stan === 1 || item.stan === true ? 'bg-green-900/50 border-green-500/50 text-green-400' : 'bg-red-900/50 border-red-500/50 text-red-400'}`}>
                         {item.stan === 1 || item.stan === true ? 'Na stanie' : 'Wyjechało'}
                     </span>
-                    <span className="badge-modern bg-blue-900/50 border-blue-500/50 text-blue-400">
-                        Ilość: {item.ilosc}
-                    </span>
                 </div>
                 
                 {item.photo_url && (
@@ -54,47 +51,19 @@ export default function NMCard({ item, editItem, deleteItem, role }) {
                         </div>
                     )}
                     
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-slate-600">
-                        <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121M12 12l2.879 2.879"></path>
-                            </svg>
-                            <div>
-                                <div className="text-xs text-slate-500">Wysokość</div>
-                                <div className="font-medium">{item.wysokosc || '-'}&nbsp;cm</div>
-                            </div>
+                    {item.photo_url && (
+                        <div className="pt-2">
+                            <button
+                                onClick={() => window.open(item.photo_url, '_blank')}
+                                className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-medium text-sm transition-colors"
+                            >
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                </svg>
+                                Open Photo Link
+                            </button>
                         </div>
-                        
-                        <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121M12 12l2.879 2.879"></path>
-                            </svg>
-                            <div>
-                                <div className="text-xs text-slate-500">Szerokość</div>
-                                <div className="font-medium">{item.szerokosc || '-'}&nbsp;cm</div>
-                            </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121M12 12l2.879 2.879"></path>
-                            </svg>
-                            <div>
-                                <div className="text-xs text-slate-500">Głębokość</div>
-                                <div className="font-medium">{item.glebokosc || '-'}&nbsp;cm</div>
-                            </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 col-span-2">
-                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            <div>
-                                <div className="text-xs text-slate-500">Data wyjazdu</div>
-                                <div className="font-medium">{item.data_wyjazdu || '-'}</div>
-                            </div>
-                        </div>
-                    </div>
+                    )}
                     
                     {item.linknadysk && (
                         <div className="pt-2">
