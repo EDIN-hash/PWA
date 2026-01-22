@@ -312,6 +312,23 @@ export default function App() {
         </div>
     );
 
+    // Function to get the appropriate card component based on category
+    const getCardComponent = (item) => {
+        switch (item.category) {
+            case "Telewizory":
+                return TelewizoryCard;
+            case "Lodowki":
+                return LodowkiCard;
+            case "Ekspresy":
+                return EkspresyCard;
+            case "Krzesla":
+                return KrzeslaCard;
+            case "NM":
+            default:
+                return NMCard;
+        }
+    };
+
 return (
     <div className="min-h-screen bg-black p-2 sm:p-6 transition-colors duration-300 main-container flex flex-col gradient-bg">
         <header className="header-section flex flex-col sm:flex-row justify-between items-center mb-4 gap-2 header-modern glass-effect">
@@ -465,23 +482,6 @@ return (
                 </div>
             </div>
         </div>
-
-        {/* Function to get the appropriate card component based on category */}
-        const getCardComponent = (item) => {
-            switch (item.category) {
-                case "Telewizory":
-                    return TelewizoryCard;
-                case "Lodowki":
-                    return LodowkiCard;
-                case "Ekspresy":
-                    return EkspresyCard;
-                case "Krzesla":
-                    return KrzeslaCard;
-                case "NM":
-                default:
-                    return NMCard;
-            }
-        };
 
         {/* Items Grid */}
         {isLoading ? (
