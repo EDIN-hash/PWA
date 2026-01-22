@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from "react";
 import Card from "./Card.jsx";
+import TelewizoryCard from "./category-cards/TelewizoryCard.jsx";
+import LodowkiCard from "./category-cards/LodowkiCard.jsx";
+import EkspresyCard from "./category-cards/EkspresyCard.jsx";
+import KrzeslaCard from "./category-cards/KrzeslaCard.jsx";
+import NMCard from "./category-cards/NMCard.jsx";
 import Modal from "react-modal";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -461,6 +466,23 @@ return (
             </div>
         </div>
 
+        {/* Function to get the appropriate card component based on category */}
+        const getCardComponent = (item) => {
+            switch (item.category) {
+                case "Telewizory":
+                    return TelewizoryCard;
+                case "Lodowki":
+                    return LodowkiCard;
+                case "Ekspresy":
+                    return EkspresyCard;
+                case "Krzesla":
+                    return KrzeslaCard;
+                case "NM":
+                default:
+                    return NMCard;
+            }
+        };
+
         {/* Items Grid */}
         {isLoading ? (
             <div className="flex justify-center py-8">
@@ -468,15 +490,18 @@ return (
             </div>
         ) : (
             <div className="items-grid grid-modern">
-                {filteredItems.map((item) => (
-                    <Card
-                        key={item.name}
-                        item={item}
-                        editItem={openItemModal}
-                        deleteItem={handleDeleteItem}
-                        role={currentUser?.role}
-                    />
-                ))}
+                {filteredItems.map((item) => {
+                    const CardComponent = getCardComponent(item);
+                    return (
+                        <CardComponent
+                            key={item.name}
+                            item={item}
+                            editItem={openItemModal}
+                            deleteItem={handleDeleteItem}
+                            role={currentUser?.role}
+                        />
+                    );
+                })}
             </div>
         )}
 
