@@ -73,14 +73,15 @@ export default function NMModal({
                     {editingItem ? "Edit Other Item" : "Add New Other Item"}
                 </h2>
                 <div className="grid grid-cols-1 gap-3 sm:gap-4 modal-content">
-                    {["Name", "name"],
-                    ["Category", "category"],
-                    ["Description", "description", "textarea"],
-                    ["Photo URL", "photo_url"],
-                    ["Stoisko", "stoisko"],
-                    ["Google Drive Link", "linknadysk"],
-                    ["Quantity (разновидность)", "quantity"],
-                ]).map(renderItemFormField)
+                    {[
+                        ["Name", "name"],
+                        ["Category", "category"],
+                        ["Description", "description", "textarea"],
+                        ["Photo URL", "photo_url"],
+                        ["Stoisko", "stoisko"],
+                        ["Google Drive Link", "linknadysk"],
+                        ["Quantity (разновидность)", "quantity"],
+                    ].map(renderItemFormField)}
                     <div className="form-control">
                         <label className="form-label text-white text-sm sm:text-base">Data Wyjazdu</label>
                         <DatePicker
