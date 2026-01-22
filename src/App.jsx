@@ -8,6 +8,11 @@ import NMCard from "./category-cards/NMCard.jsx";
 import Modal from "react-modal";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import TelewizoryModal from "./category-modals/TelewizoryModal.jsx";
+import LodowkiModal from "./category-modals/LodowkiModal.jsx";
+import EkspresyModal from "./category-modals/EkspresyModal.jsx";
+import KrzeslaModal from "./category-modals/KrzeslaModal.jsx";
+import NMModal from "./category-modals/NMModal.jsx";
 import "./styles.css";
 import NeonClient from "./neon-client";
 import { generateDeviceId, getDeviceId } from "./device-utils";
@@ -144,6 +149,7 @@ export default function App() {
     };
 
     const openItemModal = (item = null) => {
+        const category = item ? item.category : selectedCategory;
         setModalData(
             item
                 ? {
@@ -159,7 +165,7 @@ export default function App() {
                     })() : null,
                     stan: item.stan === 1 || item.stan === true,
                 }
-                : defaultModalData
+                : { ...defaultModalData, category: category }
         );
         setEditingItem(item || null);
         setIsItemModalOpen(true);
@@ -370,19 +376,7 @@ return (
                             Add Item
                         </button>
                     )}
-                    <button
-                        onClick={() => {
-                            const firstItemWithPhoto = items.find(item => item.photo_url);
-                            if (firstItemWithPhoto) {
-                                window.open(firstItemWithPhoto.photo_url, '_blank');
-                            } else {
-                                alert('No items with photo URLs found');
-                            }
-                        }}
-                        className="btn btn-info w-full sm:w-auto ripple hover-lift"
-                    >
-                        Open Main Photo
-                    </button>
+
                     <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                         <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Logged in as: {currentUser.username}</span>
                         <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Role: {currentUser.role}</span>
@@ -518,65 +512,61 @@ return (
             </div>
         )}
 
-        {/* Item Modal */}
-        <Modal
-            isOpen={isItemModalOpen}
-            onRequestClose={closeItemModal}
-            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 login-modal-dark"
-            overlayClassName="modal-backdrop p-2 sm:p-0"
-            contentLabel="Item Modal"
-        >
-            <>
-                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">
-                    {editingItem ? "Edit Item" : "Add New Item"}
-                </h2>
-                <div className="grid grid-cols-1 gap-3 sm:gap-4 modal-content">
-                    {[
-                        ["Name", "name"],
-                        ["Ilość", "ilosc"],
-                        ["Category", "category"],
-                        ["Description", "description", "textarea"],
-                        ["Photo URL", "photo_url"],
-                        ["Stoisko", "stoisko"],
-                        ["Height (cm)", "wysokosc"],
-                        ["Width (cm)", "szerokosc"],
-                        ["Depth (cm)", "glebokosc"],
-                        ["Google Drive Link", "linknadysk"],
-                        ["Quantity (разновидность)", "quantity"],
-                    ].map(renderItemFormField)}
-                    <div className="form-control">
-                        <label className="form-label text-white text-sm sm:text-base">Data Wyjazdu</label>
-                        <DatePicker
-                            selected={modalData.dataWyjazdu && new Date(modalData.dataWyjazdu) instanceof Date && !isNaN(new Date(modalData.dataWyjazdu).getTime()) ? new Date(modalData.dataWyjazdu) : null}
-                            onChange={(date) => setModalData({ ...modalData, dataWyjazdu: date })}
-                            className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
-                            dateFormat="yyyy-MM-dd"
-                            isClearable
-                            placeholderText="Select a date"
-                        />
-                    </div>
-                    <div className="form-control">
-                        <label className="form-label cursor-pointer text-white text-sm sm:text-base">
-                            <span className="label-text text-white">Na stanie?</span>
-                            <input
-                                type="checkbox"
-                                checked={modalData.stan}
-                                onChange={(e) => setModalData({ ...modalData, stan: e.target.checked })}
-                                className="checkbox"
-                            />
-                        </label>
-                    </div>
-                </div>
-                <div className="button-group mt-4 flex gap-2">
-                    <button onClick={closeItemModal} className="btn btn-ghost bg-gray-600 hover:bg-gray-500 text-white w-full sm:w-auto">
-                        Cancel
-                    </button>
-                    <button onClick={handleSaveItem} className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
-                        Save
-                    </button>
-                </div>
-            </>
-        </Modal>
+        {/* Category-specific Modals */}
+        {modalData.category === "Telewizory" && (
+            <TelewizoryModal
+                isOpen={isItemModalOpen}
+                onRequestClose={closeItemModal}
+                modalData={modalData}
+                setModalData={setModalData}
+                handleSaveItem={handleSaveItem}
+                editingItem={editingItem}
+            />
+        )}
+        
+        {modalData.category === "Lodowki" && (
+            <LodowkiModal
+                isOpen={isItemModalOpen}
+                onRequestClose={closeItemModal}
+                modalData={modalData}
+                setModalData={setModalData}
+                handleSaveItem={handleSaveItem}
+                editingItem={editingItem}
+            />
+        )}
+        
+        {modalData.category === "Ekspresy" && (
+            <EkspresyModal
+                isOpen={isItemModalOpen}
+                onRequestClose={closeItemModal}
+                modalData={modalData}
+                setModalData={setModalData}
+                handleSaveItem={handleSaveItem}
+                editingItem={editingItem}
+            />
+        )}
+        
+        {modalData.category === "Krzesla" && (
+            <KrzeslaModal
+                isOpen={isItemModalOpen}
+                onRequestClose={closeItemModal}
+                modalData={modalData}
+                setModalData={setModalData}
+                handleSaveItem={handleSaveItem}
+                editingItem={editingItem}
+            />
+        )}
+        
+        {modalData.category === "NM" && (
+            <NMModal
+                isOpen={isItemModalOpen}
+                onRequestClose={closeItemModal}
+                modalData={modalData}
+                setModalData={setModalData}
+                handleSaveItem={handleSaveItem}
+                editingItem={editingItem}
+            />
+        )}
 
         {/* Login Modal */}
         <Modal
