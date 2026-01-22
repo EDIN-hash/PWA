@@ -43,6 +43,7 @@ export default function KrzeslaCard({ item, editItem, deleteItem, role }) {
                                 Powiększ
                             </span>
                         </div>
+                    </div>
                 )}
                 
                 <div className="space-y-2 text-sm">
