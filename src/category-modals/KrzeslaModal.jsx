@@ -49,7 +49,7 @@ export default function KrzeslaModal({
                         setModalData({
                             ...modalData,
                             [key]:
-                                ["name", "quantity", "description", "photo_url", "linknadysk", "stoisko"].includes(key)
+                                ["name", "description", "photo_url", "linknadysk", "stoisko"].includes(key)
                                     ? e.target.value
                                     : Number(e.target.value),
                         })
@@ -75,16 +75,13 @@ export default function KrzeslaModal({
                 <div className="grid grid-cols-1 gap-3 sm:gap-4 modal-content">
                     {[
                         ["Name", "name"],
-                        ["Ilość", "ilosc"],
+                        ["Ilosc(na stanie)", "ilosc"],
+                        ["Ilosc(wyjechalo)", "quantity"],
                         ["Category", "category"],
                         ["Description", "description", "textarea"],
                         ["Photo URL", "photo_url"],
                         ["Stoisko", "stoisko"],
-                        ["Height (cm)", "wysokosc"],
-                        ["Width (cm)", "szerokosc"],
-                        ["Depth (cm)", "glebokosc"],
                         ["Google Drive Link", "linknadysk"],
-                        ["Quantity (разновидность)", "quantity"],
                     ].map(renderItemFormField)}
                     <div className="form-control">
                         <label className="form-label text-white text-sm sm:text-base">Data Wyjazdu</label>
@@ -97,17 +94,7 @@ export default function KrzeslaModal({
                             placeholderText="Select a date"
                         />
                     </div>
-                    <div className="form-control">
-                        <label className="form-label cursor-pointer text-white text-sm sm:text-base">
-                            <span className="label-text text-white">Na stanie?</span>
-                            <input
-                                type="checkbox"
-                                checked={modalData.stan}
-                                onChange={(e) => setModalData({ ...modalData, stan: e.target.checked })}
-                                className="checkbox"
-                            />
-                        </label>
-                    </div>
+
                 </div>
                 <div className="button-group mt-4 flex gap-2">
                     <button onClick={onRequestClose} className="btn btn-ghost bg-gray-600 hover:bg-gray-500 text-white w-full sm:w-auto">
