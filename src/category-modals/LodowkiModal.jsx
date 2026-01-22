@@ -37,6 +37,18 @@ export default function LodowkiModal({
                         </option>
                     ))}
                 </select>
+            ) : key === "quantity" ? (
+                <select
+                    value={modalData[key]}
+                    onChange={(e) => setModalData({ ...modalData, [key]: e.target.value })}
+                    className="select select-bordered w-full bg-gray-700 border-gray-600 text-white"
+                >
+                    <option value="">Select type</option>
+                    <option value="Szklana">Szklana</option>
+                    <option value="Mala">Mala</option>
+                    <option value="Zamrażarka">Zamrażarka</option>
+                    <option value="Duża">Duża</option>
+                </select>
             ) : (
                 <input
                     type={
