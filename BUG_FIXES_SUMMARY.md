@@ -189,3 +189,103 @@ const isValidDate = (date) => {
 - ✅ Error handling tested with edge cases
 
 The application now handles dates safely and complies with Content Security Policy requirements, eliminating the black screen issue and ensuring smooth operation of the Edit modal.
+
+## 4. Netlify Build Error Fix - Modal Syntax Issues
+
+**Problem:**
+- Netlify build was failing with "Unexpected ]" and "Expected } but found )" errors
+- Build error: `ERROR: Unexpected "]"` in TelewizoryModal.jsx:87:16
+- All category modal files had syntax errors preventing successful deployment
+
+**Root Cause:**
+- Incorrect array structure in modal form field definitions
+- Nested arrays instead of flat array structure
+- Extra parentheses and braces in JSX expressions
+- Malformed array syntax in `.map(renderItemFormField)` calls
+
+**Files Affected:**
+- `src/category-modals/TelewizoryModal.jsx`
+- `src/category-modals/EkspresyModal.jsx`
+- `src/category-modals/KrzeslaModal.jsx`
+- `src/category-modals/LodowkiModal.jsx`
+- `src/category-modals/NMModal.jsx`
+
+**Solution Implemented:**
+
+### Before (Incorrect Syntax)
+```javascript
+{[
+    ["Name", "name"],
+    ["Ilość", "ilosc"],
+    ["Category", "category"],
+    ["Description", "description", "textarea"],
+    ["Photo URL", "photo_url"],
+    [
+        ["Stoisko", "stoisko"],  // ❌ Nested array
+        ["Height (cm)", "wysokosc"],
+        ["Width (cm)", "szerokosc"],
+        ["Depth (cm)", "glebokosc"],
+        ["Google Drive Link", "linknadysk"],
+        ["Quantity (разновидность)", "quantity"],
+    ]).map(renderItemFormField)}  // ❌ Extra closing brace
+```
+
+### After (Correct Syntax)
+```javascript
+{[
+    ["Name", "name"],
+    ["Ilość", "ilosc"],
+    ["Category", "category"],
+    ["Description", "description", "textarea"],
+    ["Photo URL", "photo_url"],
+    ["Stoisko", "stoisko"],  // ✅ Flat array structure
+    ["Height (cm)", "wysokosc"],
+    ["Width (cm)", "szerokosc"],
+    ["Depth (cm)", "glebokosc"],
+    ["Google Drive Link", "linknadysk"],
+    ["Quantity (разновидность)", "quantity"],
+].map(renderItemFormField)}  // ✅ Correct closing brace
+```
+
+**Key Fixes:**
+1. **Flattened array structure**: Removed nested arrays, all items at same level
+2. **Fixed parentheses**: Changed `]).map(...)` to `].map(...)`
+3. **Corrected JSX syntax**: Proper placement of closing braces
+4. **Consistent formatting**: Applied same fix to all 5 modal files
+
+**Impact:**
+- ✅ Netlify build now completes successfully
+- ✅ Production build generates optimized files in `dist` directory
+- ✅ All modal forms render correctly
+- ✅ No syntax errors in development or production
+- ✅ Deployment pipeline restored
+
+**Build Results:**
+```
+> inventory-pwa@1.0.0 build
+> vite build
+
+[log] vite v7.3.0 building client environment for production...
+[log] transforming...
+[log] тЬУ 388 modules transformed.
+[log] rendering chunks...
+[log] computing gzip size...
+[log] dist/assets/manifest-BrVU4l6D.webmanifest    1.16 kB
+[log] dist/index.html                              1.23 kB
+[log] dist/assets/main-BiMlYWBt.css               96.11 kB
+[log] dist/assets/main-CpQ4Tbq_.js               417.40 kB
+[log] тЬУ built in 2.24s
+```
+
+## Updated Verification
+
+- ✅ Production build successful (2.24s)
+- ✅ No console errors in development
+- ✅ DatePicker works with valid and invalid dates
+- ✅ CSP headers properly configured
+- ✅ All modal functionality restored
+- ✅ Error handling tested with edge cases
+- ✅ Netlify deployment pipeline fixed
+- ✅ All 5 category modals syntax corrected
+
+The application now builds successfully and is ready for deployment, with all modal forms properly structured and functional.
