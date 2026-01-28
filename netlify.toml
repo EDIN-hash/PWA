@@ -12,9 +12,6 @@
   publish = "dist"
   autoLaunch = true
 
-[build.environment]
-  NODE_VERSION = "20"
-
 # Redirects for Single Page Application
 [[redirects]]
   from = "/*"
@@ -31,12 +28,10 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "geolocation=(), microphone=(), camera=()"
 
-# Environment variables
-[build.environment]
-  NODE_VERSION = "20"
-
-# Environment variables for all contexts
+# Environment variables for production
 [context.production.environment]
   NETLIFY_DATABASE_URL = "postgresql://neondb_owner:npg_6raT2yGSzVEn@ep-restless-king-aesec10z-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require"
 
 # For local development, create a .env file with DATABASE_URL
+# Example: DATABASE_URL=postgresql://username:password@localhost:5432/dbname
+# Or for Neon: DATABASE_URL=postgresql://neondb_owner:password@ep-restless-king-aesec10z-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require
