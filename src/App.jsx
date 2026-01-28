@@ -409,7 +409,7 @@ return (
                             Add Item
                         </button>
                     )}
-                    {(currentUser.role === "admin" || currentUser.role === "moder") && (
+                    {currentUser.role === "moder" && (
                         <button
                             onClick={() => setIsGetIdModalOpen(true)}
                             className="btn btn-info w-full sm:w-auto ripple hover-lift bounce-in"
