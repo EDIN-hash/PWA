@@ -169,7 +169,11 @@ export default function App() {
             setGeneratedId(nextId);
         } catch (err) {
             console.error("Get next ID error:", err);
-            alert("Failed to get next ID: " + err.message);
+            if (err.message.includes('Все ID для телевизоров размера')) {
+                alert(err.message);
+            } else {
+                alert("Failed to get next ID: " + err.message);
+            }
         }
     };
 

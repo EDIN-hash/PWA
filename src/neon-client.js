@@ -232,38 +232,27 @@ const NeonClient = {
         // Для телевизоров специальная логика
         if (category === 'Telewizory') {
             const query = 'SELECT name FROM items WHERE category = $1 AND name LIKE $2 ORDER BY name';
-            const result = await neonQuery(query, [category, 'TV%']);
+            const result = await neonQuery(query, [category, `TV${tvSize}%`]);
             
-            const sizeNumbers = {'55': 0, '65': 0, '75': 0, '85': 0};
             const usedNumbers = new Set();
             
             result.forEach(item => {
-                const match = item.name.match(/TV(\d{2,3})(\d{3})/);
+                const match = item.name.match(new RegExp(`TV${tvSize}(\\d{3})`));
                 if (match) {
-                    const size = match[1];
-                    const number = parseInt(match[2]);
-                    if (sizeNumbers[size] < number) {
-                        sizeNumbers[size] = number;
-                    }
-                    usedNumbers.add(`${size}-${number}`);
+                    const number = parseInt(match[1]);
+                    usedNumbers.add(number);
                 }
             });
             
-            // Использовать указанный размер телевизора
-            const size = tvSize;
-            let nextNumber = sizeNumbers[size] + 1;
-            
-            // Проверять уникальность для указанного размера
-            while (nextNumber <= 999) {
-                const key = `${size}-${nextNumber.toString().padStart(3, '0')}`;
-                if (!usedNumbers.has(key)) {
-                    return `TV${size}${nextNumber.toString().padStart(3, '0')}`;
+            // Найти первый свободный номер с 1 до 999
+            for (let nextNumber = 1; nextNumber <= 999; nextNumber++) {
+                if (!usedNumbers.has(nextNumber)) {
+                    return `TV${tvSize}${nextNumber.toString().padStart(3, '0')}`;
                 }
-                nextNumber++;
             }
             
             // Если все номера для указанного размера заняты, вернуть ошибку
-            throw new Error(`Все ID для телевизоров размера ${size}" заняты. Попробуйте другой размер.`);
+            throw new Error(`Все ID для телевизоров размера ${tvSize}" заняты. Попробуйте другой размер или обратитесь к администратору.`);
         }
         
         // Для других категорий
