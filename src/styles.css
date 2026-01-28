@@ -860,6 +860,16 @@ body {
     background-color: #e66a7a !important;
 }
 
+.btn-info {
+    background-color: #4d5bce !important;
+    border-color: #4d5bce !important;
+    color: white !important;
+}
+
+.btn-info:hover {
+    background-color: #3a47b8 !important;
+}
+
 /* Form Elements */
 .input, .textarea, .select {
     width: 100% !important;

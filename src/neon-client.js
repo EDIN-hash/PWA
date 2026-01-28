@@ -227,6 +227,85 @@ const NeonClient = {
         }
     },
 
+    // Получение свободного ID для категории
+    async getNextAvailableId(category) {
+        // Для телевизоров специальная логика
+        if (category === 'Telewizory') {
+            const query = 'SELECT name FROM items WHERE category = $1 AND name LIKE $2 ORDER BY name';
+            const result = await neonQuery(query, [category, 'TV%']);
+            
+            const sizeNumbers = {'55': 0, '65': 0, '75': 0, '85': 0};
+            const usedNumbers = new Set();
+            
+            result.forEach(item => {
+                const match = item.name.match(/TV(\d{2,3})(\d{3})/);
+                if (match) {
+                    const size = match[1];
+                    const number = parseInt(match[2]);
+                    if (sizeNumbers[size] < number) {
+                        sizeNumbers[size] = number;
+                    }
+                    usedNumbers.add(`${size}-${number}`);
+                }
+            });
+            
+            // Сначала попробовать продолжить последовательность для существующих размеров
+            const sizes = ['55', '65', '75', '85']; // наиболее распространенные размеры
+            for (const size of sizes) {
+                if (sizeNumbers[size] > 0) {
+                    // Продолжить последовательность для этого размера
+                    let nextNumber = sizeNumbers[size] + 1;
+                    if (nextNumber <= 999) {
+                        const key = `${size}-${nextNumber.toString().padStart(3, '0')}`;
+                        if (!usedNumbers.has(key)) {
+                            return `TV${size}${nextNumber.toString().padStart(3, '0')}`;
+                        }
+                    }
+                }
+            }
+            
+            // Если нет существующих размеров или все последовательности продолжены,
+            // найти первый свободный размер
+            for (const size of sizes) {
+                if (sizeNumbers[size] === 0) {
+                    return `TV${size}001`;
+                }
+            }
+            
+            // Если все размеры заняты, вернуть следующий доступный для первого размера
+            return `TV55${(sizeNumbers['55'] + 1).toString().padStart(3, '0')}`;
+        }
+        
+        // Для других категорий
+        const prefixMap = {
+            'Lodowki': 'L',
+            'Ekspresy': 'E',
+            'Krzesla': 'K',
+            'NM': 'NM',
+            'LADY': 'A'
+        };
+        
+        const prefix = prefixMap[category] || 'X';
+        const query = 'SELECT name FROM items WHERE category = $1 AND name LIKE $2 ORDER BY name';
+        const result = await neonQuery(query, [category, `${prefix}%`]);
+        
+        const usedNumbers = new Set();
+        result.forEach(item => {
+            const match = item.name.match(new RegExp(`${prefix}(\\d+)`));
+            if (match) {
+                usedNumbers.add(parseInt(match[1]));
+            }
+        });
+        
+        // Найти первый свободный номер
+        let nextNumber = 1;
+        while (usedNumbers.has(nextNumber)) {
+            nextNumber++;
+        }
+        
+        return `${prefix}${nextNumber.toString().padStart(3, '0')}`;
+    },
+
     // Логин пользователя
     async loginUser(username, password) {
         const query = 'SELECT * FROM users WHERE username = $1 AND password = $2';

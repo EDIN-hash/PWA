@@ -48,6 +48,9 @@ export default function App() {
     const [SERVER_URL, setServerUrl] = useState(import.meta.env.VITE_SERVER_URL || "http://localhost:3001");
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
     const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'na-stanie', 'wyjechalo'
+    const [isGetIdModalOpen, setIsGetIdModalOpen] = useState(false);
+    const [selectedCategoryForId, setSelectedCategoryForId] = useState('NM');
+    const [generatedId, setGeneratedId] = useState('');
 
     // Load dark mode preference from localStorage
     useEffect(() => {
@@ -157,6 +160,23 @@ export default function App() {
         localStorage.removeItem('inventoryUser');
         setCurrentUser(null);
         console.log('User logged out and localStorage cleared');
+    };
+
+    const handleGetNextId = async () => {
+        try {
+            const nextId = await NeonClient.getNextAvailableId(selectedCategoryForId);
+            setGeneratedId(nextId);
+        } catch (err) {
+            console.error("Get next ID error:", err);
+            alert("Failed to get next ID: " + err.message);
+        }
+    };
+
+    const handleCopyId = () => {
+        if (generatedId) {
+            navigator.clipboard.writeText(generatedId);
+            alert(`ID ${generatedId} copied to clipboard!`);
+        }
     };
 
     const openItemModal = (item = null) => {
@@ -381,12 +401,20 @@ return (
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="input input-bordered w-full"
                     />
-                    {currentUser.role === "admin" && (
+                    {(currentUser.role === "admin" || currentUser.role === "moder") && (
                         <button
                             onClick={() => openItemModal()}
                             className="btn btn-success w-full sm:w-auto ripple hover-lift bounce-in"
                         >
                             Add Item
+                        </button>
+                    )}
+                    {(currentUser.role === "admin" || currentUser.role === "moder") && (
+                        <button
+                            onClick={() => setIsGetIdModalOpen(true)}
+                            className="btn btn-info w-full sm:w-auto ripple hover-lift bounce-in"
+                        >
+                            Get Free ID
                         </button>
                     )}
                     <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
@@ -683,6 +711,71 @@ return (
                         </button>
                     </div>
                 </form>
+            </>
+        </Modal>
+
+        {/* Get Free ID Modal */}
+        <Modal
+            isOpen={isGetIdModalOpen}
+            onRequestClose={() => setIsGetIdModalOpen(false)}
+            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 login-modal-dark"
+            overlayClassName="modal-backdrop p-2 sm:p-0"
+            contentLabel="Get Free ID Modal"
+        >
+            <>
+                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">Get Free ID</h2>
+                <div className="space-y-3 sm:space-y-4">
+                    <div className="form-control">
+                        <label className="form-label text-sm sm:text-base text-white">Category</label>
+                        <select
+                            value={selectedCategoryForId}
+                            onChange={(e) => setSelectedCategoryForId(e.target.value)}
+                            className="select select-bordered w-full bg-gray-700 border-gray-600 text-white"
+                        >
+                            {categories.map((category) => (
+                                <option key={category} value={category}>
+                                    {category}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="form-control">
+                        <button
+                            onClick={handleGetNextId}
+                            className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
+                        >
+                            Get Free ID
+                        </button>
+                    </div>
+                    {generatedId && (
+                        <div className="form-control">
+                            <label className="form-label text-sm sm:text-base text-white">Generated ID</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={generatedId}
+                                    readOnly
+                                    className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
+                                />
+                                <button
+                                    onClick={handleCopyId}
+                                    className="btn btn-info bg-blue-500 hover:bg-blue-600 text-white"
+                                >
+                                    Copy
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                    <div className="button-group mt-4 flex gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setIsGetIdModalOpen(false)}
+                            className="btn btn-ghost bg-gray-600 hover:bg-gray-500 text-white w-full sm:w-auto"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
             </>
         </Modal>
     </div>
