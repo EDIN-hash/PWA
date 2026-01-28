@@ -163,7 +163,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
                     )}
                 </div>
                 
-                {role && role === "admin" && (
+                {role && (role === "admin" || role === "moder") && (
                     <div className="card-footer">
                         <button
                             className="card-action-btn card-edit-btn ripple"
