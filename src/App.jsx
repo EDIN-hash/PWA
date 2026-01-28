@@ -500,9 +500,9 @@ return (
                         ["Description", "description", "textarea"],
                         ["Photo URL", "photo_url"],
                         ["Stoisko", "stoisko"],
-                        ["Height (cm)", "wysokosc"],
-                        ["Width (cm)", "szerokosc"],
-                        ["Depth (cm)", "glebokosc"],
+                        ["Wysokość (cm)", "wysokosc"],
+                        ["Szerokość (cm)", "szerokosc"],
+                        ["Głębokość (cm)", "glebokosc"],
                         ["Google Drive Link", "linknadysk"],
                         ["Quantity (разновидность)", "quantity"],
                     ].map(renderItemFormField)}

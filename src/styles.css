@@ -298,6 +298,40 @@ body {
     border-radius: 20px;
     padding: 4px 12px;
     font-size: 12px;
+
+/* Tokyo Night Stoisko Section */
+.stoisko-section {
+    background: rgba(30, 30, 46, 0.3);
+    border: 1px solid rgba(76, 100, 241, 0.1);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+}
+
+.stoisko-section:hover {
+    background: rgba(30, 30, 46, 0.4);
+    border-color: rgba(122, 162, 247, 0.2);
+    transform: translateY(-2px);
+}
+
+.stoisko-icon {
+    color: var(--indigo);
+    flex-shrink: 0;
+}
+
+.stoisko-label {
+    color: var(--indigo);
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.stoisko-value {
+    color: var(--fg);
+    font-size: 16px;
+    font-weight: 600;
+}
     font-weight: 500;
     display: inline-flex;
     align-items: center;
