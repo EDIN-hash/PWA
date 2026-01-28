@@ -495,6 +495,16 @@ body {
     height: 24px;
     white-space: nowrap;
     box-shadow: 0 1px 2px rgba(122, 162, 247, 0.1);
+    flex-shrink: 0;
+}
+
+/* ID container for better layout */
+.id-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.25rem;
 }
 
 /* Improved badge styling */
@@ -894,6 +904,31 @@ body {
     .main-container {
         padding: 0.5rem !important;
     }
+
+    /* Ensure ID is always visible on small screens */
+    .id-badge {
+        font-size: 11px;
+        padding: 3px 10px;
+        min-width: auto;
+    }
+
+    .card-title {
+        font-size: 1rem;
+        max-width: 100%;
+    }
+
+    /* Make badges wrap on small screens */
+    .flex.gap-1.flex-wrap {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .badge-modern {
+        font-size: 11px;
+        padding: 3px 10px;
+    }
+}
 
     .header-section {
         padding: 1rem !important;

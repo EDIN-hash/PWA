@@ -7,11 +7,15 @@ export default function Card({ item, editItem, deleteItem, role }) {
         <>
             <div className="card card-premium card-hover-effect fade-in-up">
                 <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center gap-2">
-                        <h2 className="card-title truncate max-w-[60%]">{item.name}</h2>
-                        {item.id && <span className="id-badge">ID: {item.id}</span>}
+                    <div className="flex flex-col gap-1">
+                        <h2 className="card-title truncate max-w-full">{item.name}</h2>
+                        {item.id && (
+                            <div className="id-container">
+                                <span className="id-badge">ID: {item.id}</span>
+                            </div>
+                        )}
                     </div>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 flex-wrap justify-end">
                         <span className={`badge-modern ${getCategoryColor(item.category)}`}>
                             {item.category}
                         </span>
