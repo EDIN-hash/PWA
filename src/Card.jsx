@@ -8,7 +8,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
             <div className="card card-premium card-hover-effect fade-in-up">
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-2">
-                        <h2 className="text-lg font-semibold text-slate-800 truncate max-w-[60%]">{item.name}</h2>
+                        <h2 className="card-title truncate max-w-[60%]">{item.name}</h2>
                         {item.id && <span className="id-badge">ID: {item.id}</span>}
                     </div>
                     <div className="flex gap-1">
@@ -24,10 +24,10 @@ export default function Card({ item, editItem, deleteItem, role }) {
                 </div>
                 
                 <div className="flex justify-between items-center mb-3">
-                    <span className={`badge-modern ${item.stan === 1 || item.stan === true ? 'bg-green-900/50 border-green-500/50 text-green-400' : 'bg-red-900/50 border-red-500/50 text-red-400'}`}>
+                    <span className={`badge-modern status-text ${item.stan === 1 || item.stan === true ? 'bg-green-900/50 border-green-500/50 text-green-400' : 'bg-red-900/50 border-red-500/50 text-red-400'}`}>
                         {item.stan === 1 || item.stan === true ? 'Na stanie' : 'Wyjechało'}
                     </span>
-                    <span className="badge-modern bg-blue-900/50 border-blue-500/50 text-blue-400">
+                    <span className="badge-modern quantity-text bg-blue-900/50 border-blue-500/50 text-blue-400">
                         Ilość: {item.ilosc}
                     </span>
                 </div>
@@ -53,7 +53,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
                             <svg className="w-4 h-4 text-slate-400 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <p className="text-slate-600">{item.description}</p>
+                            <p className="card-description">{item.description}</p>
                         </div>
                     )}
                     
