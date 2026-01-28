@@ -51,6 +51,7 @@ export default function App() {
     const [isGetIdModalOpen, setIsGetIdModalOpen] = useState(false);
     const [selectedCategoryForId, setSelectedCategoryForId] = useState('NM');
     const [generatedId, setGeneratedId] = useState('');
+    const [tvSize, setTvSize] = useState('55'); // Размер телевизора по умолчанию
 
     // Load dark mode preference from localStorage
     useEffect(() => {
@@ -164,7 +165,7 @@ export default function App() {
 
     const handleGetNextId = async () => {
         try {
-            const nextId = await NeonClient.getNextAvailableId(selectedCategoryForId);
+            const nextId = await NeonClient.getNextAvailableId(selectedCategoryForId, tvSize);
             setGeneratedId(nextId);
         } catch (err) {
             console.error("Get next ID error:", err);
@@ -729,7 +730,13 @@ return (
                         <label className="form-label text-sm sm:text-base text-white">Category</label>
                         <select
                             value={selectedCategoryForId}
-                            onChange={(e) => setSelectedCategoryForId(e.target.value)}
+                            onChange={(e) => {
+                                setSelectedCategoryForId(e.target.value);
+                                // Сбросить размер телевизора при смене категории
+                                if (e.target.value !== 'Telewizory') {
+                                    setTvSize('55');
+                                }
+                            }}
                             className="select select-bordered w-full bg-gray-700 border-gray-600 text-white"
                         >
                             {categories.map((category) => (
@@ -739,6 +746,18 @@ return (
                             ))}
                         </select>
                     </div>
+                    {selectedCategoryForId === 'Telewizory' && (
+                        <div className="form-control">
+                            <label className="form-label text-sm sm:text-base text-white">Размер экрана (дюймы)</label>
+                            <input
+                                type="text"
+                                value={tvSize}
+                                onChange={(e) => setTvSize(e.target.value)}
+                                placeholder="Введите размер (например, 55)"
+                                className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
+                            />
+                        </div>
+                    )}
                     <div className="form-control">
                         <button
                             onClick={handleGetNextId}

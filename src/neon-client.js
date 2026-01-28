@@ -228,7 +228,7 @@ const NeonClient = {
     },
 
     // Получение свободного ID для категории
-    async getNextAvailableId(category) {
+    async getNextAvailableId(category, tvSize = '55') {
         // Для телевизоров специальная логика
         if (category === 'Telewizory') {
             const query = 'SELECT name FROM items WHERE category = $1 AND name LIKE $2 ORDER BY name';
@@ -249,31 +249,21 @@ const NeonClient = {
                 }
             });
             
-            // Сначала попробовать продолжить последовательность для существующих размеров
-            const sizes = ['55', '65', '75', '85']; // наиболее распространенные размеры
-            for (const size of sizes) {
-                if (sizeNumbers[size] > 0) {
-                    // Продолжить последовательность для этого размера
-                    let nextNumber = sizeNumbers[size] + 1;
-                    if (nextNumber <= 999) {
-                        const key = `${size}-${nextNumber.toString().padStart(3, '0')}`;
-                        if (!usedNumbers.has(key)) {
-                            return `TV${size}${nextNumber.toString().padStart(3, '0')}`;
-                        }
-                    }
+            // Использовать указанный размер телевизора
+            const size = tvSize;
+            let nextNumber = sizeNumbers[size] + 1;
+            
+            // Проверять уникальность для указанного размера
+            while (nextNumber <= 999) {
+                const key = `${size}-${nextNumber.toString().padStart(3, '0')}`;
+                if (!usedNumbers.has(key)) {
+                    return `TV${size}${nextNumber.toString().padStart(3, '0')}`;
                 }
+                nextNumber++;
             }
             
-            // Если нет существующих размеров или все последовательности продолжены,
-            // найти первый свободный размер
-            for (const size of sizes) {
-                if (sizeNumbers[size] === 0) {
-                    return `TV${size}001`;
-                }
-            }
-            
-            // Если все размеры заняты, вернуть следующий доступный для первого размера
-            return `TV55${(sizeNumbers['55'] + 1).toString().padStart(3, '0')}`;
+            // Если все номера для указанного размера заняты, вернуть ошибку
+            throw new Error(`Все ID для телевизоров размера ${size}" заняты. Попробуйте другой размер.`);
         }
         
         // Для других категорий
