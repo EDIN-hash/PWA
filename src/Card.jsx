@@ -202,18 +202,18 @@ export default function Card({ item, editItem, deleteItem, role }) {
 function getCategoryColor(category) {
     switch (category) {
         case "Telewizory":
-            return "bg-blue-900/50 border-blue-500/50 text-blue-400";
+            return "bg-blue-800/50 border-blue-600/50 text-blue-300";
         case "Lodowki":
-            return "bg-green-900/50 border-green-500/50 text-green-400";
+            return "bg-green-800/50 border-green-600/50 text-green-300";
         case "Ekspresy":
-            return "bg-gray-600/50 border-gray-400/50 text-gray-200";
-        case "Krzesla":
             return "bg-gray-700/50 border-gray-500/50 text-gray-300";
+        case "Krzesla":
+            return "bg-gray-600/50 border-gray-400/50 text-gray-200";
         case "NM":
-            return "bg-gray-900/50 border-gray-500/50 text-gray-400";
+            return "bg-indigo-800/50 border-indigo-600/50 text-indigo-300";
         case "LADY":
-            return "bg-pink-900/50 border-pink-500/50 text-pink-400";
+            return "bg-pink-800/50 border-pink-600/50 text-pink-300";
         default:
-            return "bg-gray-900/50 border-gray-500/50 text-gray-400";
+            return "bg-indigo-800/50 border-indigo-600/50 text-indigo-300";
     }
 }

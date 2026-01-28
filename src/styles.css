@@ -34,37 +34,37 @@ body {
 }
 
 .dark-mode {
-    background-color: #0f172a;
-    color: #f1f5f9;
+    background-color: #1a1b26;
+    color: #c0caf5;
 }
 
 .dark-mode body {
-    background-color: #0f172a;
-    color: #f1f5f9;
+    background-color: #1a1b26;
+    color: #c0caf5;
 }
 
 .dark-mode .text-slate-800 {
-    color: #f1f5f9 !important;
+    color: #c0caf5 !important;
 }
 
 .dark-mode .text-slate-600 {
-    color: #cbd5e1 !important;
+    color: #a9b1d6 !important;
 }
 
 .dark-mode .text-slate-300 {
-    color: #94a3b8 !important;
+    color: #7aa2f7 !important;
 }
 
 .dark-mode .text-slate-100 {
-    color: #f8fafc !important;
+    color: #c0caf5 !important;
 }
 
 .dark-mode .text-slate-700 {
-    color: #64748b !important;
+    color: #7aa2f7 !important;
 }
 
 .dark-mode .text-slate-200 {
-    color: #e2e8f0 !important;
+    color: #c0caf5 !important;
 }
 
 .dark-mode .bg-slate-200 {
@@ -84,58 +84,58 @@ body {
 }
 
 .dark-mode .card {
-    background-color: #1e293b;
-    border-color: #334155;
-    color: #f1f5f9;
+    background-color: #1e1e2e;
+    border-color: #2d2e3a;
+    color: #c0caf5;
 }
 
 .dark-mode .modal-box {
-    background-color: #1e293b;
-    border-color: #334155;
-    color: #f1f5f9;
+    background-color: #1e1e2e;
+    border-color: #2d2e3a;
+    color: #c0caf5;
 }
 
 .dark-mode .input,
 .dark-mode .textarea,
 .dark-mode .select {
-    background-color: #334155;
-    border-color: #475569;
-    color: #f1f5f9;
+    background-color: #2d2e3a;
+    border-color: #3a3b4a;
+    color: #c0caf5;
 }
 
 .dark-mode .input:focus,
 .dark-mode .textarea:focus,
 .dark-mode .select:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+    border-color: #7aa2f7;
+    box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.1) !important;
 }
 
 .dark-mode .btn-primary {
-    background-color: #6366f1;
-    border-color: #6366f1;
+    background-color: #7aa2f7;
+    border-color: #7aa2f7;
 }
 
 .dark-mode .btn-primary:hover {
-    background-color: #5856eb;
+    background-color: #6a92e7;
 }
 
 .dark-mode .category-badge {
-    background-color: #334155;
-    color: #f1f5f9;
+    background-color: #2d2e3a;
+    color: #c0caf5;
 }
 
 .dark-mode .status-available {
-    background-color: #064e3b;
-    color: #d1fae5;
+    background-color: #264f78;
+    color: #96cdfb;
 }
 
 .dark-mode .status-unavailable {
-    background-color: #7f1d1d;
-    color: #fee2e2;
+    background-color: #5e2a2a;
+    color: #f7768e;
 }
 
 .dark-mode .tab-active {
-    background-color: #6366f1;
+    background-color: #7aa2f7;
 }
 
 /* Modern Modal Styles */
@@ -325,13 +325,13 @@ body {
     to { transform: rotate(360deg); }
 }
 
-/* Improved Layout and Spacing */
+/* Tokyo Night Layout */
 .main-container {
     padding: 1rem;
     max-width: 1800px;
     margin: 0 auto;
     width: 100%;
-    background-color: #000;
+    background: linear-gradient(135deg, #1a1b26 0%, #16161e 50%, #0f0f1a 100%);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -369,43 +369,43 @@ body {
     flex: 1;
 }
 
-/* Modern Dark Theme - Premium Black Interface */
+/* Tokyo Night Theme - Modern Dark Interface */
 body {
-    background-color: #000;
-    color: #ffffff;
+    background-color: #1a1b26;
+    color: #c0caf5;
 }
 
-/* Sophisticated Dark Glassmorphism Effects */
+/* Tokyo Night Glassmorphism Effects */
 .glass-effect {
-    background: rgba(5, 5, 5, 0.8);
+    background: rgba(26, 27, 38, 0.8);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(76, 100, 241, 0.1);
     border-radius: 16px;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
 }
 
-/* Sophisticated Dark Green Accent Colors */
-.green-accent {
-    color: #00a86b;
-    text-shadow: 0 0 3px #00a86b, 0 0 6px #00a86b;
+/* Tokyo Night Blue-Purple Accent Colors */
+.tokyo-accent {
+    color: #7aa2f7;
+    text-shadow: 0 0 3px #7aa2f7, 0 0 6px #7aa2f7;
 }
 
-.green-accent:hover {
-    text-shadow: 0 0 6px #00a86b, 0 0 12px #00a86b;
+.tokyo-accent:hover {
+    text-shadow: 0 0 6px #7aa2f7, 0 0 12px #7aa2f7;
     transition: text-shadow 0.3s ease;
 }
 
-/* Sophisticated Dark Gradient Backgrounds */
+/* Tokyo Night Gradient Backgrounds */
 .gradient-bg {
-    background: linear-gradient(135deg, #050505 0%, #0a1a1a 50%, #081212 100%);
+    background: linear-gradient(135deg, #1a1b26 0%, #16161e 50%, #0f0f1a 100%);
     background-size: 200% 200%;
 }
 
-/* Sophisticated Dark Card Design */
+/* Tokyo Night Card Design */
 .card-premium {
-    background: linear-gradient(145deg, #080808, #121212);
-    border: 1px solid rgba(0, 168, 107, 0.1);
+    background: linear-gradient(145deg, #1e1e2e, #252538);
+    border: 1px solid rgba(76, 100, 241, 0.1);
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -415,12 +415,12 @@ body {
 .card-premium:hover {
     transform: translateY(-4px) scale(1.01);
     box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
-    border-color: rgba(0, 168, 107, 0.15);
+    border-color: rgba(76, 100, 241, 0.15);
 }
 
-/* Sophisticated Dark Button Styles */
+/* Tokyo Night Button Styles */
 .btn-modern {
-    background: linear-gradient(135deg, #008a58 0%, #006a48 100%);
+    background: linear-gradient(135deg, #7aa2f7 0%, #4d5bce 100%);
     border: none;
     border-radius: 50px;
     padding: 12px 24px;
@@ -428,65 +428,65 @@ body {
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0, 138, 88, 0.2);
+    box-shadow: 0 4px 15px rgba(122, 162, 247, 0.2);
 }
 
 .btn-modern:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(0, 138, 88, 0.3);
-    background: linear-gradient(135deg, #006a48 0%, #008a58 100%);
+    box-shadow: 0 6px 25px rgba(122, 162, 247, 0.3);
+    background: linear-gradient(135deg, #4d5bce 0%, #7aa2f7 100%);
 }
 
 .btn-modern:active {
     transform: translateY(0);
 }
 
-/* Modern Input Fields - Green */
+/* Tokyo Night Input Fields */
 .input-modern {
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(122, 162, 247, 0.1);
     border-radius: 10px;
     padding: 12px 16px;
-    color: #fff;
+    color: #c0caf5;
     font-size: 14px;
     transition: all 0.3s ease;
 }
 
 .input-modern:focus {
-    border-color: #00a86b;
-    box-shadow: 0 0 0 3px rgba(0, 168, 107, 0.1);
+    border-color: #7aa2f7;
+    box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.1);
     outline: none;
     background: rgba(255, 255, 255, 0.06);
 }
 
-/* Sophisticated Dark Header Design */
+/* Tokyo Night Header Design */
 .header-modern {
-    background: linear-gradient(135deg, rgba(5, 10, 5, 0.9) 0%, rgba(15, 25, 15, 0.9) 100%);
+    background: linear-gradient(135deg, rgba(26, 27, 38, 0.9) 0%, rgba(30, 30, 46, 0.9) 100%);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(0, 168, 107, 0.1);
+    border-bottom: 1px solid rgba(76, 100, 241, 0.1);
     padding: 16px 24px;
     margin-bottom: 24px;
     border-radius: 12px;
 }
 
-/* Sophisticated Dark Scrollbar */
+/* Tokyo Night Scrollbar */
 ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-    background: rgba(10, 10, 10, 0.5);
+    background: rgba(26, 27, 38, 0.5);
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #2a2a2a, #3a3a3a);
+    background: linear-gradient(135deg, #2d2e3a, #3a3b4a);
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #3a3a3a, #4a4a4a);
+    background: linear-gradient(135deg, #3a3b4a, #4a4b5a);
 }
 
 /* Modern Animations */
@@ -520,14 +520,14 @@ body {
     animation: slideIn 0.5s ease-out forwards;
 }
 
-/* Modern Typography - Green */
+/* Tokyo Night Typography */
 .text-glow {
-    color: #fff;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    color: #c0caf5;
+    text-shadow: 0 0 10px rgba(192, 202, 245, 0.1);
 }
 
 .text-gradient {
-    background: linear-gradient(135deg, #00a86b, #e0e0e0);
+    background: linear-gradient(135deg, #7aa2f7, #c0caf5);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -551,38 +551,38 @@ body {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-/* Modern Loading Animation */
+/* Tokyo Night Loading Animation */
 @keyframes pulseGlow {
     0% {
-        box-shadow: 0 0 0 0 rgba(0, 168, 107, 0.5);
+        box-shadow: 0 0 0 0 rgba(122, 162, 247, 0.5);
     }
     70% {
-        box-shadow: 0 0 0 15px rgba(0, 168, 107, 0);
+        box-shadow: 0 0 0 15px rgba(122, 162, 247, 0);
     }
     100% {
-        box-shadow: 0 0 0 0 rgba(0, 168, 107, 0);
+        box-shadow: 0 0 0 0 rgba(122, 162, 247, 0);
     }
 }
 
 .loading-pulse {
     width: 60px;
     height: 60px;
-    border: 3px solid rgba(0, 168, 107, 0.15);
-    border-top-color: #00a86b;
+    border: 3px solid rgba(122, 162, 247, 0.15);
+    border-top-color: #7aa2f7;
     border-radius: 50%;
     animation: spin 1s linear infinite, pulseGlow 2s infinite;
 }
 
-/* Sophisticated Dark Modal Design */
+/* Tokyo Night Modal Design */
 .modal-modern {
-    background: linear-gradient(145deg, #080808, #121212);
-    border: 1px solid rgba(0, 168, 107, 0.1);
+    background: linear-gradient(145deg, #1e1e2e, #252538);
+    border: 1px solid rgba(76, 100, 241, 0.1);
     border-radius: 16px;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(10px);
 }
 
-/* Modern Tab Design - Green */
+/* Tokyo Night Tab Design */
 .tab-modern {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -594,34 +594,34 @@ body {
 
 .tab-modern:hover {
     background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(0, 168, 107, 0.15);
+    border-color: rgba(122, 162, 247, 0.15);
 }
 
 .tab-modern.active {
-    background: linear-gradient(135deg, #008a58, #006a48);
+    background: linear-gradient(135deg, #7aa2f7, #4d5bce);
     color: #ffffff;
     font-weight: 600;
 }
 
-/* Sophisticated Dark Badge Design */
+/* Tokyo Night Badge Design */
 .badge-modern {
-    background: rgba(0, 168, 107, 0.1);
-    color: #00a86b;
-    border: 1px solid rgba(0, 168, 107, 0.15);
+    background: rgba(122, 162, 247, 0.1);
+    color: #7aa2f7;
+    border: 1px solid rgba(122, 162, 247, 0.15);
     border-radius: 20px;
     padding: 4px 12px;
     font-size: 12px;
     font-weight: 500;
 }
 
-/* Sophisticated Gray Divider */
+/* Tokyo Night Divider */
 .divider-modern {
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(100, 100, 100, 0.2), transparent);
+    background: linear-gradient(90deg, transparent, rgba(122, 162, 247, 0.2), transparent);
     margin: 24px 0;
 }
 
-/* Modern Tooltip */
+/* Tokyo Night Tooltip */
 .tooltip-modern {
     position: relative;
 }
@@ -632,8 +632,8 @@ body {
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(10, 10, 10, 0.9);
-    color: #fff;
+    background: rgba(26, 27, 38, 0.9);
+    color: #c0caf5;
     padding: 6px 12px;
     border-radius: 6px;
     font-size: 12px;
@@ -648,12 +648,12 @@ body {
     opacity: 1;
 }
 
-/* Modern Checkbox */
+/* Tokyo Night Checkbox */
 .checkbox-modern {
     appearance: none;
     width: 18px;
     height: 18px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(122, 162, 247, 0.2);
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -661,7 +661,7 @@ body {
 }
 
 .checkbox-modern:checked {
-    background: linear-gradient(135deg, #008a58, #006a48);
+    background: linear-gradient(135deg, #7aa2f7, #4d5bce);
     border-color: transparent;
 }
 
@@ -676,7 +676,7 @@ body {
     font-weight: bold;
 }
 
-/* Modern Switch */
+/* Tokyo Night Switch */
 .switch-modern {
     position: relative;
     display: inline-block;
@@ -697,7 +697,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: rgba(122, 162, 247, 0.1);
     transition: .4s;
     border-radius: 24px;
 }
@@ -715,7 +715,7 @@ body {
 }
 
 input:checked + .slider-modern {
-    background-color: linear-gradient(135deg, #008a58, #006a48);
+    background-color: linear-gradient(135deg, #7aa2f7, #4d5bce);
 }
 
 input:checked + .slider-modern:before {
@@ -723,14 +723,15 @@ input:checked + .slider-modern:before {
     background-color: #000;
 }
 
-/* Header text - make it black for better contrast */
+/* Tokyo Night Title */
 .main-title {
-    color: #ffffff !important;
+    color: #7aa2f7 !important;
     font-weight: 800 !important;
+    text-shadow: 0 0 5px rgba(122, 162, 247, 0.3);
 }
 
 .dark-mode .main-title {
-    color: white !important;
+    color: #7aa2f7 !important;
 }
 
 /* Fix for white text on white background */
@@ -758,10 +759,10 @@ input:checked + .slider-modern:before {
     color: #e2e8f0 !important;
 }
 
-/* Better button colors */
+/* Tokyo Night Button Colors */
 .btn-primary {
-    background-color: #1e40af !important;
-    border-color: #1e40af !important;
+    background-color: #4d5bce !important;
+    border-color: #4d5bce !important;
     color: white !important;
     padding: 0.5rem 1rem !important;
     border-radius: 6px !important;
@@ -770,59 +771,59 @@ input:checked + .slider-modern:before {
 }
 
 .btn-primary:hover {
-    background-color: #1e3a8a !important;
+    background-color: #3a47b8 !important;
     transform: translateY(-1px);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .dark-mode .btn-primary {
-    background-color: #3b82f6 !important;
-    border-color: #3b82f6 !important;
+    background-color: #7aa2f7 !important;
+    border-color: #7aa2f7 !important;
     color: white !important;
 }
 
 .dark-mode .btn-primary:hover {
-    background-color: #2563eb !important;
+    background-color: #6a92e7 !important;
 }
 
-/* Button secondary */
+/* Tokyo Night Button Variants */
 .btn-secondary {
-    background-color: #64748b !important;
-    border-color: #64748b !important;
+    background-color: #4d5bce !important;
+    border-color: #4d5bce !important;
     color: white !important;
 }
 
 .btn-secondary:hover {
-    background-color: #475569 !important;
+    background-color: #3a47b8 !important;
 }
 
 /* Button success */
 .btn-success {
-    background-color: #10b981 !important;
-    border-color: #10b981 !important;
+    background-color: #7aa2f7 !important;
+    border-color: #7aa2f7 !important;
     color: white !important;
 }
 
 .btn-success:hover {
-    background-color: #059669 !important;
+    background-color: #6a92e7 !important;
 }
 
 /* Button error */
 .btn-error {
-    background-color: #ef4444 !important;
-    border-color: #ef4444 !important;
+    background-color: #f7768e !important;
+    border-color: #f7768e !important;
     color: white !important;
 }
 
 .btn-error:hover {
-    background-color: #dc2626 !important;
+    background-color: #e66a7a !important;
 }
 
-/* Input field improvements */
+/* Tokyo Night Input Fields */
 .input, .textarea, .select {
     width: 100% !important;
     padding: 0.6rem 0.8rem !important;
-    border: 1px solid #cbd5e1 !important;
+    border: 1px solid #4d5bce !important;
     border-radius: 6px !important;
     background: white !important;
     color: #1e293b !important;
@@ -832,8 +833,8 @@ input:checked + .slider-modern:before {
 }
 
 .input:focus, .textarea:focus, .select:focus {
-    border-color: #1e40af !important;
-    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1) !important;
+    border-color: #7aa2f7 !important;
+    box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.1) !important;
     outline: none !important;
 }
 
@@ -848,10 +849,10 @@ input:checked + .slider-modern:before {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
 }
 
-/* Better card colors */
+/* Tokyo Night Card Colors */
 .card-item {
     background: white;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #4d5bce;
     color: #1e293b;
 }
 
@@ -861,7 +862,7 @@ input:checked + .slider-modern:before {
     color: #f1f5f9;
 }
 
-/* Better tab colors */
+/* Tokyo Night Tab Colors */
 .tab-item {
     background: #f1f5f9;
     color: #1e293b;
@@ -872,31 +873,32 @@ input:checked + .slider-modern:before {
 }
 
 .tab-item.active {
-    background: #1e40af;
+    background: #4d5bce;
     color: white;
 }
 
 .dark-mode .tab-item {
-    background: #334155;
-    color: #f1f5f9;
+    background: #2d2e3a;
+    color: #c0caf5;
 }
 
 .dark-mode .tab-item:hover {
-    background: #475569;
+    background: #3a3b4a;
 }
 
 .dark-mode .tab-item.active {
-    background: #3b82f6;
+    background: #7aa2f7;
     color: white;
 }
 
-/* Better modal styling */
+/* Tokyo Night Modal Styling */
 .modal-box {
     padding: 1.5rem !important;
     max-width: 500px !important;
     width: 90% !important;
     max-height: 80vh !important;
     overflow-y: auto !important;
+    border: 1px solid #4d5bce !important;
 }
 
 .modal-content {
@@ -905,7 +907,7 @@ input:checked + .slider-modern:before {
     gap: 1rem;
 }
 
-/* Improved form layout */
+/* Tokyo Night Form Layout */
 .form-control {
     margin-bottom: 1rem;
 }
@@ -918,7 +920,7 @@ input:checked + .slider-modern:before {
 }
 
 .dark-mode .form-label {
-    color: #cbd5e1;
+    color: #a9b1d6;
 }
 
 /* Better button spacing */
@@ -947,12 +949,13 @@ input:checked + .slider-modern:before {
 }
 
 .dark-mode .card-item {
-    background: #1e293b;
-    border-color: #334155;
+    background: #1e1e2e;
+    border-color: #2d2e3a;
+    color: #c0caf5;
 }
 
 .dark-mode .card-item:hover {
-    border-color: #475569;
+    border-color: #3a3b4a;
 }
 
 /* Card content styling */
@@ -964,7 +967,7 @@ input:checked + .slider-modern:before {
 }
 
 .dark-mode .card-title {
-    color: #f8fafc;
+    color: #c0caf5;
 }
 
 .card-description {
@@ -974,7 +977,7 @@ input:checked + .slider-modern:before {
 }
 
 .dark-mode .card-description {
-    color: #94a3b8;
+    color: #a9b1d6;
 }
 
 .card-meta {
@@ -1000,8 +1003,8 @@ input:checked + .slider-modern:before {
 }
 
 .dark-mode .card-category {
-    background: #334155;
-    color: #3b82f6;
+    background: #2d2e3a;
+    color: #7aa2f7;
 }
 
 .card-quantity {
@@ -1014,8 +1017,8 @@ input:checked + .slider-modern:before {
 }
 
 .dark-mode .card-quantity {
-    background: #064e3b;
-    color: #d1fae5;
+    background: #264f78;
+    color: #96cdfb;
 }
 
 .card-status {
@@ -1619,9 +1622,9 @@ html {
     transition: 0s;
 }
 
-/* Gradient animations */
+/* Tokyo Night Gradient Animation */
 .gradient-bg {
-    background-color: gray;
+    background-color: #1a1b26;
     background-size: 400% 400%;
     animation: gradient 8s ease infinite;
 }
@@ -1650,10 +1653,10 @@ html {
     to { border-color: #4f46e5; }
 }
 
-/* Custom styles for dark login modal */
+/* Tokyo Night Modal Styles */
 .login-modal-dark {
-    background-color: #1f2937 !important;
-    border: 1px solid #374151 !important;
+    background-color: #1e1e2e !important;
+    border: 1px solid #2d2e3a !important;
     border-radius: 0.5rem !important;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
 }
@@ -1663,65 +1666,65 @@ html {
 }
 
 .login-modal-dark .form-label {
-    color: #f9fafb !important;
+    color: #c0caf5 !important;
     font-weight: 500 !important;
 }
 
 .login-modal-dark .input {
-    background-color: #374151 !important;
-    border-color: #4b5563 !important;
-    color: #f9fafb !important;
+    background-color: #2d2e3a !important;
+    border-color: #3a3b4a !important;
+    color: #c0caf5 !important;
 }
 
 .login-modal-dark .input:focus {
-    border-color: #60a5fa !important;
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1) !important;
+    border-color: #7aa2f7 !important;
+    box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.1) !important;
 }
 
 .login-modal-dark .btn-primary {
-    background-color: #3b82f6 !important;
-    border-color: #3b82f6 !important;
+    background-color: #7aa2f7 !important;
+    border-color: #7aa2f7 !important;
 }
 
 .login-modal-dark .btn-primary:hover {
-    background-color: #2563eb !important;
-    border-color: #2563eb !important;
+    background-color: #6a92e7 !important;
+    border-color: #6a92e7 !important;
 }
 
 .login-modal-dark .btn-ghost {
-    background-color: #4b5563 !important;
-    color: #f9fafb !important;
+    background-color: #3a3b4a !important;
+    color: #c0caf5 !important;
 }
 
 .login-modal-dark .btn-ghost:hover {
-    background-color: #6b7280 !important;
+    background-color: #4a4b5a !important;
 }
 
 .login-modal-dark .select {
-    background-color: #374151 !important;
-    border-color: #4b5563 !important;
-    color: #f9fafb !important;
+    background-color: #2d2e3a !important;
+    border-color: #3a3b4a !important;
+    color: #c0caf5 !important;
 }
 
 .login-modal-dark .select:focus {
-    border-color: #60a5fa !important;
-    box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1) !important;
+    border-color: #7aa2f7 !important;
+    box-shadow: 0 0 0 3px rgba(122, 162, 247, 0.1) !important;
 }
 
 .login-modal-dark .option {
-    background-color: #1f2937 !important;
-    color: #f9fafb !important;
+    background-color: #1e1e2e !important;
+    color: #c0caf5 !important;
 }
 
 .login-modal-dark .option:hover {
-    background-color: #374151 !important;
+    background-color: #2d2e3a !important;
 }
 
-/* Sorting and Filter Controls */
+/* Tokyo Night Controls */
 .controls-section {
-    background: rgba(10, 10, 10, 0.8);
+    background: rgba(26, 27, 38, 0.8);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(0, 168, 107, 0.1);
+    border: 1px solid rgba(76, 100, 241, 0.1);
     border-radius: 12px;
     padding: 1rem;
     margin-bottom: 1.5rem;
@@ -1748,13 +1751,13 @@ html {
 
 .filter-btn:hover, .sort-btn:hover {
     background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(0, 168, 107, 0.15);
+    border-color: rgba(122, 162, 247, 0.15);
 }
 
 .filter-btn.active-filter, .sort-btn.active-sort {
-    background: linear-gradient(135deg, #008a58, #006a48);
+    background: linear-gradient(135deg, #7aa2f7, #4d5bce);
     border-color: transparent;
-    box-shadow: 0 0 0 2px rgba(0, 168, 107, 0.2);
+    box-shadow: 0 0 0 2px rgba(122, 162, 247, 0.2);
 }
 
 /* Status filter buttons with original colors */

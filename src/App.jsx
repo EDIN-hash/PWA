@@ -308,10 +308,10 @@ export default function App() {
     );
 
 return (
-    <div className="min-h-screen bg-black p-2 sm:p-6 transition-colors duration-300 main-container flex flex-col gradient-bg">
+    <div className="min-h-screen bg-[#1a1b26] p-2 sm:p-6 transition-colors duration-300 main-container flex flex-col gradient-bg">
         <header className="header-section flex flex-col sm:flex-row justify-between items-center mb-4 gap-2 header-modern glass-effect">
             <div className="flex items-center gap-4 w-full">
-                <h1 className="text-2xl sm:text-3xl font-bold main-title text-center sm:text-left text-gradient fade-in-up green-accent">
+                <h1 className="text-2xl sm:text-3xl font-bold main-title text-center sm:text-left text-gradient fade-in-up tokyo-accent">
                     Inventory Management
                 </h1>
                  </div>
