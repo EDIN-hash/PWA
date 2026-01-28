@@ -312,8 +312,18 @@ export default function App() {
             return a.name.localeCompare(b.name);
         }
         
-        const aValue = a[sortConfig.key] || 0;
-        const bValue = b[sortConfig.key] || 0;
+        // Преобразовать значение в число, обрабатывая польский формат (запятая вместо точки)
+        const getNumericValue = (value) => {
+            if (value === null || value === undefined || value === '') return 0;
+            // Заменить польскую запятую на точку для корректного преобразования
+            const numericValue = typeof value === 'string' 
+                ? parseFloat(value.replace(',', '.')) 
+                : Number(value);
+            return isNaN(numericValue) ? 0 : numericValue;
+        };
+        
+        const aValue = getNumericValue(a[sortConfig.key]);
+        const bValue = getNumericValue(b[sortConfig.key]);
         
         if (aValue < bValue) {
             return sortConfig.direction === 'asc' ? -1 : 1;
