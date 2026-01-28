@@ -57,6 +57,21 @@ export default function App() {
         }
     }, []);
 
+    // Load saved user session from localStorage on app start
+    useEffect(() => {
+        const savedUser = localStorage.getItem('inventoryUser');
+        if (savedUser) {
+            try {
+                const user = JSON.parse(savedUser);
+                setCurrentUser(user);
+                console.log('Auto-login successful for user:', user.username);
+            } catch (error) {
+                console.error('Failed to parse saved user:', error);
+                localStorage.removeItem('inventoryUser');
+            }
+        }
+    }, []);
+
     // Apply dark mode class to body
     useEffect(() => {
         if (darkMode) {
@@ -97,6 +112,9 @@ export default function App() {
                 setUsername('');
                 setPassword('');
                 setShowLoginModal(false);
+                // Save user to localStorage for auto-login
+                localStorage.setItem('inventoryUser', JSON.stringify(user));
+                console.log('User saved to localStorage:', user.username);
             } else {
                 alert('Invalid username or password');
             }
@@ -135,7 +153,10 @@ export default function App() {
         } catch (err) {
             console.error("Logout error:", err);
         }
+        // Clear user from localStorage and state
+        localStorage.removeItem('inventoryUser');
         setCurrentUser(null);
+        console.log('User logged out and localStorage cleared');
     };
 
     const openItemModal = (item = null) => {
