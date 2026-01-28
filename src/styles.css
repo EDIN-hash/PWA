@@ -299,6 +299,252 @@ body {
     padding: 4px 12px;
     font-size: 12px;
     font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+}
+
+/* Category Badges */
+.category-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Status Indicators */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-available {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-unavailable {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+/* Dark mode badge colors */
+.dark-mode .status-available {
+    background-color: #064e3b;
+    color: #d1fae5;
+}
+
+.dark-mode .status-unavailable {
+    background-color: #7f1d1d;
+    color: #fee2e2;
+}
+
+/* Card content styling */
+.card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+}
+
+.dark-mode .card-title {
+    color: var(--fg);
+}
+
+.card-description {
+    color: #475569;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    line-height: 1.5;
+}
+
+.dark-mode .card-description {
+    color: var(--fg-gutter);
+}
+
+.card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(76, 100, 241, 0.1);
+}
+
+.card-category {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--blue);
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid rgba(122, 162, 247, 0.15);
+}
+
+.card-quantity {
+    background: rgba(122, 162, 247, 0.1);
+    color: var(--blue);
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid rgba(122, 162, 247, 0.15);
+}
+
+.card-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.card-status-available {
+    background: rgba(4, 120, 87, 0.5);
+    color: #96cdfb;
+    border: 1px solid rgba(10, 143, 112, 0.5);
+}
+
+.card-status-unavailable {
+    background: rgba(127, 29, 29, 0.5);
+    color: #f7768e;
+    border: 1px solid rgba(153, 27, 27, 0.5);
+}
+
+/* Improved card layout */
+.card-premium {
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.card-premium:hover {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+}
+
+/* Text styling improvements */
+.text-slate-800 {
+    color: #1e293b;
+}
+
+.dark-mode .text-slate-800 {
+    color: var(--fg);
+}
+
+.text-slate-600 {
+    color: #475569;
+}
+
+.dark-mode .text-slate-600 {
+    color: var(--fg-gutter);
+}
+
+.text-slate-300 {
+    color: #94a3b8;
+}
+
+.dark-mode .text-slate-300 {
+    color: var(--fg-side);
+}
+
+.text-slate-100 {
+    color: #f1f5f9;
+}
+
+.dark-mode .text-slate-100 {
+    color: var(--fg);
+}
+
+.text-slate-700 {
+    color: #334155;
+}
+
+.dark-mode .text-slate-700 {
+    color: var(--fg-gutter);
+}
+
+.text-slate-200 {
+    color: #e2e8f0;
+}
+
+.dark-mode .text-slate-200 {
+    color: var(--fg);
+}
+
+/* ID Badge styling */
+.id-badge {
+    background: rgba(122, 162, 247, 0.1);
+    color: var(--blue);
+    border: 1px solid rgba(122, 162, 247, 0.15);
+    border-radius: 9999px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: monospace;
+    display: inline-block;
+    margin-left: 4px;
+}
+
+/* Improved text rendering */
+.text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.text-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Card image styling */
+.card-image {
+    border-radius: 0.5rem;
+    object-fit: cover;
+    height: 20rem;
+    width: 100%;
+    border: 1px solid rgba(76, 100, 241, 0.1);
+}
+
+.card-image:hover {
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+}
+
+/* Dimension display */
+.dimension-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.dimension-label {
+    font-size: 0.75rem;
+    color: var(--fg-gutter);
+}
+
+.dimension-value {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--fg);
 }
 
 /* Tokyo Night Controls */
@@ -705,6 +951,52 @@ body {
     .btn:active {
         transform: scale(0.98) !important;
     }
+}
+
+/* Card action buttons */
+.card-action-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.card-edit-btn {
+    background: linear-gradient(135deg, var(--blue), var(--indigo));
+    color: white;
+    border: 1px solid rgba(122, 162, 247, 0.2);
+}
+
+.card-edit-btn:hover {
+    background: linear-gradient(135deg, #6a92e7, #3a47b8);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(122, 162, 247, 0.2);
+}
+
+.card-delete-btn {
+    background: #f7768e;
+    color: white;
+    border: 1px solid rgba(247, 118, 142, 0.2);
+}
+
+.card-delete-btn:hover {
+    background: #e66a7a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(247, 118, 142, 0.2);
+}
+
+/* Card footer */
+.card-footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(76, 100, 241, 0.1);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
 }
 
 /* Smooth Scrolling */
