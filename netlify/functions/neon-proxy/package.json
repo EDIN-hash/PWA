@@ -1,0 +1,15 @@
+{
+  "name": "neon-proxy",
+  "version": "1.0.0",
+  "description": "Netlify function for Neon database proxy",
+  "main": "neon-proxy.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}

@@ -9,12 +9,13 @@ export async function handler(event, context) {
     const dbUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL;
     
     if (!dbUrl) {
-      console.error('Database URL is missing!');
+      console.error('Database URL is missing! Available environment variables:', Object.keys(process.env));
       return {
         statusCode: 500,
         body: JSON.stringify({
           error: 'Database connection string is missing',
-          availableEnv: Object.keys(process.env)
+          availableEnv: Object.keys(process.env),
+          message: 'Please set NETLIFY_DATABASE_URL or DATABASE_URL environment variable'
         })
       };
     }
