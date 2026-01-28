@@ -139,23 +139,37 @@ export default function App() {
     };
 
     const openItemModal = (item = null) => {
-        setModalData(
-            item
-                ? {
-                    ...item,
-                    dataWyjazdu: item.data_wyjazdu ? (() => {
-                        try {
-                            const date = new Date(item.data_wyjazdu);
-                            return isNaN(date.getTime()) ? null : date;
-                        } catch (e) {
-                            console.error("Invalid date format:", item.data_wyjazdu, e);
-                            return null;
-                        }
-                    })() : null,
-                    stan: item.stan === 1 || item.stan === true,
-                }
-                : defaultModalData
-        );
+        if (item) {
+            // Convert numeric fields from strings to numbers, handling Polish decimal format
+            const parsePolishNumber = (value) => {
+                if (value === null || value === undefined || value === '') return 0;
+                // Replace Polish comma with dot for parsing, then convert to number
+                const numericValue = typeof value === 'string' 
+                    ? parseFloat(value.replace(',', '.')) 
+                    : Number(value);
+                return isNaN(numericValue) ? 0 : numericValue;
+            };
+
+            setModalData({
+                ...item,
+                wysokosc: parsePolishNumber(item.wysokosc),
+                szerokosc: parsePolishNumber(item.szerokosc),
+                glebokosc: parsePolishNumber(item.glebokosc),
+                ilosc: parsePolishNumber(item.ilosc),
+                dataWyjazdu: item.data_wyjazdu ? (() => {
+                    try {
+                        const date = new Date(item.data_wyjazdu);
+                        return isNaN(date.getTime()) ? null : date;
+                    } catch (e) {
+                        console.error("Invalid date format:", item.data_wyjazdu, e);
+                        return null;
+                    }
+                })() : null,
+                stan: item.stan === 1 || item.stan === true,
+            });
+        } else {
+            setModalData(defaultModalData);
+        }
         setEditingItem(item || null);
         setIsItemModalOpen(true);
     };
@@ -298,7 +312,13 @@ export default function App() {
                             [key]:
                                 ["name", "quantity", "description", "photo_url", "linknadysk", "stoisko"].includes(key)
                                     ? e.target.value
-                                    : Number(e.target.value),
+                                    : (() => {
+                                        const value = e.target.value;
+                                        if (value === '') return 0;
+                                        // Handle Polish decimal format (comma) and convert to number
+                                        const numericValue = parseFloat(value.replace(',', '.'));
+                                        return isNaN(numericValue) ? 0 : numericValue;
+                                    })(),
                         })
                     }
                     className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
