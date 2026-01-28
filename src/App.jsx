@@ -307,7 +307,10 @@ export default function App() {
     
     // Sort items
     const filteredItems = [...statusFilteredItems].sort((a, b) => {
-        if (!sortConfig.key) return 0;
+        if (!sortConfig.key) {
+            // По умолчанию сортировать по имени (ID) в алфавитном порядке
+            return a.name.localeCompare(b.name);
+        }
         
         const aValue = a[sortConfig.key] || 0;
         const bValue = b[sortConfig.key] || 0;
@@ -404,7 +407,7 @@ return (
                         placeholder="Search..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="input input-bordered w-full"
+                        className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
                     />
                     {(currentUser.role === "admin" || currentUser.role === "moder") && (
                         <button
