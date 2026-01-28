@@ -9,7 +9,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
                 <div className="flex justify-between items-start mb-3">
                     <h2 className="text-lg font-semibold text-slate-800 truncate max-w-[70%]">{item.name}</h2>
                     <div className="flex gap-1">
-                        <span className={`badge-modern`}>
+                        <span className={`badge-modern ${getCategoryColor(item.category)}`}>
                             {item.category}
                         </span>
                         {item.quantity && (
@@ -211,6 +211,8 @@ function getCategoryColor(category) {
             return "bg-gray-700/50 border-gray-500/50 text-gray-300";
         case "NM":
             return "bg-gray-900/50 border-gray-500/50 text-gray-400";
+        case "LADY":
+            return "bg-pink-900/50 border-pink-500/50 text-pink-400";
         default:
             return "bg-gray-900/50 border-gray-500/50 text-gray-400";
     }

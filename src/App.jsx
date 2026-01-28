@@ -10,7 +10,7 @@ import { generateDeviceId, getDeviceId } from "./device-utils";
 // Настройка Modal до определения компонента
 Modal.setAppElement("#root");
 
-const categories = ["Telewizory", "Lodowki", "Ekspresy", "Krzesla", "NM"];
+const categories = ["Telewizory", "Lodowki", "Ekspresy", "Krzesla", "NM", "LADY"];
 
 const defaultModalData = {
     name: "",
