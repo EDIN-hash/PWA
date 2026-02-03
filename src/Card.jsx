@@ -27,14 +27,32 @@ export default function Card({ item, editItem, deleteItem, role }) {
                     </div>
                 </div>
                 
-                <div className="flex justify-between items-center mb-3">
-                    <span className={`badge-modern status-text ${item.stan === 1 || item.stan === true ? 'bg-green-900/50 border-green-500/50 text-green-400' : 'bg-red-900/50 border-red-500/50 text-red-400'}`}>
-                        {item.stan === 1 || item.stan === true ? 'Na stanie' : 'Wyjechało'}
-                    </span>
-                    <span className="badge-modern quantity-text bg-blue-900/50 border-blue-500/50 text-blue-400">
-                        Ilość: {item.ilosc}
-                    </span>
-                </div>
+                {item.category === 'Krzesla' ? (
+                    <div className="flex justify-center items-center mb-3">
+                        <div className="flex flex-col gap-1 text-center">
+                            <span className="badge-modern quantity-text bg-blue-900/50 border-blue-500/50 text-blue-400">
+                                Ilosc suma: {item.ilosc}
+                            </span>
+                            {item.wysokosc && (
+                                <span className="badge-modern quantity-text bg-purple-900/50 border-purple-500/50 text-purple-400">
+                                    Ilosc wyjechala: {item.wysokosc}
+                                </span>
+                            )}
+                            <span className="badge-modern quantity-text bg-green-900/50 border-green-500/50 text-green-400">
+                                Zostalo: {item.ilosc - (item.wysokosc || 0)}
+                            </span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex justify-between items-center mb-3">
+                        <span className={`badge-modern status-text ${item.stan === 1 || item.stan === true ? 'bg-green-900/50 border-green-500/50 text-green-400' : 'bg-red-900/50 border-red-500/50 text-red-400'}`}>
+                            {item.stan === 1 || item.stan === true ? 'Na stanie' : 'Wyjechało'}
+                        </span>
+                        <span className="badge-modern quantity-text bg-blue-900/50 border-blue-500/50 text-blue-400">
+                            Ilość: {item.ilosc}
+                        </span>
+                    </div>
+                )}
                 
                 {item.photo_url && (
                     <div className="mb-4 relative group cursor-pointer" onClick={() => setOpenPhoto(true)}>
@@ -77,47 +95,49 @@ export default function Card({ item, editItem, deleteItem, role }) {
                         </div>
                     )}
                     
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-slate-600">
-                        <div className="dimension-item">
-                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121M12 12l2.879 2.879"></path>
-                            </svg>
-                            <div>
-                                <div className="dimension-label">Wysokość</div>
-                                <div className="dimension-value">{item.wysokosc || '-'}&nbsp;cm</div>
+                    {item.category !== 'Krzesla' && (
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-slate-600">
+                            <div className="dimension-item">
+                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121M12 12l2.879 2.879"></path>
+                                </svg>
+                                <div>
+                                    <div className="dimension-label">Wysokość</div>
+                                    <div className="dimension-value">{item.wysokosc || '-'}&nbsp;cm</div>
+                                </div>
+                            </div>
+                            
+                            <div className="dimension-item">
+                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121M12 12l2.879 2.879"></path>
+                                </svg>
+                                <div>
+                                    <div className="dimension-label">Szerokość</div>
+                                    <div className="dimension-value">{item.szerokosc || '-'}&nbsp;cm</div>
+                                </div>
+                            </div>
+                            
+                            <div className="dimension-item">
+                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121M12 12l2.879 2.879"></path>
+                                </svg>
+                                <div>
+                                    <div className="dimension-label">Głębokość</div>
+                                    <div className="dimension-value">{item.glebokosc || '-'}&nbsp;cm</div>
+                                </div>
+                            </div>
+                            
+                            <div className="dimension-item col-span-2">
+                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <div>
+                                    <div className="dimension-label">Data wyjazdu</div>
+                                    <div className="dimension-value">{item.data_wyjazdu || '-'}</div>
+                                </div>
                             </div>
                         </div>
-                        
-                        <div className="dimension-item">
-                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121M12 12l2.879 2.879"></path>
-                            </svg>
-                            <div>
-                                <div className="dimension-label">Szerokość</div>
-                                <div className="dimension-value">{item.szerokosc || '-'}&nbsp;cm</div>
-                            </div>
-                        </div>
-                        
-                        <div className="dimension-item">
-                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121M12 12l2.879 2.879"></path>
-                            </svg>
-                            <div>
-                                <div className="dimension-label">Głębokość</div>
-                                <div className="dimension-value">{item.glebokosc || '-'}&nbsp;cm</div>
-                            </div>
-                        </div>
-                        
-                        <div className="dimension-item col-span-2">
-                            <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                            <div>
-                                <div className="dimension-label">Data wyjazdu</div>
-                                <div className="dimension-value">{item.data_wyjazdu || '-'}</div>
-                            </div>
-                        </div>
-                    </div>
+                    )}
                     
                     {item.linknadysk && (
                         <div className="pt-2">

@@ -334,57 +334,69 @@ export default function App() {
         return 0;
     });
 
-    const renderItemFormField = ([label, key, type = "input"]) => (
-        <div className="form-control" key={key}>
-            <label className="label">
-                <span className="label-text text-white">{label}</span>
-            </label>
-            {type === "textarea" ? (
-                <textarea
-                    value={modalData[key]}
-                    onChange={(e) => setModalData({ ...modalData, [key]: e.target.value })}
-                    className="textarea textarea-bordered h-24 w-full bg-gray-700 border-gray-600 text-white"
-                />
-            ) : key === "category" ? (
-                <select
-                    value={modalData[key]}
-                    onChange={(e) => setModalData({ ...modalData, [key]: e.target.value })}
-                    className="select select-bordered w-full bg-gray-700 border-gray-600 text-white"
-                >
-                    {categories.map((category) => (
-                        <option key={category} value={category}>
-                            {category}
-                        </option>
-                    ))}
-                </select>
-            ) : (
-                <input
-                    type={
-                        ["ilosc", "wysokosc", "szerokosc", "glebokosc"].includes(key)
-                            ? "number"
-                            : "text"
-                    }
-                    value={modalData[key]}
-                    onChange={(e) =>
-                        setModalData({
-                            ...modalData,
-                            [key]:
-                                ["name", "quantity", "description", "photo_url", "linknadysk", "stoisko"].includes(key)
-                                    ? e.target.value
-                                    : (() => {
-                                        const value = e.target.value;
-                                        if (value === '') return 0;
-                                        // Handle Polish decimal format (comma) and convert to number
-                                        const numericValue = parseFloat(value.replace(',', '.'));
-                                        return isNaN(numericValue) ? 0 : numericValue;
-                                    })(),
-                        })
-                    }
-                    className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
-                />
-            )}
-        </div>
-    );
+    const renderItemFormField = ([label, key, type = "input"]) => {
+        // Special handling for Krzesla category
+        let displayLabel = label;
+        if (modalData.category === 'Krzesla') {
+            if (key === 'quantity') {
+                displayLabel = 'wyjechalo(ilosc)';
+            } else if (key === 'wysokosc') {
+                displayLabel = 'Ilosc wyjechala';
+            }
+        }
+        
+        return (
+            <div className="form-control" key={key}>
+                <label className="label">
+                    <span className="label-text text-white">{displayLabel}</span>
+                </label>
+                {type === "textarea" ? (
+                    <textarea
+                        value={modalData[key]}
+                        onChange={(e) => setModalData({ ...modalData, [key]: e.target.value })}
+                        className="textarea textarea-bordered h-24 w-full bg-gray-700 border-gray-600 text-white"
+                    />
+                ) : key === "category" ? (
+                    <select
+                        value={modalData[key]}
+                        onChange={(e) => setModalData({ ...modalData, [key]: e.target.value })}
+                        className="select select-bordered w-full bg-gray-700 border-gray-600 text-white"
+                    >
+                        {categories.map((category) => (
+                            <option key={category} value={category}>
+                                {category}
+                            </option>
+                        ))}
+                    </select>
+                ) : (
+                    <input
+                        type={
+                            ["ilosc", "wysokosc", "szerokosc", "glebokosc"].includes(key)
+                                ? "number"
+                                : "text"
+                        }
+                        value={modalData[key]}
+                        onChange={(e) =>
+                            setModalData({
+                                ...modalData,
+                                [key]:
+                                    ["name", "quantity", "description", "photo_url", "linknadysk", "stoisko"].includes(key)
+                                        ? e.target.value
+                                        : (() => {
+                                            const value = e.target.value;
+                                            if (value === '') return 0;
+                                            // Handle Polish decimal format (comma) and convert to number
+                                            const numericValue = parseFloat(value.replace(',', '.'));
+                                            return isNaN(numericValue) ? 0 : numericValue;
+                                        })(),
+                            })
+                        }
+                        className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
+                    />
+                )}
+            </div>
+        );
+    };
 
 return (
     <div className="min-h-screen bg-[#1a1b26] p-2 sm:p-6 transition-colors duration-300 main-container flex flex-col gradient-bg">
@@ -580,19 +592,40 @@ return (
                     {editingItem ? "Edit Item" : "Add New Item"}
                 </h2>
                 <div className="grid grid-cols-1 gap-3 sm:gap-4 modal-content">
-                    {[
-                        ["Name", "name"],
-                        ["Ilość", "ilosc"],
-                        ["Category", "category"],
-                        ["Description", "description", "textarea"],
-                        ["Photo URL", "photo_url"],
-                        ["Stoisko", "stoisko"],
-                        ["Wysokość (cm)", "wysokosc"],
-                        ["Szerokość (cm)", "szerokosc"],
-                        ["Głębokość (cm)", "glebokosc"],
-                        ["Google Drive Link", "linknadysk"],
-                        ["Quantity (разновидность)", "quantity"],
-                    ].map(renderItemFormField)}
+                    {/* Special field order for Krzesla category */}
+                    {modalData.category === 'Krzesla' ? (
+                        <>
+                            {[
+                                ["Name", "name"],
+                                ["Ilość", "ilosc"],
+                                ["Category", "category"],
+                                ["Ilosc wyjechala", "wysokosc"], // Moved to top for Krzesla
+                                ["Description", "description", "textarea"],
+                                ["Photo URL", "photo_url"],
+                                ["Stoisko", "stoisko"],
+                                ["Szerokość (cm)", "szerokosc"],
+                                ["Głębokość (cm)", "glebokosc"],
+                                ["Google Drive Link", "linknadysk"],
+                                ["wyjechalo(ilosc)", "quantity"],
+                            ].map(renderItemFormField)}
+                        </>
+                    ) : (
+                        <>
+                            {[
+                                ["Name", "name"],
+                                ["Ilość", "ilosc"],
+                                ["Category", "category"],
+                                ["Description", "description", "textarea"],
+                                ["Photo URL", "photo_url"],
+                                ["Stoisko", "stoisko"],
+                                ["Wysokość (cm)", "wysokosc"],
+                                ["Szerokość (cm)", "szerokosc"],
+                                ["Głębokość (cm)", "glebokosc"],
+                                ["Google Drive Link", "linknadysk"],
+                                ["Quantity (разновидность)", "quantity"],
+                            ].map(renderItemFormField)}
+                        </>
+                    )}
                     <div className="form-control">
                         <label className="form-label text-white text-sm sm:text-base">Data Wyjazdu</label>
                         <DatePicker
@@ -604,17 +637,20 @@ return (
                             placeholderText="Select a date"
                         />
                     </div>
-                    <div className="form-control">
-                        <label className="form-label cursor-pointer text-white text-sm sm:text-base">
-                            <span className="label-text text-white">Na stanie?</span>
-                            <input
-                                type="checkbox"
-                                checked={modalData.stan}
-                                onChange={(e) => setModalData({ ...modalData, stan: e.target.checked })}
-                                className="checkbox"
-                            />
-                        </label>
-                    </div>
+                    {/* Only show "Na stanie?" checkbox for non-Krzesla categories */}
+                    {modalData.category !== 'Krzesla' && (
+                        <div className="form-control">
+                            <label className="form-label cursor-pointer text-white text-sm sm:text-base">
+                                <span className="label-text text-white">Na stanie?</span>
+                                <input
+                                    type="checkbox"
+                                    checked={modalData.stan}
+                                    onChange={(e) => setModalData({ ...modalData, stan: e.target.checked })}
+                                    className="checkbox"
+                                />
+                            </label>
+                        </div>
+                    )}
                 </div>
                 <div className="button-group mt-4 flex gap-2">
                     <button onClick={closeItemModal} className="btn btn-ghost bg-gray-600 hover:bg-gray-500 text-white w-full sm:w-auto">
@@ -736,13 +772,13 @@ return (
         <Modal
             isOpen={isGetIdModalOpen}
             onRequestClose={() => setIsGetIdModalOpen(false)}
-            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 login-modal-dark"
+            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 login-modal-dark get-free-id-modal"
             overlayClassName="modal-backdrop p-2 sm:p-0"
             contentLabel="Get Free ID Modal"
         >
             <>
                 <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">Get Free ID</h2>
-                <div className="space-y-3 sm:space-y-4">
+                <div className="space-y-3 sm:space-y-4 modal-content">
                     <div className="form-control">
                         <label className="form-label text-sm sm:text-base text-white">Category</label>
                         <select
@@ -784,21 +820,23 @@ return (
                         </button>
                     </div>
                     {generatedId && (
-                        <div className="form-control">
+                        <div className="form-control generated-id-section">
                             <label className="form-label text-sm sm:text-base text-white">Generated ID</label>
-                            <div className="flex gap-2">
+                            <div className="flex flex-col sm:flex-row gap-2">
                                 <input
                                     type="text"
                                     value={generatedId}
                                     readOnly
                                     className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
                                 />
-                                <button
-                                    onClick={handleCopyId}
-                                    className="btn btn-info bg-blue-500 hover:bg-blue-600 text-white"
-                                >
-                                    Copy
-                                </button>
+                                <div className="copy-button-container">
+                                    <button
+                                        onClick={handleCopyId}
+                                        className="btn btn-info bg-blue-500 hover:bg-blue-600 text-white w-full sm:w-auto"
+                                    >
+                                        Copy
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     )}

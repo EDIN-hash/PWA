@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Test</title>
+    <style>
+        /* Test the responsive behavior */
+        .test-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1rem;
+        }
+        
+        .test-button {
+            padding: 0.5rem 1rem;
+            background: #4d5bce;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .test-input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        @media (min-width: 640px) {
+            .test-input-container {
+                flex-direction: row;
+            }
+            
+            .test-button {
+                width: auto;
+            }
+        }
+        
+        @media (max-width: 639px) {
+            .test-button {
+                width: 100%;
+            }
+        }
+        
+        .test-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Responsive Test</h1>
+        
+        <div class="test-input-container">
+            <input type="text" class="test-input" placeholder="Generated ID" value="TV55001" readonly>
+            <button class="test-button">Copy</button>
+        </div>
+        
+        <p>Resize the window to see the responsive behavior. On mobile, the button should be full width and below the input. On desktop, they should be side by side.</p>
+    </div>
+</body>
+</html>
