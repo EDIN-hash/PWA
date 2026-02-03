@@ -59,7 +59,8 @@ export default function Card({ item, editItem, deleteItem, role }) {
                         <img
                             src={item.photo_url}
                             alt={item.name}
-                            className="card-image group-hover:opacity-90 transition-opacity"
+                            className="card-image group-hover:opacity-90 transition-opacity w-full"
+                            style={{ maxWidth: '100%', height: 'auto' }}
                         />
                         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-opacity flex items-center justify-center">
                             <span className="text-white text-sm font-medium bg-black bg-opacity-50 px-3 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">

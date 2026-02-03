@@ -1041,6 +1041,26 @@ body {
         gap: 1rem !important;
         padding: 0 !important;
     }
+    
+    /* Fix for mobile image display */
+    .card-image {
+        height: auto !important;
+        min-height: 200px !important;
+        max-height: 300px !important;
+        object-fit: contain !important;
+        width: 100% !important;
+    }
+    
+    .mb-4 {
+        margin-bottom: 1rem !important;
+    }
+    
+    /* Mobile image container fix */
+    .relative.group.cursor-pointer {
+        overflow: hidden !important;
+        border-radius: 0.5rem !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+    }
 
     .modal-box {
         width: 95% !important;
