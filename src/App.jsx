@@ -338,9 +338,7 @@ export default function App() {
         // Special handling for Krzesla category
         let displayLabel = label;
         if (modalData.category === 'Krzesla') {
-            if (key === 'quantity') {
-                displayLabel = 'wyjechalo(ilosc)';
-            } else if (key === 'wysokosc') {
+            if (key === 'wysokosc') {
                 displayLabel = 'Ilosc wyjechala';
             }
         }
@@ -605,8 +603,7 @@ return (
                                 ["Stoisko", "stoisko"],
                                 ["Szerokość (cm)", "szerokosc"],
                                 ["Głębokość (cm)", "glebokosc"],
-                                ["Google Drive Link", "linknadysk"],
-                                ["wyjechalo(ilosc)", "quantity"],
+                                ["Google Drive Link", "linknadysk"]
                             ].map(renderItemFormField)}
                         </>
                     ) : (
