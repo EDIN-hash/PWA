@@ -3,6 +3,142 @@ import React, { useState, useEffect, useRef, memo } from "react";
 const MAX_IMAGE_WIDTH = 1280;
 const MAX_IMAGE_HEIGHT = 720;
 
+// CSS стили для модального окна
+const modalStyles = `
+.photo-modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background-color: rgba(0, 0, 0, 0.95) !important;
+    backdrop-filter: blur(4px) !important;
+    z-index: 9999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 20px !important;
+    box-sizing: border-box !important;
+}
+
+.photo-modal-content {
+    position: relative !important;
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    max-width: 90vw !important;
+    max-height: 90vh !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.photo-modal-close {
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    width: 40px !important;
+    height: 40px !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: none !important;
+    border-radius: 50% !important;
+    color: white !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    z-index: 10 !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.photo-modal-close:hover {
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    transform: scale(1.1) !important;
+}
+
+.photo-modal-nav {
+    position: absolute !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 48px !important;
+    height: 48px !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: none !important;
+    border-radius: 50% !important;
+    color: white !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    z-index: 10 !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.photo-modal-nav:hover {
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    transform: translateY(-50%) scale(1.1) !important;
+}
+
+.photo-modal-nav-prev {
+    left: 12px !important;
+}
+
+.photo-modal-nav-next {
+    right: 12px !important;
+}
+
+.photo-modal-image {
+    max-width: 100% !important;
+    max-height: 75vh !important;
+    object-fit: contain !important;
+    display: block !important;
+    margin: 0 auto !important;
+    padding: 20px !important;
+}
+
+.photo-modal-info {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    padding: 16px 24px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    text-align: center !important;
+}
+
+.photo-modal-title {
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 18px !important;
+    margin: 0 0 8px 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.photo-modal-counter {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 14px !important;
+    margin: 0 0 8px 0 !important;
+}
+
+.photo-modal-description {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 14px !important;
+    margin: 0 !important;
+    line-height: 1.4 !important;
+}
+`;
+
+// Вставляем стили в head при загрузке компонента
+if (typeof document !== 'undefined' && !document.getElementById('photo-modal-styles')) {
+    const styleElement = document.createElement('style');
+    styleElement.id = 'photo-modal-styles';
+    styleElement.textContent = modalStyles;
+    document.head.appendChild(styleElement);
+}
+
 function optimizeImageUrl(url) {
     if (!url) return url;
     
@@ -351,67 +487,40 @@ export default function Card({ item, editItem, deleteItem, role }) {
             </div>
 
             {openPhoto && photos.length > 0 && (
-                <div
-                    className="bg-black bg-opacity-95 backdrop-blur-sm"
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        zIndex: 9999,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
+                <div 
+                    className="photo-modal-overlay"
                     onClick={() => setOpenPhoto(false)}
                 >
-                    <div
-                        className="relative bg-black/90 rounded-lg shadow-2xl overflow-hidden"
-                        style={{ 
-                            width: 'auto',
-                            height: 'auto',
-                            maxWidth: '90vw',
-                            maxHeight: '90vh',
-                            position: 'fixed',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)'
-                        }}
+                    <div 
+                        className="photo-modal-content"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <button
-                            className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 rounded-full w-10 h-10 flex items-center justify-center shadow-lg transition-all z-10"
+                            className="photo-modal-close"
                             onClick={() => setOpenPhoto(false)}
                         >
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
+                            ×
                         </button>
                         
                         {item.category === 'LADY' && hasMultiplePhotos && (
                             <>
                                 <button
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-all z-10"
+                                    className="photo-modal-nav photo-modal-nav-prev"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setCurrentPhotoIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
                                     }}
                                 >
-                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
-                                    </svg>
+                                    ‹
                                 </button>
                                 <button
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-all z-10"
+                                    className="photo-modal-nav photo-modal-nav-next"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setCurrentPhotoIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
                                     }}
                                 >
-                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-                                    </svg>
+                                    ›
                                 </button>
                             </>
                         )}
@@ -419,14 +528,15 @@ export default function Card({ item, editItem, deleteItem, role }) {
                         <img
                             src={optimizeImageUrl(photos[currentPhotoIndex])}
                             alt={item.name}
-                            className="object-contain max-h-[75vh] w-auto mx-auto p-6"
+                            className="photo-modal-image"
                         />
-                        <div className="bg-black/30 px-6 py-4 border-t border-white/10">
-                            <h3 className="font-semibold text-white truncate text-gradient green-accent">{item.name}</h3>
+                        
+                        <div className="photo-modal-info">
+                            <h3 className="photo-modal-title">{item.name}</h3>
                             {item.category === 'LADY' && hasMultiplePhotos && (
-                                <p className="text-sm text-white/80 mt-1">Фото {currentPhotoIndex + 1} из {photos.length}</p>
+                                <p className="photo-modal-counter">Фото {currentPhotoIndex + 1} из {photos.length}</p>
                             )}
-                            <p className="text-sm text-white/80 mt-2">{item.description}</p>
+                            <p className="photo-modal-description">{item.description}</p>
                         </div>
                     </div>
                 </div>
