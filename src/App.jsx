@@ -264,26 +264,34 @@ export default function App() {
         try {
             if (editingItem) {
                 await NeonClient.updateItem(editingItem.name, itemData);
-                await NeonClient.addHistoryEntry({
-                    item_name: modalData.name,
-                    action: 'edit',
-                    field_name: 'all',
-                    old_value: editingItem.name !== modalData.name ? editingItem.name : '',
-                    new_value: modalData.name,
-                    changed_by: currentUsername,
-                    device_id: currentDeviceId
-                });
             } else {
                 await NeonClient.addItem(itemData);
-                await NeonClient.addHistoryEntry({
-                    item_name: modalData.name,
-                    action: 'add',
-                    field_name: 'new_item',
-                    old_value: '',
-                    new_value: modalData.category,
-                    changed_by: currentUsername,
-                    device_id: currentDeviceId
-                });
+            }
+            // Запись в историю - не блокирует сохранение при ошибке
+            try {
+                if (editingItem) {
+                    await NeonClient.addHistoryEntry({
+                        item_name: modalData.name,
+                        action: 'edit',
+                        field_name: 'all',
+                        old_value: editingItem.name !== modalData.name ? editingItem.name : '',
+                        new_value: modalData.name,
+                        changed_by: currentUsername,
+                        device_id: currentDeviceId
+                    });
+                } else {
+                    await NeonClient.addHistoryEntry({
+                        item_name: modalData.name,
+                        action: 'add',
+                        field_name: 'new_item',
+                        old_value: '',
+                        new_value: modalData.category,
+                        changed_by: currentUsername,
+                        device_id: currentDeviceId
+                    });
+                }
+            } catch (historyErr) {
+                console.warn("History logging failed:", historyErr);
             }
             await fetchItems();
             closeItemModal();
@@ -300,15 +308,19 @@ export default function App() {
         const currentDeviceId = generateDeviceId();
         try {
             await NeonClient.deleteItem(itemName);
-            await NeonClient.addHistoryEntry({
-                item_name: itemName,
-                action: 'delete',
-                field_name: 'all',
-                old_value: '',
-                new_value: '',
-                changed_by: currentUsername,
-                device_id: currentDeviceId
-            });
+            try {
+                await NeonClient.addHistoryEntry({
+                    item_name: itemName,
+                    action: 'delete',
+                    field_name: 'all',
+                    old_value: '',
+                    new_value: '',
+                    changed_by: currentUsername,
+                    device_id: currentDeviceId
+                });
+            } catch (historyErr) {
+                console.warn("History logging failed:", historyErr);
+            }
             await fetchItems();
         } catch (err) {
             console.error("Delete item error:", err);
@@ -468,32 +480,32 @@ return (
                     </button>
                 </div>
             ) : (
-                <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center w-full">
                     <input
                         type="text"
                         placeholder="Search..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="input input-bordered bg-gray-700 border-gray-600 text-white"
-                        style={{ width: '140%', maxWidth: '400px' }}
+                        className="input input-bordered bg-gray-700 border-gray-600 text-white flex-1 min-w-0"
+                        style={{ minWidth: '200px' }}
                     />
                     {(currentUser.role === "admin") && selectedCategory !== 'Historia' && (
                         <button
                             onClick={() => openItemModal()}
-                            className="btn btn-success w-full sm:w-auto ripple hover-lift bounce-in"
+                            className="btn btn-success w-full sm:w-auto ripple hover-lift bounce-in flex-shrink-0"
                         >
                             Add Item
                         </button>
                     )}
-                    {currentUser.role === "admin" && selectedCategory !== 'Historia' && (
+                    {(currentUser.role === "admin" || currentUser.role === "moder") && selectedCategory !== 'Historia' && (
                         <button
                             onClick={() => setIsGetIdModalOpen(true)}
-                            className="btn btn-info w-full sm:w-auto ripple hover-lift bounce-in"
+                            className="btn btn-info w-full sm:w-auto ripple hover-lift bounce-in flex-shrink-0"
                         >
                             Get Free ID
                         </button>
                     )}
-                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 flex-shrink-0">
                         <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Logged in as: {currentUser.username}</span>
                         <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Role: {currentUser.role}</span>
                         <button onClick={handleLogout} className="btn btn-error w-full sm:w-auto">
