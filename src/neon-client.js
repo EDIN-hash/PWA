@@ -47,24 +47,24 @@ const NeonClient = {
 
     // Добавление предмета
     async addItem(item) {
-        // Try with deviceId first, fallback to version without it if column doesn't exist
+        // Try with deviceId and photo_url2 first, fallback to version without them if columns don't exist
         const queryWithDeviceId = `
             INSERT INTO items (
-                name, quantity, ilosc, description, photo_url, category,
+                name, quantity, ilosc, description, photo_url, photo_url2, category,
                 wysokosc, szerokosc, glebokosc, data_wyjazdu, stan, linknadysk,
                 updatedAt, updatedBy, deviceId, stoisko
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
             ) RETURNING *
         `;
         
         const queryWithoutDeviceId = `
             INSERT INTO items (
-                name, quantity, ilosc, description, photo_url, category,
+                name, quantity, ilosc, description, photo_url, photo_url2, category,
                 wysokosc, szerokosc, glebokosc, data_wyjazdu, stan, linknadysk,
                 updatedAt, updatedBy, stoisko
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
             ) RETURNING *
         `;
         
@@ -74,6 +74,7 @@ const NeonClient = {
             item.ilosc || 0,
             item.description || '',
             item.photo_url || '',
+            item.photo_url2 || '',
             item.category || 'NM',
             item.wysokosc || 0,
             item.szerokosc || 0,
@@ -93,6 +94,7 @@ const NeonClient = {
             item.ilosc || 0,
             item.description || '',
             item.photo_url || '',
+            item.photo_url2 || '',
             item.category || 'NM',
             item.wysokosc || 0,
             item.szerokosc || 0,
@@ -118,25 +120,26 @@ const NeonClient = {
 
     // Обновление предмета
     async updateItem(name, item) {
-        // Try with deviceId first, fallback to version without it if column doesn't exist
+        // Try with deviceId and photo_url2 first, fallback to version without them if columns don't exist
         const queryWithDeviceId = `
             UPDATE items SET
                 quantity = $1,
                 ilosc = $2,
                 description = $3,
                 photo_url = $4,
-                category = $5,
-                wysokosc = $6,
-                szerokosc = $7,
-                glebokosc = $8,
-                data_wyjazdu = $9,
-                stan = $10,
-                linknadysk = $11,
-                updatedAt = $12,
-                updatedBy = $13,
-                deviceId = $14,
-                stoisko = $15
-            WHERE name = $16 RETURNING *
+                photo_url2 = $5,
+                category = $6,
+                wysokosc = $7,
+                szerokosc = $8,
+                glebokosc = $9,
+                data_wyjazdu = $10,
+                stan = $11,
+                linknadysk = $12,
+                updatedAt = $13,
+                updatedBy = $14,
+                deviceId = $15,
+                stoisko = $16
+            WHERE name = $17 RETURNING *
         `;
         
         const queryWithoutDeviceId = `
@@ -145,17 +148,18 @@ const NeonClient = {
                 ilosc = $2,
                 description = $3,
                 photo_url = $4,
-                category = $5,
-                wysokosc = $6,
-                szerokosc = $7,
-                glebokosc = $8,
-                data_wyjazdu = $9,
-                stan = $10,
-                linknadysk = $11,
-                updatedAt = $12,
-                updatedBy = $13,
-                stoisko = $14
-            WHERE name = $15 RETURNING *
+                photo_url2 = $5,
+                category = $6,
+                wysokosc = $7,
+                szerokosc = $8,
+                glebokosc = $9,
+                data_wyjazdu = $10,
+                stan = $11,
+                linknadysk = $12,
+                updatedAt = $13,
+                updatedBy = $14,
+                stoisko = $15
+            WHERE name = $16 RETURNING *
         `;
         
         const paramsWithDeviceId = [
@@ -163,6 +167,7 @@ const NeonClient = {
             item.ilosc || 0,
             item.description || '',
             item.photo_url || '',
+            item.photo_url2 || '',
             item.category || 'NM',
             item.wysokosc || 0,
             item.szerokosc || 0,
@@ -182,6 +187,7 @@ const NeonClient = {
             item.ilosc || 0,
             item.description || '',
             item.photo_url || '',
+            item.photo_url2 || '',
             item.category || 'NM',
             item.wysokosc || 0,
             item.szerokosc || 0,

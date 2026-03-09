@@ -18,6 +18,7 @@ const defaultModalData = {
     ilosc: 1,
     description: "",
     photo_url: "",
+    photo_url2: "",
     category: "NM",
     wysokosc: 0,
     szerokosc: 0,
@@ -286,12 +287,18 @@ export default function App() {
             const query = searchQuery.toLowerCase();
             const nameMatch = item.name.toLowerCase().includes(query);
             const descriptionMatch = (item.description || "").toLowerCase().includes(query);
+            const stoiskoMatch = (item.stoisko || "").toLowerCase().includes(query);
             
             // Search in dimensions (wysokosc, szerokosc, glebokosc)
             const dimensionsMatch = 
                 (item.wysokosc && item.wysokosc.toString().includes(query)) ||
                 (item.szerokosc && item.szerokosc.toString().includes(query)) ||
                 (item.glebokosc && item.glebokosc.toString().includes(query));
+            
+            // For LADY category, prioritize stoisko search
+            if (item.category === 'LADY') {
+                return nameMatch || descriptionMatch || stoiskoMatch;
+            }
             
             return nameMatch || descriptionMatch || dimensionsMatch;
         }
@@ -590,7 +597,7 @@ return (
                     {editingItem ? "Edit Item" : "Add New Item"}
                 </h2>
                 <div className="grid grid-cols-1 gap-3 sm:gap-4 modal-content">
-                    {/* Special field order for Krzesla category */}
+                    {/* Special field order for Krzesla and LADY categories (no dimensions) */}
                     {modalData.category === 'Krzesla' ? (
                         <>
                             {[
@@ -603,6 +610,19 @@ return (
                                 ["Stoisko", "stoisko"],
                                 ["Szerokość (cm)", "szerokosc"],
                                 ["Głębokość (cm)", "glebokosc"],
+                                ["Google Drive Link", "linknadysk"]
+                            ].map(renderItemFormField)}
+                        </>
+                    ) : modalData.category === 'LADY' ? (
+                        <>
+                            {[
+                                ["Name", "name"],
+                                ["Ilość", "ilosc"],
+                                ["Category", "category"],
+                                ["Description", "description", "textarea"],
+                                ["Photo URL 1", "photo_url"],
+                                ["Photo URL 2", "photo_url2"],
+                                ["Stoisko", "stoisko"],
                                 ["Google Drive Link", "linknadysk"]
                             ].map(renderItemFormField)}
                         </>
