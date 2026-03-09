@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, memo } from "react";
 
 const MAX_IMAGE_WIDTH = 1280;
 const MAX_IMAGE_HEIGHT = 720;
@@ -24,9 +24,76 @@ function optimizeImageUrl(url) {
     return url;
 }
 
+// LazyImage component with IntersectionObserver
+const LazyImage = memo(function LazyImage({ src, alt, className, style, onClick }) {
+    const [isVisible, setIsVisible] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const imgRef = useRef(null);
+    
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '100px', threshold: 0.1 }
+        );
+        
+        if (imgRef.current) {
+            observer.observe(imgRef.current);
+        }
+        
+        return () => observer.disconnect();
+    }, []);
+    
+    return (
+        <div ref={imgRef} className="relative" onClick={onClick}>
+            {isVisible && (
+                <img
+                    src={src}
+                    alt={alt}
+                    className={className}
+                    style={{ ...style, opacity: isLoaded ? 1 : 0 }}
+                    onLoad={() => setIsLoaded(true)}
+                    loading="lazy"
+                    decoding="async"
+                />
+            )}
+            {!isLoaded && isVisible && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-800/50">
+                    <div className="loading-pulse" style={{ width: 30, height: 30 }}></div>
+                </div>
+            )}
+        </div>
+    );
+});
+
 export default function Card({ item, editItem, deleteItem, role }) {
     const [openPhoto, setOpenPhoto] = useState(false);
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+    const [isVisible, setIsVisible] = useState(false);
+    const cardRef = useRef(null);
+    
+    // Lazy load card content
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '200px', threshold: 0.1 }
+        );
+        
+        if (cardRef.current) {
+            observer.observe(cardRef.current);
+        }
+        
+        return () => observer.disconnect();
+    }, []);
     
     const getPhotos = () => {
         const photos = [];
@@ -50,7 +117,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
 
     return (
         <>
-            <div className="card card-premium card-hover-effect fade-in-up">
+            <div ref={cardRef} className="card card-premium card-hover-effect fade-in-up" style={{ contain: 'paint layout' }}>
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex flex-col gap-1">
                         <h2 className="card-title truncate max-w-full">{item.name}</h2>
@@ -99,15 +166,13 @@ export default function Card({ item, editItem, deleteItem, role }) {
                     </div>
                 )}
                 
-                {photos.length > 0 && (
+                {photos.length > 0 && isVisible && (
                     <div className="mb-4 relative group cursor-pointer" onClick={() => setOpenPhoto(true)}>
-                        <img
+                        <LazyImage
                             src={optimizeImageUrl(photos[currentPhotoIndex])}
                             alt={item.name}
                             className="card-image group-hover:opacity-90 transition-opacity w-full"
                             style={{ maxWidth: '100%', height: 'auto' }}
-                            loading="lazy"
-                            decoding="async"
                         />
                         
                         {item.category === 'LADY' && hasMultiplePhotos && (

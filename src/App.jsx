@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Card from "./Card.jsx";
 import Modal from "react-modal";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./styles.css";
 import NeonClient from "./neon-client";
@@ -23,7 +22,7 @@ const defaultModalData = {
     wysokosc: 0,
     szerokosc: 0,
     glebokosc: 0,
-    dataWyjazdu: null,
+    dataWyjazdu: "",
     stoisko: "",
     stan: false,
     linknadysk: "",
@@ -203,15 +202,7 @@ export default function App() {
                 szerokosc: parsePolishNumber(item.szerokosc),
                 glebokosc: parsePolishNumber(item.glebokosc),
                 ilosc: parsePolishNumber(item.ilosc),
-                dataWyjazdu: item.data_wyjazdu ? (() => {
-                    try {
-                        const date = new Date(item.data_wyjazdu);
-                        return isNaN(date.getTime()) ? null : date;
-                    } catch (e) {
-                        console.error("Invalid date format:", item.data_wyjazdu, e);
-                        return null;
-                    }
-                })() : null,
+                dataWyjazdu: item.data_wyjazdu || '',
                 stan: item.stan === 1 || item.stan === true,
             });
         } else {
@@ -224,29 +215,25 @@ export default function App() {
     const closeItemModal = () => setIsItemModalOpen(false);
 
     const handleSaveItem = async () => {
-        if (!modalData.name || !modalData.quantity) {
-            alert("Name and quantity are required");
+        if (!modalData.name) {
+            alert("ID (Name) jest wymagany!");
             return;
         }
         
-        // Safe date handling
-        let dataWyjazduValue = null;
-        if (modalData.dataWyjazdu) {
-            try {
-                const date = new Date(modalData.dataWyjazdu);
-                if (!isNaN(date.getTime())) {
-                    dataWyjazduValue = date.toISOString().split("T")[0];
-                }
-            } catch (e) {
-                console.error("Invalid date in handleSaveItem:", modalData.dataWyjazdu, e);
-                dataWyjazduValue = null;
-            }
-        }
+        // Format date as DD.MM.YYYY (just pass through, no conversion)
+        const dataWyjazduValue = modalData.dataWyjazdu || '';
         
         const itemData = {
             ...modalData,
             data_wyjazdu: dataWyjazduValue,
             stan: modalData.stan ? 1 : 0,
+            ilosc: modalData.ilosc || 0,
+            quantity: modalData.quantity || '',
+            description: modalData.description || '',
+            photo_url: modalData.photo_url || '',
+            photo_url2: modalData.photo_url2 || '',
+            linknadysk: modalData.linknadysk || '',
+            stoisko: modalData.stoisko || '',
             updatedBy: currentUser?.username || "Unknown",
             deviceId: generateDeviceId()
         };
@@ -645,13 +632,21 @@ return (
                     )}
                     <div className="form-control">
                         <label className="form-label text-white text-sm sm:text-base">Data Wyjazdu</label>
-                        <DatePicker
-                            selected={modalData.dataWyjazdu && new Date(modalData.dataWyjazdu) instanceof Date && !isNaN(new Date(modalData.dataWyjazdu).getTime()) ? new Date(modalData.dataWyjazdu) : null}
-                            onChange={(date) => setModalData({ ...modalData, dataWyjazdu: date })}
+                        <input
+                            type="text"
+                            value={modalData.dataWyjazdu || ''}
+                            onChange={(e) => {
+                                let value = e.target.value.replace(/[^\d.]/g, '');
+                                if (value.length === 2 || value.length === 5) {
+                                    value += '.';
+                                }
+                                if (value.length <= 10) {
+                                    setModalData({ ...modalData, dataWyjazdu: value });
+                                }
+                            }}
                             className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
-                            dateFormat="yyyy-MM-dd"
-                            isClearable
-                            placeholderText="Select a date"
+                            placeholder="DD.MM.RRRR"
+                            maxLength={10}
                         />
                     </div>
                     {/* Only show "Na stanie?" checkbox for non-Krzesla categories */}
