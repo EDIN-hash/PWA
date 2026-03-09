@@ -349,12 +349,17 @@ export default function Card({ item, editItem, deleteItem, role }) {
 
             {openPhoto && photos.length > 0 && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-95 backdrop-blur-lg z-50 flex items-center justify-center overflow-auto"
+                    className="fixed inset-0 bg-black bg-opacity-95 backdrop-blur-lg z-50 flex items-center justify-center"
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
                     onClick={() => setOpenPhoto(false)}
                 >
                     <div
-                        className="relative modal-modern overflow-hidden my-8 mx-auto"
-                        style={{ maxWidth: '90vw', maxHeight: 'none' }}
+                        className="relative modal-modern overflow-hidden"
+                        style={{ 
+                            maxWidth: '90vw', 
+                            maxHeight: '90vh',
+                            position: 'relative'
+                        }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <button
