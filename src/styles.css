@@ -1,8 +1,44 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* Font optimization - prevent FOIT */
+@font-face {
+    font-family: 'Inter';
+    font-display: swap;
+    src: local('Inter'), local('Inter-Regular');
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Performance optimizations */
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Contain for render optimization */
+.items-grid {
+    contain: layout style;
+}
+
+.card-premium {
+    contain: layout style;
+}
+
+.header-section {
+    contain: layout style;
+}
+
+.controls-section {
+    contain: layout style;
+}
+
+/* Will-change for animated elements */
+.card-hover-effect {
+    will-change: transform, box-shadow;
+}
 
 /* Base styles */
 html, body {

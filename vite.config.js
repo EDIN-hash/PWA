@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import { createHtmlPlugin } from 'vite-plugin-html';
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
 // Generate a random nonce for CSP
 const generateNonce = () => {
@@ -18,6 +19,7 @@ const nonce = generateNonce();
 export default defineConfig({
     plugins: [
         react(),
+        cssInjectedByJsPlugin(),
         createHtmlPlugin({
             minify: true,
             inject: {
@@ -31,10 +33,16 @@ export default defineConfig({
     build: {
         outDir: "dist",
         emptyOutDir: true,
+        cssCodeSplit: false,
         rollupOptions: {
             input: {
                 main: resolve(__dirname, "index.html"),
             },
+            output: {
+                manualChunks: {
+                    vendor: ['react', 'react-dom', 'react-modal'],
+                }
+            }
         },
     },
     server: {

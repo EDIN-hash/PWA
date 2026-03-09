@@ -106,6 +106,8 @@ export default function Card({ item, editItem, deleteItem, role }) {
                             alt={item.name}
                             className="card-image group-hover:opacity-90 transition-opacity w-full"
                             style={{ maxWidth: '100%', height: 'auto' }}
+                            loading="lazy"
+                            decoding="async"
                         />
                         
                         {item.category === 'LADY' && hasMultiplePhotos && (
