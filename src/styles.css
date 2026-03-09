@@ -1,8 +1,44 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
+/* Font optimization - prevent FOIT */
+@font-face {
+    font-family: 'Inter';
+    font-display: swap;
+    src: local('Inter'), local('Inter-Regular');
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Performance optimizations */
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Contain for render optimization */
+.items-grid {
+    contain: layout style;
+}
+
+.card-premium {
+    contain: layout style;
+}
+
+.header-section {
+    contain: layout style;
+}
+
+.controls-section {
+    contain: layout style;
+}
+
+/* Will-change for animated elements */
+.card-hover-effect {
+    will-change: transform, box-shadow;
+}
 
 /* Base styles */
 html, body {
@@ -973,12 +1009,17 @@ body {
 
 /* Card Hover Effect */
 .card-hover-effect {
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
 }
 
 .card-hover-effect:hover {
     transform: translateY(-8px) rotate(0.5deg);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Optimize will-change only on hover */
+.card-hover-effect:hover {
+    will-change: transform, box-shadow;
 }
 
 /* Grid Layout */

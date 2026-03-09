@@ -1,11 +1,123 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, memo } from "react";
+
+const MAX_IMAGE_WIDTH = 1280;
+const MAX_IMAGE_HEIGHT = 720;
+
+function optimizeImageUrl(url) {
+    if (!url) return url;
+    
+    if (url.includes('drive.google.com')) {
+        const fileIdMatch = url.match(/\/d\/([^/]+)/);
+        if (fileIdMatch) {
+            return `https://drive.google.com/thumbnail?id=${fileIdMatch[1]}&width=${MAX_IMAGE_WIDTH}&height=${MAX_IMAGE_HEIGHT}`;
+        }
+    }
+    
+    if (url.includes('photos.app.goo.gl')) {
+        return url;
+    }
+    
+    if (url.includes('?')) {
+        return `${url}&w=${MAX_IMAGE_WIDTH}&h=${MAX_IMAGE_HEIGHT}`;
+    }
+    
+    return url;
+}
+
+// LazyImage component with IntersectionObserver
+const LazyImage = memo(function LazyImage({ src, alt, className, style, onClick }) {
+    const [isVisible, setIsVisible] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const imgRef = useRef(null);
+    
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '100px', threshold: 0.1 }
+        );
+        
+        if (imgRef.current) {
+            observer.observe(imgRef.current);
+        }
+        
+        return () => observer.disconnect();
+    }, []);
+    
+    return (
+        <div ref={imgRef} className="relative" onClick={onClick}>
+            {isVisible && (
+                <img
+                    src={src}
+                    alt={alt}
+                    className={className}
+                    style={{ ...style, opacity: isLoaded ? 1 : 0 }}
+                    onLoad={() => setIsLoaded(true)}
+                    loading="lazy"
+                    decoding="async"
+                />
+            )}
+            {!isLoaded && isVisible && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-800/50">
+                    <div className="loading-pulse" style={{ width: 30, height: 30 }}></div>
+                </div>
+            )}
+        </div>
+    );
+});
 
 export default function Card({ item, editItem, deleteItem, role }) {
     const [openPhoto, setOpenPhoto] = useState(false);
+    const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+    const [isVisible, setIsVisible] = useState(false);
+    const cardRef = useRef(null);
+    
+    // Lazy load card content
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '200px', threshold: 0.1 }
+        );
+        
+        if (cardRef.current) {
+            observer.observe(cardRef.current);
+        }
+        
+        return () => observer.disconnect();
+    }, []);
+    
+    const getPhotos = () => {
+        const photos = [];
+        if (item.photo_url) photos.push(item.photo_url);
+        if (item.photo_url2) photos.push(item.photo_url2);
+        return photos;
+    };
+    
+    const photos = getPhotos();
+    const hasMultiplePhotos = photos.length > 1;
+    
+    const handlePrevPhoto = (e) => {
+        e.stopPropagation();
+        setCurrentPhotoIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
+    };
+    
+    const handleNextPhoto = (e) => {
+        e.stopPropagation();
+        setCurrentPhotoIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
+    };
 
     return (
         <>
-            <div className="card card-premium card-hover-effect fade-in-up">
+            <div ref={cardRef} className="card card-premium card-hover-effect fade-in-up" style={{ contain: 'paint layout' }}>
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex flex-col gap-1">
                         <h2 className="card-title truncate max-w-full">{item.name}</h2>
@@ -54,19 +166,46 @@ export default function Card({ item, editItem, deleteItem, role }) {
                     </div>
                 )}
                 
-                {item.photo_url && (
+                {photos.length > 0 && isVisible && (
                     <div className="mb-4 relative group cursor-pointer" onClick={() => setOpenPhoto(true)}>
-                        <img
-                            src={item.photo_url}
+                        <LazyImage
+                            src={optimizeImageUrl(photos[currentPhotoIndex])}
                             alt={item.name}
                             className="card-image group-hover:opacity-90 transition-opacity w-full"
                             style={{ maxWidth: '100%', height: 'auto' }}
                         />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-opacity flex items-center justify-center">
-                            <span className="text-white text-sm font-medium bg-black bg-opacity-50 px-3 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                Powiększ
-                            </span>
-                        </div>
+                        
+                        {item.category === 'LADY' && hasMultiplePhotos && (
+                            <>
+                                <button
+                                    onClick={handlePrevPhoto}
+                                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full w-8 h-8 flex items-center justify-center transition-opacity opacity-0 group-hover:opacity-100"
+                                >
+                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                                    </svg>
+                                </button>
+                                <button
+                                    onClick={handleNextPhoto}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full w-8 h-8 flex items-center justify-center transition-opacity opacity-0 group-hover:opacity-100"
+                                >
+                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </button>
+                                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 px-3 py-1 rounded-full">
+                                    <span className="text-white text-xs">{currentPhotoIndex + 1} / {photos.length}</span>
+                                </div>
+                            </>
+                        )}
+                        
+                        {item.category !== 'LADY' && (
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-opacity flex items-center justify-center">
+                                <span className="text-white text-sm font-medium bg-black bg-opacity-50 px-3 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Powiększ
+                                </span>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -96,7 +235,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
                         </div>
                     )}
                     
-                    {item.category !== 'Krzesla' && (
+                    {item.category !== 'Krzesla' && item.category !== 'LADY' && (
                         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-slate-600">
                             <div className="dimension-item">
                                 <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -208,13 +347,14 @@ export default function Card({ item, editItem, deleteItem, role }) {
                 )}
             </div>
 
-            {openPhoto && item.photo_url && (
+            {openPhoto && photos.length > 0 && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-90 backdrop-blur-lg flex items-center justify-center z-50 p-4 slide-up"
+                    className="fixed inset-0 bg-black bg-opacity-95 backdrop-blur-lg z-50 flex items-center justify-center overflow-auto"
                     onClick={() => setOpenPhoto(false)}
                 >
                     <div
-                        className="relative max-w-[90vw] max-h-[90vh] modal-modern overflow-hidden"
+                        className="relative modal-modern overflow-hidden my-8 mx-auto"
+                        style={{ maxWidth: '90vw', maxHeight: 'none' }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <button
@@ -225,13 +365,44 @@ export default function Card({ item, editItem, deleteItem, role }) {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
+                        
+                        {item.category === 'LADY' && hasMultiplePhotos && (
+                            <>
+                                <button
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-all z-10"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setCurrentPhotoIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
+                                    }}
+                                >
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                                    </svg>
+                                </button>
+                                <button
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-all z-10"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setCurrentPhotoIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
+                                    }}
+                                >
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </button>
+                            </>
+                        )}
+                        
                         <img
-                            src={item.photo_url}
+                            src={optimizeImageUrl(photos[currentPhotoIndex])}
                             alt={item.name}
                             className="object-contain max-h-[75vh] w-auto mx-auto p-6"
                         />
                         <div className="bg-black/30 px-6 py-4 border-t border-white/10">
                             <h3 className="font-semibold text-white truncate text-gradient green-accent">{item.name}</h3>
+                            {item.category === 'LADY' && hasMultiplePhotos && (
+                                <p className="text-sm text-white/80 mt-1">Фото {currentPhotoIndex + 1} из {photos.length}</p>
+                            )}
                             <p className="text-sm text-white/80 mt-2">{item.description}</p>
                         </div>
                     </div>
