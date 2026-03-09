@@ -296,6 +296,66 @@ const NeonClient = {
         const query = 'SELECT * FROM users WHERE username = $1 AND password = $2';
         const result = await neonQuery(query, [username, password]);
         return result.length > 0 ? result[0] : null;
+    },
+
+    // История изменений
+    async addHistoryEntry(entry) {
+        const query = `
+            INSERT INTO history (
+                item_name, action, field_name, old_value, new_value, 
+                changed_by, device_id, timestamp
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+            RETURNING *
+        `;
+        
+        const params = [
+            entry.item_name || '',
+            entry.action || 'edit',
+            entry.field_name || '',
+            entry.old_value || '',
+            entry.new_value || '',
+            entry.changed_by || 'Unknown',
+            entry.device_id || 'Unknown'
+        ];
+        
+        try {
+            return await neonQuery(query, params);
+        } catch (error) {
+            console.warn('History table may not exist:', error.message);
+            return null;
+        }
+    },
+
+    // Получить историю (все или для конкретного товара)
+    async getHistory(itemName = null) {
+        let query;
+        let params;
+        
+        if (itemName) {
+            query = 'SELECT * FROM history WHERE item_name = $1 ORDER BY timestamp DESC LIMIT 100';
+            params = [itemName];
+        } else {
+            query = 'SELECT * FROM history ORDER BY timestamp DESC LIMIT 200';
+            params = [];
+        }
+        
+        try {
+            return await neonQuery(query, params);
+        } catch (error) {
+            console.warn('History table may not exist:', error.message);
+            return [];
+        }
+    },
+
+    // Очистить историю (только admin)
+    async clearHistory() {
+        const query = 'DELETE FROM history RETURNING *';
+        try {
+            return await neonQuery(query, []);
+        } catch (error) {
+            console.warn('Could not clear history:', error.message);
+            return [];
+        }
     }
 };
 

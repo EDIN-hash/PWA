@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Card from "./Card.jsx";
+import HistoryCard from "./HistoryCard.jsx";
 import Modal from "react-modal";
 import "react-datepicker/dist/react-datepicker.css";
 import "./styles.css";
@@ -9,7 +10,7 @@ import { generateDeviceId, getDeviceId } from "./device-utils";
 // Настройка Modal до определения компонента
 Modal.setAppElement("#root");
 
-const categories = ["Telewizory", "Lodowki", "Ekspresy", "Krzesla", "NM", "LADY"];
+const categories = ["Telewizory", "Lodowki", "Ekspresy", "Krzesla", "NM", "LADY", "Historia"];
 
 const defaultModalData = {
     name: "",
@@ -93,8 +94,13 @@ export default function App() {
     const fetchItems = async () => {
         setIsLoading(true);
         try {
-            const items = await NeonClient.getItems(selectedCategory || null);
-            setItems(items);
+            if (selectedCategory === 'Historia') {
+                const history = await NeonClient.getHistory();
+                setItems(history);
+            } else {
+                const items = await NeonClient.getItems(selectedCategory || null);
+                setItems(items);
+            }
         } catch (err) {
             console.error("Fetch items error:", err);
             alert("Failed to load items: " + err.message);
@@ -106,6 +112,21 @@ export default function App() {
     useEffect(() => {
         fetchItems();
     }, [selectedCategory]);
+
+    // Log category change
+    useEffect(() => {
+        if (currentUser && selectedCategory) {
+            NeonClient.addHistoryEntry({
+                item_name: selectedCategory,
+                action: 'view_category',
+                field_name: 'category_opened',
+                old_value: '',
+                new_value: selectedCategory,
+                changed_by: currentUser.username,
+                device_id: generateDeviceId()
+            }).catch(() => {}); // Ignore if history table doesn't exist
+        }
+    }, [selectedCategory, currentUser]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -220,6 +241,9 @@ export default function App() {
             return;
         }
         
+        const currentUsername = currentUser?.username || "Unknown";
+        const currentDeviceId = generateDeviceId();
+        
         // Format date as DD.MM.YYYY (just pass through, no conversion)
         const dataWyjazduValue = modalData.dataWyjazdu || '';
         
@@ -234,14 +258,32 @@ export default function App() {
             photo_url2: modalData.photo_url2 || '',
             linknadysk: modalData.linknadysk || '',
             stoisko: modalData.stoisko || '',
-            updatedBy: currentUser?.username || "Unknown",
-            deviceId: generateDeviceId()
+            updatedBy: currentUsername,
+            deviceId: currentDeviceId
         };
         try {
             if (editingItem) {
                 await NeonClient.updateItem(editingItem.name, itemData);
+                await NeonClient.addHistoryEntry({
+                    item_name: modalData.name,
+                    action: 'edit',
+                    field_name: 'all',
+                    old_value: editingItem.name !== modalData.name ? editingItem.name : '',
+                    new_value: modalData.name,
+                    changed_by: currentUsername,
+                    device_id: currentDeviceId
+                });
             } else {
                 await NeonClient.addItem(itemData);
+                await NeonClient.addHistoryEntry({
+                    item_name: modalData.name,
+                    action: 'add',
+                    field_name: 'new_item',
+                    old_value: '',
+                    new_value: modalData.category,
+                    changed_by: currentUsername,
+                    device_id: currentDeviceId
+                });
             }
             await fetchItems();
             closeItemModal();
@@ -254,8 +296,19 @@ export default function App() {
 
     const handleDeleteItem = async (itemName) => {
         if (!window.confirm("Delete this item?")) return;
+        const currentUsername = currentUser?.username || "Unknown";
+        const currentDeviceId = generateDeviceId();
         try {
             await NeonClient.deleteItem(itemName);
+            await NeonClient.addHistoryEntry({
+                item_name: itemName,
+                action: 'delete',
+                field_name: 'all',
+                old_value: '',
+                new_value: '',
+                changed_by: currentUsername,
+                device_id: currentDeviceId
+            });
             await fetchItems();
         } catch (err) {
             console.error("Delete item error:", err);
@@ -421,9 +474,10 @@ return (
                         placeholder="Search..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
+                        className="input input-bordered bg-gray-700 border-gray-600 text-white"
+                        style={{ width: '140%', maxWidth: '400px' }}
                     />
-                    {(currentUser.role === "admin" || currentUser.role === "moder") && (
+                    {(currentUser.role === "admin") && selectedCategory !== 'Historia' && (
                         <button
                             onClick={() => openItemModal()}
                             className="btn btn-success w-full sm:w-auto ripple hover-lift bounce-in"
@@ -431,7 +485,7 @@ return (
                             Add Item
                         </button>
                     )}
-                    {currentUser.role === "moder" && (
+                    {currentUser.role === "admin" && selectedCategory !== 'Historia' && (
                         <button
                             onClick={() => setIsGetIdModalOpen(true)}
                             className="btn btn-info w-full sm:w-auto ripple hover-lift bounce-in"
@@ -453,7 +507,9 @@ return (
         {/* Category Tabs */}
         <div className="tabs-section pb-2">
             <div className="tabs-container flex flex-wrap gap-2 justify-center">
-                {categories.map((category) => (
+                {categories
+                    .filter(cat => cat !== 'Historia' || (currentUser && currentUser.role === 'moder'))
+                    .map((category) => (
                     <button
                         key={category}
                         className={`tab-modern text-sm sm:text-base px-4 py-2 rounded-md ${selectedCategory === category ? "active" : ""} slide-in`}
@@ -559,15 +615,24 @@ return (
             </div>
         ) : (
             <div className="items-grid grid-modern">
-                {filteredItems.map((item) => (
-                    <Card
-                        key={item.name}
-                        item={item}
-                        editItem={openItemModal}
-                        deleteItem={handleDeleteItem}
-                        role={currentUser?.role}
-                    />
-                ))}
+                {selectedCategory === 'Historia' ? (
+                    filteredItems.map((entry) => (
+                        <HistoryCard
+                            key={entry.id}
+                            entry={entry}
+                        />
+                    ))
+                ) : (
+                    filteredItems.map((item) => (
+                        <Card
+                            key={item.name}
+                            item={item}
+                            editItem={openItemModal}
+                            deleteItem={handleDeleteItem}
+                            role={currentUser?.role}
+                        />
+                    ))
+                )}
             </div>
         )}
 
@@ -804,7 +869,7 @@ return (
                             }}
                             className="select select-bordered w-full bg-gray-700 border-gray-600 text-white"
                         >
-                            {categories.map((category) => (
+                            {categories.filter(cat => cat !== 'Historia').map((category) => (
                                 <option key={category} value={category}>
                                     {category}
                                 </option>
