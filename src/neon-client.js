@@ -35,6 +35,7 @@ const neonQuery = async (sql, params = []) => {
 const NeonClient = {
     // Экспортируем функцию для тестирования
     query: neonQuery,
+    
     // Получение всех предметов
     async getItems(category = null) {
         let query = 'SELECT * FROM items';
@@ -301,10 +302,8 @@ const NeonClient = {
     // История изменений
     async addHistoryEntry(entry) {
         const query = `
-            INSERT INTO history (
-                item_name, action, field_name, old_value, new_value, 
-                changed_by, device_id, timestamp
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+            INSERT INTO history (item_name, action, field_name, old_value, new_value, changed_by, device_id, timestamp) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) 
             RETURNING *
         `;
         
@@ -321,7 +320,7 @@ const NeonClient = {
         try {
             return await neonQuery(query, params);
         } catch (error) {
-            console.warn('History table may not exist:', error.message);
+            console.warn('History logging failed:', error.message);
             return null;
         }
     },
@@ -329,10 +328,9 @@ const NeonClient = {
     // Получить историю (все или для конкретного товара)
     async getHistory(itemName = null) {
         if (itemName && itemName.trim()) {
-            const sanitized = itemName.replace(/'/g, "''");
-            const query = `SELECT * FROM history WHERE item_name = '${sanitized}' ORDER BY timestamp DESC LIMIT 100`;
+            const query = 'SELECT * FROM history WHERE item_name = $1 ORDER BY timestamp DESC LIMIT 100';
             try {
-                return await neonQuery(query);
+                return await neonQuery(query, [itemName]);
             } catch (error) {
                 console.warn('History table may not exist:', error.message);
                 return [];
@@ -340,7 +338,7 @@ const NeonClient = {
         } else {
             const query = 'SELECT * FROM history ORDER BY timestamp DESC LIMIT 200';
             try {
-                return await neonQuery(query);
+                return await neonQuery(query, []);
             } catch (error) {
                 console.warn('History table may not exist:', error.message);
                 return [];
@@ -348,7 +346,7 @@ const NeonClient = {
         }
     },
 
-    // Очистить историю (только admin)
+    // Очистка истории
     async clearHistory() {
         const query = 'DELETE FROM history RETURNING *';
         try {
