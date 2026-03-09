@@ -330,7 +330,8 @@ const NeonClient = {
         if (itemName && itemName.trim()) {
             const query = 'SELECT * FROM history WHERE item_name = $1 ORDER BY timestamp DESC LIMIT 100';
             try {
-                return await neonQuery(query, [itemName]);
+                const result = await neonQuery(query, [itemName]);
+                return result;
             } catch (error) {
                 console.warn('History table may not exist:', error.message);
                 return [];
@@ -338,7 +339,8 @@ const NeonClient = {
         } else {
             const query = 'SELECT * FROM history ORDER BY timestamp DESC LIMIT 200';
             try {
-                return await neonQuery(query, []);
+                const result = await neonQuery(query, []);
+                return result;
             } catch (error) {
                 console.warn('History table may not exist:', error.message);
                 return [];

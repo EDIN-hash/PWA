@@ -328,10 +328,45 @@ export default function App() {
         }
     };
 
-    // Ensure items is an array before filtering
-    const itemsArray = Array.isArray(items) ? items : [];
+    // Helper function to get numeric value for sorting
+    const getNumericValue = (value) => {
+        if (value === null || value === undefined || value === '') return 0;
+        if (typeof value === 'number') return value;
+        // Handle Polish decimal format (comma) and convert to number
+        const numericValue = parseFloat(value.toString().replace(',', '.'));
+        return isNaN(numericValue) ? 0 : numericValue;
+    };
+
+// Ensure items is an array before filtering
+const itemsArray = Array.isArray(items) ? items : [];
     
-    // Filter by search query
+// Special handling for History category
+if (selectedCategory === 'Historia') {
+    // Filter history items by search query
+    const searchFilteredHistory = itemsArray.filter(
+        (entry) => {
+            if (!entry) return false;
+            
+            const query = searchQuery.toLowerCase();
+            const itemNameMatch = (entry.item_name || "").toLowerCase().includes(query);
+            const actionMatch = (entry.action || "").toLowerCase().includes(query);
+            const changedByMatch = (entry.changed_by || "").toLowerCase().includes(query);
+            const fieldNameMatch = (entry.field_name || "").toLowerCase().includes(query);
+            
+            return itemNameMatch || actionMatch || changedByMatch || fieldNameMatch;
+        }
+    );
+    
+    // Sort history by timestamp (newest first)
+    const filteredHistory = [...searchFilteredHistory].sort((a, b) => {
+        const dateA = new Date(a.timestamp || 0);
+        const dateB = new Date(b.timestamp || 0);
+        return dateB - dateA; // Newest first
+    });
+    
+    var filteredItems = filteredHistory;
+} else {
+    // Filter regular items by search query
     const searchFilteredItems = itemsArray.filter(
         (item) => {
             if (!item || !item.name) return false;
@@ -365,25 +400,18 @@ export default function App() {
     });
     
     // Sort items
-    const filteredItems = [...statusFilteredItems].sort((a, b) => {
+    var filteredItems = [...statusFilteredItems].sort((a, b) => {
         if (!sortConfig.key) {
             // По умолчанию сортировать по имени (ID) в алфавитном порядке
             return a.name.localeCompare(b.name);
         }
         
-        // Преобразовать значение в число, обрабатывая польский формат (запятая вместо точки)
-        const getNumericValue = (value) => {
-            if (value === null || value === undefined || value === '') return 0;
-            // Заменить польскую запятую на точку для корректного преобразования
-            const numericValue = typeof value === 'string' 
-                ? parseFloat(value.replace(',', '.')) 
-                : Number(value);
-            return isNaN(numericValue) ? 0 : numericValue;
-        };
+        if (a[sortConfig.key] === null || a[sortConfig.key] === undefined) return 1;
+        if (b[sortConfig.key] === null || b[sortConfig.key] === undefined) return -1;
         
         const aValue = getNumericValue(a[sortConfig.key]);
         const bValue = getNumericValue(b[sortConfig.key]);
-        
+
         if (aValue < bValue) {
             return sortConfig.direction === 'asc' ? -1 : 1;
         }
