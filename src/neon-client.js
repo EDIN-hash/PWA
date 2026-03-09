@@ -43,7 +43,7 @@ const NeonClient = {
             query += ' WHERE category = $1';
             return neonQuery(query, [category]);
         }
-        return neonQuery(query);
+        return neonQuery(query, []);
     },
 
     // Добавление предмета
@@ -338,7 +338,7 @@ const NeonClient = {
         } else {
             const query = 'SELECT * FROM history ORDER BY timestamp DESC LIMIT 200';
             try {
-                return await neonQuery(query);
+                return await neonQuery(query, []);
             } catch (error) {
                 console.warn('History table may not exist:', error.message);
                 return [];
@@ -350,7 +350,7 @@ const NeonClient = {
     async clearHistory() {
         const query = 'DELETE FROM history RETURNING *';
         try {
-            return await neonQuery(query);
+            return await neonQuery(query, []);
         } catch (error) {
             console.warn('Could not clear history:', error.message);
             return [];
