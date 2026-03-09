@@ -73,38 +73,20 @@ const LazyImage = memo(function LazyImage({ src, alt, className, style, onClick 
 export default function Card({ item, editItem, deleteItem, role }) {
     const [openPhoto, setOpenPhoto] = useState(false);
     const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-    const [isVisible, setIsVisible] = useState(false);
     const cardRef = useRef(null);
-    
-    // Prevent body scroll when modal is open
-    useEffect(() => {
-        if (openPhoto) {
-            document.body.style.overflow = 'hidden';
-            document.body.style.position = 'fixed';
-            document.body.style.top = `-${window.scrollY}px`;
-        } else {
-            const scrollY = document.body.style.top;
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.top = '';
-            window.scrollTo(0, parseInt(scrollY || '0') * -1);
-        }
-        
-        return () => {
-            document.body.style.overflow = '';
-            document.body.style.position = '';
-            document.body.style.top = '';
-        };
-    }, [openPhoto]);
+    const [isVisible, setIsVisible] = useState(false);
     
     // Lazy load card content
     useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsVisible(true);
-                    observer.disconnect();
-                }
+                const card = entry.target;
+                const images = card.querySelectorAll('img');
+                images.forEach((image) => {
+                    image.src = image.dataset.src;
+                });
+                setIsVisible(true);
+                observer.disconnect();
             },
             { rootMargin: '200px', threshold: 0.1 }
         );
@@ -370,26 +352,16 @@ export default function Card({ item, editItem, deleteItem, role }) {
 
             {openPhoto && photos.length > 0 && (
                 <div
-                    className="bg-black bg-opacity-95 backdrop-blur-lg z-50 flex items-center justify-center"
-                    style={{
-                        position: 'fixed',
-                        top: '0',
-                        left: '0',
-                        right: '0',
-                        bottom: '0',
-                        width: '100vw',
-                        height: '100vh',
-                        zIndex: 9999
-                    }}
+                    className="fixed inset-0 bg-black bg-opacity-95 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
                     onClick={() => setOpenPhoto(false)}
                 >
                     <div
-                        className="modal-modern overflow-hidden bg-black/90 rounded-lg shadow-2xl"
+                        className="relative bg-black/90 rounded-lg shadow-2xl max-w-full max-h-full overflow-hidden"
                         style={{ 
-                            maxWidth: '90vw', 
-                            maxHeight: '90vh',
-                            position: 'relative',
-                            margin: 'auto'
+                            width: 'auto',
+                            height: 'auto',
+                            maxWidth: '90vw',
+                            maxHeight: '90vh'
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
