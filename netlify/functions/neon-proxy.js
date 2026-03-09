@@ -46,14 +46,14 @@ export async function handler(event, context) {
       console.log('With params:', params);
 
       // Используем правильный синтаксис для вызова SQL запроса
-      // Для запросов с параметрами используем sql.query()
+      // Всегда используем sql.query() для параметризованных запросов
       let result;
       if (params && params.length > 0) {
         // Если есть параметры, используем sql.query()
         result = await sql.query(query, params);
       } else {
-        // Если нет параметров, используем tagged template
-        result = await sql`${query}`;
+        // Если нет параметров, также используем sql.query() для консистентности
+        result = await sql.query(query);
       }
       
       console.log('Query executed successfully:', result);
