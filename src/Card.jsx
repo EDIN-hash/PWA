@@ -76,6 +76,27 @@ export default function Card({ item, editItem, deleteItem, role }) {
     const [isVisible, setIsVisible] = useState(false);
     const cardRef = useRef(null);
     
+    // Prevent body scroll when modal is open
+    useEffect(() => {
+        if (openPhoto) {
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${window.scrollY}px`;
+        } else {
+            const scrollY = document.body.style.top;
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.top = '';
+            window.scrollTo(0, parseInt(scrollY || '0') * -1);
+        }
+        
+        return () => {
+            document.body.style.overflow = '';
+            document.body.style.position = '';
+            document.body.style.top = '';
+        };
+    }, [openPhoto]);
+    
     // Lazy load card content
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -349,16 +370,26 @@ export default function Card({ item, editItem, deleteItem, role }) {
 
             {openPhoto && photos.length > 0 && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-95 backdrop-blur-lg z-50 flex items-center justify-center"
-                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+                    className="bg-black bg-opacity-95 backdrop-blur-lg z-50 flex items-center justify-center"
+                    style={{
+                        position: 'fixed',
+                        top: '0',
+                        left: '0',
+                        right: '0',
+                        bottom: '0',
+                        width: '100vw',
+                        height: '100vh',
+                        zIndex: 9999
+                    }}
                     onClick={() => setOpenPhoto(false)}
                 >
                     <div
-                        className="relative modal-modern overflow-hidden"
+                        className="modal-modern overflow-hidden bg-black/90 rounded-lg shadow-2xl"
                         style={{ 
                             maxWidth: '90vw', 
                             maxHeight: '90vh',
-                            position: 'relative'
+                            position: 'relative',
+                            margin: 'auto'
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
