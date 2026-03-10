@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 
-export function useFilters(items) {
+export function useFilters(items, selectedCategory = null) {
     const [searchQuery, setSearchQuery] = useState("");
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
     const [statusFilter, setStatusFilter] = useState('all');
@@ -16,11 +16,21 @@ export function useFilters(items) {
     const filteredItems = useMemo(() => {
         const itemsArray = Array.isArray(items) ? items : [];
         
+        // Для истории не применяем фильтрацию по полю name
+        const isHistoria = selectedCategory === 'Historia';
+        
         const searchFiltered = itemsArray.filter((item) => {
-            if (!item || !item.name) return false;
+            if (!item) return false;
+            
+            // Для истории используем item_name, для обычных items - name
+            const itemName = isHistoria ? item.item_name : item.name;
+            
+            if (!itemName) return false;
+            
+            if (!searchQuery) return true;
             
             const query = searchQuery.toLowerCase();
-            const nameMatch = item.name.toLowerCase().includes(query);
+            const nameMatch = itemName.toLowerCase().includes(query);
             const descriptionMatch = (item.description || "").toLowerCase().includes(query);
             const stoiskoMatch = (item.stoisko || "").toLowerCase().includes(query);
             
@@ -45,7 +55,14 @@ export function useFilters(items) {
         
         return [...statusFiltered].sort((a, b) => {
             if (!sortConfig.key) {
-                return a.name.localeCompare(b.name);
+                // Для истории сортируем по timestamp
+                if (isHistoria) {
+                    const dateA = new Date(a.timestamp || 0);
+                    const dateB = new Date(b.timestamp || 0);
+                    return dateB - dateA; // новые first
+                }
+                // Для обычных items - по name
+                return (a.name || '').localeCompare(b.name || '');
             }
             
             const aValue = getNumericValue(a[sortConfig.key]);
@@ -59,7 +76,7 @@ export function useFilters(items) {
             }
             return 0;
         });
-    }, [items, searchQuery, sortConfig, statusFilter]);
+    }, [items, searchQuery, sortConfig, statusFilter, selectedCategory]);
 
     const toggleSort = (key) => {
         if (sortConfig.key === key) {

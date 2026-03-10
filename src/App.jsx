@@ -55,7 +55,7 @@ export default function App() {
         filteredItems,
         toggleSort,
         resetSort
-    } = useFilters(items);
+    } = useFilters(items, selectedCategory);
 
     useEffect(() => {
         if (currentUser && selectedCategory) {
@@ -158,10 +158,6 @@ export default function App() {
                 deleteItem={deleteItem}
                 role={currentUser?.role}
             />
-            
-            <pre style={{color: 'white'}}>
-                DEBUG: category={selectedCategory}, items={filteredItems?.length}
-            </pre>
 
             <ItemModal 
                 isOpen={isItemModalOpen}
