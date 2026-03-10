@@ -11,6 +11,43 @@ export default function ItemModal({
     editingItem, 
     onSave 
 }) {
+    console.log('ItemModal render:', { isOpen, editingItem });
+    
+    const modalStyles = {
+        content: {
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            right: 'auto',
+            bottom: 'auto',
+            marginRight: '-50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: '#1e1e2e',
+            border: '1px solid rgba(76, 100, 241, 0.2)',
+            borderRadius: '12px',
+            padding: '1.5rem',
+            maxWidth: '500px',
+            width: '90%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            color: '#c0caf5',
+            zIndex: 10000,
+        },
+        overlay: {
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 9999,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+        }
+    };
+
     const renderItemFormField = ([label, key, type = "input"]) => {
         let displayLabel = label;
         if (modalData.category === 'Krzesla' && key === 'wysokosc') {
@@ -127,9 +164,9 @@ export default function ItemModal({
         <Modal
             isOpen={isOpen}
             onRequestClose={onClose}
-            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 login-modal-dark"
-            overlayClassName="modal-backdrop p-2 sm:p-0"
+            style={modalStyles}
             contentLabel="Item Modal"
+            shouldCloseOnOverlayClick={true}
         >
             <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">
                 {editingItem ? "Edit Item" : "Add New Item"}
