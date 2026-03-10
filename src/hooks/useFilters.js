@@ -4,6 +4,7 @@ export function useFilters(items, selectedCategory = null) {
     const [searchQuery, setSearchQuery] = useState("");
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
     const [statusFilter, setStatusFilter] = useState('all');
+    const [actionFilter, setActionFilter] = useState('all'); // Для истории: add, edit, delete, view_category
 
     const getNumericValue = (value) => {
         if (value === null || value === undefined || value === '') return 0;
@@ -21,6 +22,11 @@ export function useFilters(items, selectedCategory = null) {
         
         const searchFiltered = itemsArray.filter((item) => {
             if (!item) return false;
+            
+            // Фильтрация по действию для истории
+            if (isHistoria && actionFilter !== 'all') {
+                if (item.action !== actionFilter) return false;
+            }
             
             // Для истории используем item_name, для обычных items - name
             const itemName = isHistoria ? item.item_name : item.name;
@@ -76,7 +82,7 @@ export function useFilters(items, selectedCategory = null) {
             }
             return 0;
         });
-    }, [items, searchQuery, sortConfig, statusFilter, selectedCategory]);
+    }, [items, searchQuery, sortConfig, statusFilter, selectedCategory, actionFilter]);
 
     const toggleSort = (key) => {
         if (sortConfig.key === key) {
@@ -97,6 +103,8 @@ export function useFilters(items, selectedCategory = null) {
         setSortConfig,
         statusFilter,
         setStatusFilter,
+        actionFilter,
+        setActionFilter,
         filteredItems,
         toggleSort,
         resetSort,

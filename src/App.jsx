@@ -52,6 +52,8 @@ export default function App() {
         sortConfig,
         statusFilter,
         setStatusFilter,
+        actionFilter,
+        setActionFilter,
         filteredItems,
         toggleSort,
         resetSort
@@ -148,6 +150,8 @@ export default function App() {
                 toggleSort={toggleSort}
                 resetSort={resetSort}
                 selectedCategory={selectedCategory}
+                actionFilter={actionFilter}
+                setActionFilter={setActionFilter}
             />
 
             <ItemsGrid 
