@@ -1,10 +1,40 @@
+/**
+ * useFilters.js - Хук для управления фильтрацией и сортировкой данных
+ * 
+ * Реализация:
+ * 1. Фильтрация по статусу (statusFilter):
+ *    - 'all': все товары
+ *    - 'na-stanie': товары в наличии (stan = 1)
+ *    - 'wyjechalo': товары не в наличии (stan = 0)
+ * 
+ * 2. Фильтрация по действию (actionFilter) - для истории:
+ *    - 'all': все записи
+ *    - 'add': добавление товара
+ *    - 'edit': редактирование товара
+ *    - 'delete': удаление товара
+ *    - 'view_category': просмотр категории
+ * 
+ * 3. Поиск (searchQuery):
+ *    - Для обычных товаров: поиск по name, description, stoisko, размерам
+ *    - Для истории: поиск по item_name
+ * 
+ * 4. Сортировка (sortConfig):
+ *    - Поля: wysokosc, szerokosc, glebokosc, ilosc
+ *    - Направление: asc (по возрастанию) / desc (по убыванию)
+ *    - Для истории: сортировка по timestamp (новые first)
+ * 
+ * @see filters.js - константы фильтров
+ * @see Controls.jsx - UI компонент фильтров
+ */
+
 import { useState, useMemo } from "react";
+import { FILTERS, SORT_KEYS, SORT_DEFAULTS } from "../filters";
 
 export function useFilters(items, selectedCategory = null) {
     const [searchQuery, setSearchQuery] = useState("");
-    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-    const [statusFilter, setStatusFilter] = useState('all');
-    const [actionFilter, setActionFilter] = useState('all'); // Для истории: add, edit, delete, view_category
+    const [sortConfig, setSortConfig] = useState({ key: SORT_DEFAULTS.KEY, direction: SORT_DEFAULTS.DIRECTION });
+    const [statusFilter, setStatusFilter] = useState(FILTERS.STATUS.ALL);
+    const [actionFilter, setActionFilter] = useState(FILTERS.ACTION.ALL);
 
     const getNumericValue = (value) => {
         if (value === null || value === undefined || value === '') return 0;
@@ -24,7 +54,7 @@ export function useFilters(items, selectedCategory = null) {
             if (!item) return false;
             
             // Фильтрация по действию для истории
-            if (isHistoria && actionFilter !== 'all') {
+            if (isHistoria && actionFilter !== FILTERS.ACTION.ALL) {
                 if (item.action !== actionFilter) return false;
             }
             
@@ -53,9 +83,9 @@ export function useFilters(items, selectedCategory = null) {
         });
         
         const statusFiltered = searchFiltered.filter(item => {
-            if (statusFilter === 'all') return true;
-            if (statusFilter === 'na-stanie') return item.stan === 1 || item.stan === true;
-            if (statusFilter === 'wyjechalo') return item.stan === 0 || item.stan === false || item.stan === null || item.stan === undefined;
+            if (statusFilter === FILTERS.STATUS.ALL) return true;
+            if (statusFilter === FILTERS.STATUS.NA_STANIE) return item.stan === 1 || item.stan === true;
+            if (statusFilter === FILTERS.STATUS.WYJECHALO) return item.stan === 0 || item.stan === false || item.stan === null || item.stan === undefined;
             return true;
         });
         
@@ -86,14 +116,14 @@ export function useFilters(items, selectedCategory = null) {
 
     const toggleSort = (key) => {
         if (sortConfig.key === key) {
-            setSortConfig({ key, direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+            setSortConfig({ key, direction: sortConfig.direction === SORT_DEFAULTS.DIRECTION ? 'desc' : SORT_DEFAULTS.DIRECTION });
         } else {
-            setSortConfig({ key, direction: 'asc' });
+            setSortConfig({ key, direction: SORT_DEFAULTS.DIRECTION });
         }
     };
 
     const resetSort = () => {
-        setSortConfig({ key: null, direction: 'asc' });
+        setSortConfig({ key: SORT_DEFAULTS.KEY, direction: SORT_DEFAULTS.DIRECTION });
     };
 
     return {

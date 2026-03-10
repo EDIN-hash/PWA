@@ -1,4 +1,29 @@
-export default function Controls({ 
+/**
+ * Controls.jsx - UI компонент панели управления фильтрами и сортировкой
+ * 
+ * Реализация фильтрации:
+ * - Для категории "Historia": отображаются кнопки фильтрации по действиям
+ *   (Dodano, Edytowano, Usunięto, Przeglądanie)
+ * - Для остальных категорий: отображаются фильтры статуса (Na stanie, Wyjechało)
+ *   и кнопки сортировки (Wysokość, Szerokość, Głębokość, Ilość)
+ * 
+ * Параметры:
+ * - statusFilter: текущий фильтр статуса
+ * - setStatusFilter: функция изменения фильтра статуса
+ * - actionFilter: текущий фильтр действия (для истории)
+ * - setActionFilter: функция изменения фильтра действия
+ * - sortConfig: текущая конфигурация сортировки
+ * - toggleSort: функция переключения сортировки по полю
+ * - resetSort: функция сброса сортировки
+ * - selectedCategory: текущая выбранная категория
+ * 
+ * @see filters.js - константы и стили фильтров
+ * @see useFilters.js - логика фильтрации
+ */
+
+import { FILTERS, FILTER_LABELS, FILTER_STYLES } from "../../filters";
+
+export default function Controls({
     statusFilter, 
     setStatusFilter, 
     sortConfig, 
@@ -13,11 +38,11 @@ export default function Controls({
     const showActionFilters = selectedCategory === 'Historia';
 
     const actionFilters = [
-        { value: 'all', label: 'Wszystkie' },
-        { value: 'add', label: 'Dodano', color: 'bg-green-900/50 border-green-500/50 text-green-400' },
-        { value: 'edit', label: 'Edytowano', color: 'bg-blue-900/50 border-blue-500/50 text-blue-400' },
-        { value: 'delete', label: 'Usunięto', color: 'bg-red-900/50 border-red-500/50 text-red-400' },
-        { value: 'view_category', label: 'Przeglądanie', color: 'bg-yellow-900/50 border-yellow-500/50 text-yellow-400' },
+        { value: FILTERS.ACTION.ALL, label: FILTER_LABELS.action.all },
+        { value: FILTERS.ACTION.ADD, label: FILTER_LABELS.action.add, color: FILTER_STYLES.add },
+        { value: FILTERS.ACTION.EDIT, label: FILTER_LABELS.action.edit, color: FILTER_STYLES.edit },
+        { value: FILTERS.ACTION.DELETE, label: FILTER_LABELS.action.delete, color: FILTER_STYLES.delete },
+        { value: FILTERS.ACTION.VIEW_CATEGORY, label: FILTER_LABELS.action.view_category, color: FILTER_STYLES.view_category },
     ];
 
     return (
@@ -29,7 +54,7 @@ export default function Controls({
                         {actionFilters.map((filter) => (
                             <button
                                 key={filter.value}
-                                className={`filter-btn ${actionFilter === filter.value ? 'active-filter' : ''} ${filter.color || ''}`}
+                                className={`filter-btn ${actionFilter === filter.value ? 'active-filter' : ''} ${filter.color ? `${filter.color.bg} ${filter.color.border} ${filter.color.text}` : ''}`}
                                 onClick={() => setActionFilter(filter.value)}
                             >
                                 {filter.label}
@@ -42,22 +67,22 @@ export default function Controls({
                     <div className="filter-group">
                         <span className="text-white text-sm font-medium mr-2">Status:</span>
                         <button
-                            className={`filter-btn ${statusFilter === 'all' ? 'active-filter' : ''}`}
-                            onClick={() => setStatusFilter('all')}
+                            className={`filter-btn ${statusFilter === FILTERS.STATUS.ALL ? 'active-filter' : ''}`}
+                            onClick={() => setStatusFilter(FILTERS.STATUS.ALL)}
                         >
-                            Wszystkie
+                            {FILTER_LABELS.status.all}
                         </button>
                         <button
-                            className={`filter-btn ${statusFilter === 'na-stanie' ? 'active-filter' : ''} bg-green-900/50 border-green-500/50 text-green-400`}
-                            onClick={() => setStatusFilter('na-stanie')}
+                            className={`filter-btn ${statusFilter === FILTERS.STATUS.NA_STANIE ? 'active-filter' : ''} bg-green-900/50 border-green-500/50 text-green-400`}
+                            onClick={() => setStatusFilter(FILTERS.STATUS.NA_STANIE)}
                         >
-                            Na stanie
+                            {FILTER_LABELS.status[FILTERS.STATUS.NA_STANIE]}
                         </button>
                         <button
-                            className={`filter-btn ${statusFilter === 'wyjechalo' ? 'active-filter' : ''} bg-red-900/50 border-red-500/50 text-red-400`}
-                            onClick={() => setStatusFilter('wyjechalo')}
+                            className={`filter-btn ${statusFilter === FILTERS.STATUS.WYJECHALO ? 'active-filter' : ''} bg-red-900/50 border-red-500/50 text-red-400`}
+                            onClick={() => setStatusFilter(FILTERS.STATUS.WYJECHALO)}
                         >
-                            Wyjechało
+                            {FILTER_LABELS.status[FILTERS.STATUS.WYJECHALO]}
                         </button>
                     </div>
                 )}
