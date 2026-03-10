@@ -355,6 +355,29 @@ const NeonClient = {
             console.warn('Could not clear history:', error.message);
             return [];
         }
+    },
+
+    // Создать таблицу history если её нет
+    async ensureHistoryTable() {
+        const query = `
+            CREATE TABLE IF NOT EXISTS history (
+                id SERIAL PRIMARY KEY,
+                item_name VARCHAR(255),
+                action VARCHAR(50),
+                field_name VARCHAR(255),
+                old_value TEXT,
+                new_value TEXT,
+                changed_by VARCHAR(255),
+                device_id VARCHAR(255),
+                timestamp TIMESTAMP DEFAULT NOW()
+            )
+        `;
+        try {
+            await neonQuery(query, []);
+            console.log('History table ready');
+        } catch (error) {
+            console.warn('Could not create history table:', error.message);
+        }
     }
 };
 

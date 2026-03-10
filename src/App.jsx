@@ -16,6 +16,10 @@ export default function App() {
     const [selectedCategoryForId, setSelectedCategoryForId] = useState('NM');
     const [tvSize, setTvSize] = useState('55');
 
+    useEffect(() => {
+        NeonClient.ensureHistoryTable();
+    }, []);
+
     const { 
         currentUser, 
         username, setUsername, 
@@ -52,10 +56,6 @@ export default function App() {
         toggleSort,
         resetSort
     } = useFilters(items);
-
-    useEffect(() => {
-        fetchItems();
-    }, [selectedCategory]);
 
     useEffect(() => {
         if (currentUser && selectedCategory) {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import NeonClient from "../neon-client";
 import { generateDeviceId } from "../device-utils";
 import { defaultModalData } from "../constants/categories";
@@ -10,11 +10,14 @@ export function useItems(selectedCategory, currentUser) {
     const [isItemModalOpen, setIsItemModalOpen] = useState(false);
     const [editingItem, setEditingItem] = useState(null);
 
-    const fetchItems = async () => {
+    const fetchItems = useCallback(async () => {
         setIsLoading(true);
         try {
+            console.log('Fetching for category:', selectedCategory);
             if (selectedCategory === 'Historia') {
+                console.log('Fetching history...');
                 const history = await NeonClient.getHistory();
+                console.log('History data:', history);
                 setItems(history);
             } else {
                 const items = await NeonClient.getItems(selectedCategory || null);
@@ -26,7 +29,11 @@ export function useItems(selectedCategory, currentUser) {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [selectedCategory]);
+
+    useEffect(() => {
+        fetchItems();
+    }, [fetchItems]);
 
     const parsePolishNumber = (value) => {
         if (value === null || value === undefined || value === '') return 0;
