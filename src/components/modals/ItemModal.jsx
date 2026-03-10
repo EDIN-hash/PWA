@@ -13,38 +13,39 @@ export default function ItemModal({
 }) {
     console.log('ItemModal render:', { isOpen, editingItem });
     
+    if (!isOpen) {
+        console.log('ItemModal: isOpen is FALSE, modal not showing');
+        return null;
+    }
+    
+    console.log('ItemModal: isOpen is TRUE, should be showing');
+    
+    // Принудительные стили для центрирования
     const modalStyles = {
         content: {
-            position: 'absolute',
+            position: 'fixed',
             top: '50%',
             left: '50%',
-            right: 'auto',
-            bottom: 'auto',
-            marginRight: '-50%',
             transform: 'translate(-50%, -50%)',
-            backgroundColor: '#1e1e2e',
-            border: '1px solid rgba(76, 100, 241, 0.2)',
-            borderRadius: '12px',
-            padding: '1.5rem',
+            backgroundColor: '#1e1e2e !important',
+            border: '1px solid rgba(76, 100, 241, 0.2) !important',
+            borderRadius: '12px !important',
+            padding: '1.5rem !important',
             maxWidth: '500px',
-            width: '90%',
+            width: '90% !important',
             maxHeight: '90vh',
             overflowY: 'auto',
             color: '#c0caf5',
-            zIndex: 10000,
+            zIndex: 99999,
         },
         overlay: {
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.7)',
-            backdropFilter: 'blur(4px)',
-            zIndex: 9999,
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
+            position: 'fixed !important',
+            top: '0 !important',
+            left: '0 !important',
+            right: '0 !important',
+            bottom: '0 !important',
+            backgroundColor: 'rgba(0, 0, 0, 0.8) !important',
+            zIndex: 99998,
         }
     };
 
