@@ -45,15 +45,15 @@ export async function handler(event, context) {
       console.log('Executing query:', query);
       console.log('With params:', params);
 
-      // Используем правильный синтаксис для вызова SQL запроса
-      // Для запросов с параметрами используем sql.query()
+      // Используем правильный синтаксис для Neon
+      // Для запросов с параметрами используем массив params
       let result;
-      if (params && params.length > 0) {
-        // Если есть параметры, используем sql.query()
-        result = await sql.query(query, params);
+      if (params && Array.isArray(params) && params.length > 0) {
+        // Используем функциональный вызов с массивом параметров
+        result = await sql(query, params);
       } else {
-        // Если нет параметров, используем tagged template
-        result = await sql`${query}`;
+        // Без параметров
+        result = await sql(query);
       }
       
       console.log('Query executed successfully:', result);
