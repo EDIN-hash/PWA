@@ -756,9 +756,10 @@ body {
     backdrop-filter: blur(4px) !important;
     display: flex !important;
     justify-content: center !important;
-    align-items: center !important;
+    align-items: flex-start !important;
     z-index: 1000 !important;
-    padding: 1rem !important;
+    padding: 0 !important;
+    overflow-y: auto !important;
 }
 
 /* Get Free ID Modal specific styles */
@@ -819,7 +820,7 @@ body {
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
     outline: none !important;
     color: var(--fg) !important;
-    margin: 0 1rem !important;
+    margin: 5vh auto !important;
     border: 1px solid rgba(76, 100, 241, 0.1) !important;
 }
 
