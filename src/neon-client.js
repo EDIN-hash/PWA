@@ -17,10 +17,13 @@ const neonQuery = async (sql, params = []) => {
     // Заменяем $1, $2, etc. на экранированные значения
     let finalQuery = sql;
     if (params && params.length > 0) {
+        console.log('Original query:', sql);
+        console.log('Params:', params);
         params.forEach((param, index) => {
             const placeholder = '$' + (index + 1);
             finalQuery = finalQuery.split(placeholder).join(escapeParam(param));
         });
+        console.log('Final query:', finalQuery);
     }
 
     try {
