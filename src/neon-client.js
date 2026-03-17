@@ -5,27 +5,6 @@ const neonQuery = async (sql, params = []) => {
         ? 'http://localhost:8888/.netlify/functions/neon-proxy'
         : '/.netlify/functions/neon-proxy';
 
-    // Экранируем параметры для безопасности
-    const escapeParam = (param) => {
-        if (param === null || param === undefined) return 'NULL';
-        if (typeof param === 'number') return param;
-        if (typeof param === 'boolean') return param ? 'TRUE' : 'FALSE';
-        // Экранируем одинарные кавычки
-        return "'" + String(param).replace(/'/g, "''") + "'";
-    };
-
-    // Заменяем $1, $2, etc. на экранированные значения
-    let finalQuery = sql;
-    if (params && params.length > 0) {
-        console.log('Original query:', sql);
-        console.log('Params:', params);
-        params.forEach((param, index) => {
-            const placeholder = '$' + (index + 1);
-            finalQuery = finalQuery.split(placeholder).join(escapeParam(param));
-        });
-        console.log('Final query:', finalQuery);
-    }
-
     try {
         const response = await fetch(functionUrl, {
             method: 'POST',
@@ -34,8 +13,8 @@ const neonQuery = async (sql, params = []) => {
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                query: finalQuery,
-                params: []
+                query: sql,
+                params: params
             })
         });
 
