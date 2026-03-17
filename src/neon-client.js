@@ -19,7 +19,7 @@ const neonQuery = async (sql, params = []) => {
     if (params && params.length > 0) {
         params.forEach((param, index) => {
             const placeholder = '$' + (index + 1);
-            finalQuery = finalQuery.replace(placeholder, escapeParam(param));
+            finalQuery = finalQuery.split(placeholder).join(escapeParam(param));
         });
     }
 
