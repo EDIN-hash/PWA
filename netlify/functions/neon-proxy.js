@@ -1,18 +1,4 @@
-import pg from 'pg';
-const { Pool } = pg;
-
-let pool = null;
-
-function getPool() {
-  if (!pool) {
-    const dbUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL;
-    if (!dbUrl) {
-      throw new Error('Database URL not set');
-    }
-    pool = new Pool({ connectionString: dbUrl });
-  }
-  return pool;
-}
+import { neon } from '@neondatabase/serverless';
 
 export async function handler(event, context) {
   // CORS preflight
@@ -27,43 +13,31 @@ export async function handler(event, context) {
     };
   }
 
+  const dbUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL;
+  if (!dbUrl) {
+    return { statusCode: 500, body: JSON.stringify({ error: 'No DB URL' }) };
+  }
+
+  const sql = neon(dbUrl);
+
   try {
-    const pool = getPool();
-    
     if (event.httpMethod === 'POST') {
       const body = JSON.parse(event.body);
       const { query, params = [] } = body;
 
-      const result = await pool.query(query, params);
+      // Используем sql() функцию для выполнения запроса
+      const result = await sql(query, params);
       
       return {
         statusCode: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        },
-        body: JSON.stringify(result.rows)
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        body: JSON.stringify(Array.isArray(result) ? result : [result])
       };
     }
 
-    // GET test
-    const result = await pool.query('SELECT 1 as test');
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify(result.rows)
-    };
+    const result = await sql('SELECT 1 as test');
+    return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result) };
   } catch (error) {
-    return {
-      statusCode: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify({ error: error.message })
-    };
+    return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: error.message }) };
   }
 }
