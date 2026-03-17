@@ -482,6 +482,8 @@ return (
             ) : (
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center w-full">
                     <input
+                        id="search"
+                        name="search"
                         type="text"
                         placeholder="Search..."
                         value={searchQuery}
