@@ -5,6 +5,24 @@ const neonQuery = async (sql, params = []) => {
         ? 'http://localhost:8888/.netlify/functions/neon-proxy'
         : '/.netlify/functions/neon-proxy';
 
+    // Экранируем параметры для безопасности
+    const escapeParam = (param) => {
+        if (param === null || param === undefined) return 'NULL';
+        if (typeof param === 'number') return param;
+        if (typeof param === 'boolean') return param ? 'TRUE' : 'FALSE';
+        // Экранируем одинарные кавычки
+        return "'" + String(param).replace(/'/g, "''") + "'";
+    };
+
+    // Заменяем $1, $2, etc. на экранированные значения
+    let finalQuery = sql;
+    if (params && params.length > 0) {
+        params.forEach((param, index) => {
+            const placeholder = '$' + (index + 1);
+            finalQuery = finalQuery.replace(placeholder, escapeParam(param));
+        });
+    }
+
     try {
         const response = await fetch(functionUrl, {
             method: 'POST',
@@ -13,8 +31,8 @@ const neonQuery = async (sql, params = []) => {
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
-                query: sql,
-                params: params
+                query: finalQuery,
+                params: []
             })
         });
 
@@ -43,7 +61,7 @@ const NeonClient = {
             query += ' WHERE category = $1';
             return neonQuery(query, [category]);
         }
-        return neonQuery(query, []);
+        return neonQuery(query);
     },
 
     // Добавление предмета
@@ -350,7 +368,7 @@ const NeonClient = {
     async clearHistory() {
         const query = 'DELETE FROM history RETURNING *';
         try {
-            return await neonQuery(query, []);
+            return await neonQuery(query);
         } catch (error) {
             console.warn('Could not clear history:', error.message);
             return [];
