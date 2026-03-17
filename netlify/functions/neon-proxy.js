@@ -1,43 +1,40 @@
-import { neon } from '@neondatabase/serverless';
+import pg from 'pg';
+const { Pool } = pg;
+
+let pool = null;
+
+function getPool() {
+  if (!pool) {
+    const dbUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL;
+    if (!dbUrl) {
+      throw new Error('Database URL not set');
+    }
+    pool = new Pool({ connectionString: dbUrl });
+  }
+  return pool;
+}
 
 export async function handler(event, context) {
+  // Обрабатываем OPTIONS для CORS
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      }
+    };
+  }
+
   try {
-    const dbUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL;
+    const pool = getPool();
     
-    if (!dbUrl) {
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Database connection string is missing' })
-      };
-    }
-
-    const sql = neon(dbUrl);
-
-    // Обрабатываем OPTIONS запросы для CORS
-    if (event.httpMethod === 'OPTIONS') {
-      return {
-        statusCode: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type'
-        }
-      };
-    }
-
-    // Обрабатываем POST запросы с SQL запросом
     if (event.httpMethod === 'POST') {
       const body = JSON.parse(event.body);
-      const { query, params } = body;
+      const { query, params = [] } = body;
 
-      let result;
-      if (params && Array.isArray(params) && params.length > 0) {
-        // Используем метод .query() с параметрами
-        result = await sql.query(query, params);
-      } else {
-        // Используем tagged template
-        result = await sql`${query}`;
-      }
+      const result = await pool.query(query, params);
       
       return {
         statusCode: 200,
@@ -45,23 +42,21 @@ export async function handler(event, context) {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*'
         },
-        body: JSON.stringify(result)
+        body: JSON.stringify(result.rows)
       };
     }
 
-    // GET запрос
-    const result = await sql`SELECT 1 as test`;
-
+    // GET test
+    const result = await pool.query('SELECT 1 as test');
     return {
       statusCode: 200,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       },
-      body: JSON.stringify({ success: true, data: result })
+      body: JSON.stringify(result.rows)
     };
   } catch (error) {
-    console.error('Error:', error.message);
     return {
       statusCode: 500,
       headers: {
