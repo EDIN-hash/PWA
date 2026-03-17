@@ -1,4 +1,18 @@
-import { neon } from '@neondatabase/serverless';
+import pg from 'pg';
+const { Pool } = pg;
+
+let pool = null;
+
+function getPool() {
+  if (!pool) {
+    const dbUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL;
+    if (!dbUrl) {
+      throw new Error('Database URL not set');
+    }
+    pool = new Pool({ connectionString: dbUrl });
+  }
+  return pool;
+}
 
 export async function handler(event, context) {
   // CORS preflight
@@ -13,57 +27,43 @@ export async function handler(event, context) {
     };
   }
 
-  const dbUrl = process.env.NETLIFY_DATABASE_URL || process.env.DATABASE_URL;
-  if (!dbUrl) {
-    return { statusCode: 500, body: JSON.stringify({ error: 'No DB URL' }) };
-  }
-
-  const sql = neon(dbUrl);
-
   try {
+    const pool = getPool();
+    
     if (event.httpMethod === 'POST') {
       const body = JSON.parse(event.body);
       const { query, params = [] } = body;
 
-      // Neon драйвер требует tagged template синтаксис
-      // Для этого используем функцию которая создает tagged template
-      const tag = (strings, ...values) => {
-        return strings.reduce((result, str, i) => {
-          return result + str + (i < values.length ? values[i] : '');
-        }, '');
-      };
-
-      // Заменяем $1, $2... на значения из params
-      let finalQuery = query;
-      params.forEach((param, i) => {
-        const placeholder = '$' + (i + 1);
-        // Экранируем значение
-        let value;
-        if (param === null || param === undefined) {
-          value = 'NULL';
-        } else if (typeof param === 'number') {
-          value = param;
-        } else if (typeof param === 'boolean') {
-          value = param ? 'TRUE' : 'FALSE';
-        } else {
-          value = "'" + String(param).replace(/'/g, "''") + "'";
-        }
-        finalQuery = finalQuery.replace(placeholder, value);
-      });
-
-      // Выполняем как raw SQL через tagged template
-      const result = await sql`${finalQuery}`;
+      const result = await pool.query(query, params);
       
       return {
         statusCode: 200,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify(result)
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        },
+        body: JSON.stringify(result.rows)
       };
     }
 
-    const result = await sql`SELECT 1 as test`;
-    return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result) };
+    // GET test
+    const result = await pool.query('SELECT 1 as test');
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify(result.rows)
+    };
   } catch (error) {
-    return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: error.message }) };
+    return {
+      statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({ error: error.message })
+    };
   }
 }
