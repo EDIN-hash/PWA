@@ -48,12 +48,24 @@ export async function handler(event, context) {
       // Используем правильный синтаксис для вызова SQL запроса
       // Для запросов с параметрами используем sql.query()
       let result;
-      if (params && params.length > 0) {
-        // Если есть параметры, используем sql.query()
-        result = await sql.query(query, params);
-      } else {
-        // Если нет параметров, используем tagged template
-        result = await sql`${query}`;
+      try {
+        if (params && params.length > 0) {
+          // Если есть параметры, используем sql.query()
+          result = await sql.query(query, params);
+        } else {
+          // Если нет параметров, используем tagged template
+          result = await sql`${query}`;
+        }
+      } catch (queryError) {
+        console.error('Query error:', queryError.message);
+        return {
+          statusCode: 500,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          },
+          body: JSON.stringify({ error: queryError.message, query: query })
+        };
       }
       
       console.log('Query executed successfully:', result);
