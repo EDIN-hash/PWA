@@ -338,7 +338,7 @@ const NeonClient = {
         } else {
             const query = 'SELECT * FROM history ORDER BY timestamp DESC LIMIT 200';
             try {
-                return await neonQuery(query, []);
+                return await neonQuery(query);
             } catch (error) {
                 console.warn('History table may not exist:', error.message);
                 return [];
