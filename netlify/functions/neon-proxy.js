@@ -1,5 +1,7 @@
 import { neon } from '@neondatabase/serverless';
 
+const VERSION = 'v3';
+
 export async function handler(event, context) {
   // CORS preflight
   if (event.httpMethod === 'OPTIONS') {
