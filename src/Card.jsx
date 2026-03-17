@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, memo } from "react";
+import ReactDOM from "react-dom";
 
 const MAX_IMAGE_WIDTH = 1280;
 const MAX_IMAGE_HEIGHT = 720;
@@ -452,8 +453,8 @@ export default function Card({ item, editItem, deleteItem, role }) {
                                 <div className="flex justify-between">
                                     <span className="font-medium">Info urządzenia:</span>
                                     <span className="text-right">{item.deviceId}</span>
-                                </div>
-                            )}
+                </div>
+            ), document.body)}
                             <div className="flex justify-between">
                                 <span className="font-medium">Stoisko:</span>
                                 <span>{item.stoisko || '*Tutaj wpisz stoisko*'}</span>
@@ -486,7 +487,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
                 )}
             </div>
 
-            {openPhoto && photos.length > 0 && (
+            {openPhoto && photos.length > 0 && ReactDOM.createPortal(
                 <div 
                     className="photo-modal-overlay"
                     style={{
