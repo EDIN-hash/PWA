@@ -26,7 +26,7 @@ export async function handler(event, context) {
       const { query, params = [] } = body;
 
       // Используем sql() функцию для выполнения запроса
-      const result = await sql(query, params);
+      const result = await sql.query(query, params);
       
       return {
         statusCode: 200,
