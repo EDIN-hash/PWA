@@ -47,13 +47,8 @@ export async function handler(event, context) {
 
       let result;
       try {
-        // Neon требует особый синтаксис - используем execute для сырых SQL
-        if (params && params.length > 0) {
-          result = await sql.query(query, params);
-        } else {
-          // Используем sql() функцию для сырых запросов
-          result = await sql(query);
-        }
+        // Используем sql.query() для всех запросов
+        result = await sql.query(query, []);
       } catch (queryError) {
         console.error('Query error:', queryError.message);
         return {
