@@ -59,6 +59,16 @@ export default function App() {
         if (savedDarkMode) {
             setDarkMode(savedDarkMode === 'true');
         }
+        
+        const warmup = async () => {
+            try {
+                const functionUrl = import.meta.env.DEV 
+                    ? 'http://localhost:8888/.netlify/functions/neon-proxy'
+                    : '/.netlify/functions/neon-proxy';
+                await fetch(functionUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: 'SELECT 1' }) });
+            } catch (e) {}
+        };
+        warmup();
     }, []);
 
     // Load saved user session from localStorage on app start
