@@ -1,12 +1,5 @@
 import { neon } from '@neondatabase/serverless';
 
-function escapeValue(val) {
-  if (val === null || val === undefined) return 'NULL';
-  if (typeof val === 'number') return val;
-  if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE';
-  return `'${String(val).replace(/'/g, "''")}'`;
-}
-
 export async function handler(event, context) {
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -42,13 +35,9 @@ export async function handler(event, context) {
       
       let result;
       if (params.length > 0) {
-        let safeQuery = query;
-        params.forEach((param, i) => {
-          safeQuery = safeQuery.replace(`$${i + 1}`, escapeValue(param));
-        });
-        result = await sql`${safeQuery}`;
+        result = await sql(query, params);
       } else {
-        result = await sql`${query}`;
+        result = await sql(query);
       }
       
       return {
