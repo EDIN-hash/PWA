@@ -34,8 +34,8 @@ export async function handler(event, context) {
       }
       
       let result;
-      if (params.length > 0) {
-        result = await sql.query(query, params);
+      if (query.includes('$1') || query.includes('$2') || query.includes('$3')) {
+        result = await sql.query(query, params.length > 0 ? params : [null]);
       } else {
         result = await sql(query);
       }
