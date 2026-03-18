@@ -453,8 +453,8 @@ export default function Card({ item, editItem, deleteItem, role }) {
                                 <div className="flex justify-between">
                                     <span className="font-medium">Info urządzenia:</span>
                                     <span className="text-right">{item.deviceId}</span>
-                </div>
-            ), document.body)}
+                                </div>
+                            )}
                             <div className="flex justify-between">
                                 <span className="font-medium">Stoisko:</span>
                                 <span>{item.stoisko || '*Tutaj wpisz stoisko*'}</span>
