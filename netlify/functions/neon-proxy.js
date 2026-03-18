@@ -1,8 +1,13 @@
 import { neon } from '@neondatabase/serverless';
 
+function escapeValue(val) {
+  if (val === null || val === undefined) return 'NULL';
+  if (typeof val === 'number') return val;
+  if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE';
+  return `'${String(val).replace(/'/g, "''")}'`;
+}
+
 export async function handler(event, context) {
-  console.log('Event body:', event.body);
-  
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -31,16 +36,17 @@ export async function handler(event, context) {
       const query = body.query || '';
       const params = Array.isArray(body.params) ? body.params : [];
       
-      console.log('Query:', query);
-      console.log('Params:', params);
-      
       if (!query || query.trim() === '') {
         return { statusCode: 400, body: JSON.stringify({ error: 'Empty query' }) };
       }
       
       let result;
       if (params.length > 0) {
-        result = await sql.query(query, params);
+        let safeQuery = query;
+        params.forEach((param, i) => {
+          safeQuery = safeQuery.replace(`$${i + 1}`, escapeValue(param));
+        });
+        result = await sql`${safeQuery}`;
       } else {
         result = await sql`${query}`;
       }
@@ -54,7 +60,6 @@ export async function handler(event, context) {
 
     return { statusCode: 200, body: JSON.stringify({ ok: true }) };
   } catch (error) {
-    console.error('Error:', error);
     return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
   }
 }

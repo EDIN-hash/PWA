@@ -327,22 +327,17 @@ const NeonClient = {
 
     // Получить историю (все или для конкретного товара)
     async getHistory(itemName = null) {
-        if (itemName && itemName.trim()) {
-            const query = 'SELECT * FROM history WHERE item_name = $1 ORDER BY timestamp DESC LIMIT 100';
-            try {
+        try {
+            if (itemName && itemName.trim()) {
+                const query = `SELECT * FROM history WHERE item_name = $1 ORDER BY timestamp DESC LIMIT 100`;
                 return await neonQuery(query, [itemName]);
-            } catch (error) {
-                console.warn('History table may not exist:', error.message);
-                return [];
+            } else {
+                const query = `SELECT * FROM history ORDER BY timestamp DESC LIMIT 200`;
+                return await neonQuery(query, []);
             }
-        } else {
-            const query = 'SELECT * FROM history ORDER BY timestamp DESC LIMIT 200';
-            try {
-                return await neonQuery(query);
-            } catch (error) {
-                console.warn('History table may not exist:', error.message);
-                return [];
-            }
+        } catch (error) {
+            console.warn('History query error:', error.message);
+            return [];
         }
     },
 
