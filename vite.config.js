@@ -2,8 +2,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 import { createHtmlPlugin } from 'vite-plugin-html';
-import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
-import { readFileSync } from 'fs';
 
 // Generate a random nonce for CSP
 const generateNonce = () => {
@@ -17,19 +15,14 @@ const generateNonce = () => {
 
 const nonce = generateNonce();
 
-// Read critical CSS
-const criticalCSS = readFileSync(resolve(__dirname, 'src/critical.css'), 'utf-8');
-
 export default defineConfig({
     plugins: [
         react(),
-        cssInjectedByJsPlugin(),
         createHtmlPlugin({
             minify: true,
             inject: {
                 data: {
-                    nonce: nonce,
-                    criticalCSS: criticalCSS
+                    nonce: nonce
                 }
             }
         })
@@ -38,16 +31,10 @@ export default defineConfig({
     build: {
         outDir: "dist",
         emptyOutDir: true,
-        cssCodeSplit: false,
         rollupOptions: {
             input: {
                 main: resolve(__dirname, "index.html"),
             },
-            output: {
-                manualChunks: {
-                    vendor: ['react', 'react-dom', 'react-modal', 'react-datepicker'],
-                }
-            }
         },
     },
     server: {
