@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { getThumbnailUrl, getFullImageUrl } from "../device-utils";
 
 export default function TelewizoryCard({ item, editItem, deleteItem, role }) {
     const [openPhoto, setOpenPhoto] = useState(false);
@@ -32,8 +33,12 @@ export default function TelewizoryCard({ item, editItem, deleteItem, role }) {
                 {item.photo_url && (
                     <div className="mb-4 relative group cursor-pointer" onClick={() => setOpenPhoto(true)}>
                         <img
-                            src={item.photo_url}
+                            src={getThumbnailUrl(item.photo_url)}
                             alt={item.name}
+                            loading="lazy"
+                            decoding="async"
+                            width="400"
+                            height="300"
                             className="rounded-lg object-cover h-80 w-full border border-slate-200 group-hover:opacity-90 transition-opacity"
                         />
                         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-opacity flex items-center justify-center">
@@ -182,7 +187,7 @@ export default function TelewizoryCard({ item, editItem, deleteItem, role }) {
                             </svg>
                         </button>
                         <img
-                            src={item.photo_url}
+                            src={getFullImageUrl(item.photo_url)}
                             alt={item.name}
                             className="object-contain max-h-[75vh] w-auto mx-auto p-6"
                         />

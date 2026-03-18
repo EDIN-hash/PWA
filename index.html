@@ -8,15 +8,23 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="preconnect" href="https://ipwabeta.netlify.app">
+    <link rel="dns-prefetch" href="https://ipwabeta.netlify.app">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"></noscript>
     
     <link rel="manifest" href="/manifest.webmanifest">
-
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#1a1a2e;color:#fff;font-family:system-ui,sans-serif;">
+            <div style="text-align:center;">
+                <div style="font-size:24px;margin-bottom:8px;">Loading...</div>
+                <div style="font-size:14px;opacity:0.7;">Inventory PWA</div>
+            </div>
+        </div>
+    </div>
     <script nonce="<%= nonce %>">
-        // CSP workaround for inline scripts
         window.CSP_NONCE = '<%= nonce %>';
     </script>
     <script type="module" src="/src/main.jsx"></script>

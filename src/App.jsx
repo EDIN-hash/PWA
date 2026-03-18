@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import Card from "./Card.jsx";
 import HistoryCard from "./HistoryCard.jsx";
 import Modal from "react-modal";
-import "react-datepicker/dist/react-datepicker.css";
 import "./styles.css";
 import NeonClient from "./neon-client";
 import { generateDeviceId, getDeviceId } from "./device-utils";

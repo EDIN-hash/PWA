@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, memo } from "react";
 import ReactDOM from "react-dom";
+import { getOptimizedImageUrl, getThumbnailUrl, getFullImageUrl } from "./device-utils";
 
 const MAX_IMAGE_WIDTH = 1280;
 const MAX_IMAGE_HEIGHT = 720;
@@ -140,7 +141,7 @@ if (typeof document !== 'undefined' && !document.getElementById('photo-modal-sty
     document.head.appendChild(styleElement);
 }
 
-function optimizeImageUrl(url) {
+function optimizeImageUrl(url, isFullSize = false) {
     if (!url) return url;
     
     if (url.includes('drive.google.com')) {
@@ -152,6 +153,10 @@ function optimizeImageUrl(url) {
     
     if (url.includes('photos.app.goo.gl')) {
         return url;
+    }
+    
+    if (url.includes('cloudinary.com')) {
+        return isFullSize ? getFullImageUrl(url) : getThumbnailUrl(url);
     }
     
     if (url.includes('?')) {
@@ -186,13 +191,13 @@ const LazyImage = memo(function LazyImage({ src, alt, className, style, onClick 
     }, []);
     
     return (
-        <div ref={imgRef} className="relative" onClick={onClick}>
+        <div ref={imgRef} className="relative" onClick={onClick} style={{ aspectRatio: '4/3' }}>
             {isVisible && (
                 <img
                     src={src}
                     alt={alt}
                     className={className}
-                    style={{ ...style, opacity: isLoaded ? 1 : 0 }}
+                    style={{ ...style, opacity: isLoaded ? 1 : 0, width: '100%', height: '100%', objectFit: 'cover' }}
                     onLoad={() => setIsLoaded(true)}
                     loading="lazy"
                     decoding="async"
@@ -237,13 +242,22 @@ export default function Card({ item, editItem, deleteItem, role }) {
     
     const getPhotos = () => {
         const photos = [];
-        if (item.photo_url) photos.push(item.photo_url);
-        if (item.photo_url2) photos.push(item.photo_url2);
+        if (item.photo_url) photos.push({
+            thumbnail: getThumbnailUrl(item.photo_url),
+            full: getFullImageUrl(item.photo_url),
+            original: item.photo_url
+        });
+        if (item.photo_url2) photos.push({
+            thumbnail: getThumbnailUrl(item.photo_url2),
+            full: getFullImageUrl(item.photo_url2),
+            original: item.photo_url2
+        });
         return photos;
     };
     
     const photos = getPhotos();
     const hasMultiplePhotos = photos.length > 1;
+    const currentPhoto = photos[currentPhotoIndex];
     
     const handlePrevPhoto = (e) => {
         e.stopPropagation();
@@ -309,7 +323,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
                 {photos.length > 0 && isVisible && (
                     <div className="mb-4 relative group cursor-pointer" onClick={() => setOpenPhoto(true)}>
                         <LazyImage
-                            src={optimizeImageUrl(photos[currentPhotoIndex])}
+                            src={optimizeImageUrl(currentPhoto?.thumbnail || currentPhoto?.original)}
                             alt={item.name}
                             className="card-image group-hover:opacity-90 transition-opacity w-full"
                             style={{ maxWidth: '100%', height: 'auto' }}
@@ -612,7 +626,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
                         )}
                         
                         <img
-                            src={optimizeImageUrl(photos[currentPhotoIndex])}
+                            src={optimizeImageUrl(currentPhoto?.full || currentPhoto?.original, true)}
                             alt={item.name}
                             className="photo-modal-image"
                             style={{

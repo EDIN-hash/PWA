@@ -94,3 +94,51 @@ export function getDeviceId() {
         return 'Unknown Device';
     }
 }
+
+/**
+ * Get optimized Cloudinary URL with transformations
+ * @param {string} url - Original Cloudinary URL
+ * @param {object} options - Transformation options
+ * @returns {string} - Optimized URL
+ */
+export function getOptimizedImageUrl(url, options = {}) {
+    if (!url || !url.includes('cloudinary.com')) {
+        return url;
+    }
+    
+    const {
+        width = 800,
+        height,
+        quality = 'auto',
+        format = 'auto',
+        crop = 'fill'
+    } = options;
+    
+    const parts = url.split('/upload/');
+    if (parts.length !== 2) {
+        return url;
+    }
+    
+    const transformations = [];
+    if (width) transformations.push(`w_${width}`);
+    if (height) transformations.push(`h_${height}`);
+    if (quality) transformations.push(`q_${quality}`);
+    if (format) transformations.push(`f_${format}`);
+    if (crop) transformations.push(`c_${crop}`);
+    
+    return `${parts[0]}/upload/${transformations.join(',')}/${parts[1]}`;
+}
+
+/**
+ * Get thumbnail URL for list view
+ */
+export function getThumbnailUrl(url) {
+    return getOptimizedImageUrl(url, { width: 400, quality: 'auto:low', height: 300 });
+}
+
+/**
+ * Get full-size optimized URL for modal/lightbox
+ */
+export function getFullImageUrl(url) {
+    return getOptimizedImageUrl(url, { width: 1200, quality: 'auto' });
+}

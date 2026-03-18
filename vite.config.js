@@ -45,10 +45,12 @@ export default defineConfig({
             },
             output: {
                 manualChunks: {
-                    vendor: ['react', 'react-dom', 'react-modal', 'react-datepicker'],
+                    'react-vendor': ['react', 'react-dom'],
+                    'ui-vendor': ['react-modal', 'react-datepicker'],
                 }
             }
         },
+        chunkSizeWarningLimit: 500,
     },
     server: {
         port: 5173,
