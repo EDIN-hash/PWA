@@ -35,7 +35,7 @@ export async function handler(event, context) {
       
       let result;
       if (params.length > 0) {
-        result = await sql(query, params);
+        result = await sql.query(query, params);
       } else {
         result = await sql(query);
       }
