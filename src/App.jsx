@@ -65,7 +65,7 @@ export default function App() {
                 const functionUrl = import.meta.env.DEV 
                     ? 'http://localhost:8888/.netlify/functions/neon-proxy'
                     : '/.netlify/functions/neon-proxy';
-                await fetch(functionUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: 'SELECT 1' }) });
+                await fetch(functionUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: 'SELECT 1', params: [] }) });
             } catch (e) {}
         };
         warmup();

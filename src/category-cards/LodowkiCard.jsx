@@ -33,7 +33,7 @@ export default function LodowkiCard({ item, editItem, deleteItem, role }) {
                 {item.photo_url && (
                     <div className="mb-4 relative group cursor-pointer" onClick={() => setOpenPhoto(true)}>
                         <img
-                            src={getThumbnailUrl(item.photo_url)}
+                            src={item.photo_url}
                             alt={item.name}
                             loading="lazy"
                             decoding="async"

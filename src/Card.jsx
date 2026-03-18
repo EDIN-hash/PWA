@@ -243,12 +243,12 @@ export default function Card({ item, editItem, deleteItem, role }) {
     const getPhotos = () => {
         const photos = [];
         if (item.photo_url) photos.push({
-            thumbnail: getThumbnailUrl(item.photo_url),
+            thumbnail: item.photo_url,
             full: getFullImageUrl(item.photo_url),
             original: item.photo_url
         });
         if (item.photo_url2) photos.push({
-            thumbnail: getThumbnailUrl(item.photo_url2),
+            thumbnail: item.photo_url2,
             full: getFullImageUrl(item.photo_url2),
             original: item.photo_url2
         });
