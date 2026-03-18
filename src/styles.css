@@ -686,6 +686,7 @@ body {
     color: var(--fg);
 }
 
+<<<<<<< HEAD
 /* Tokyo Night Controls */
 .controls-section {
     background: rgba(26, 27, 38, 0.8);
@@ -1246,4 +1247,8 @@ body {
 /* Smooth Scrolling */
 html {
     scroll-behavior: smooth;
+=======
+.login-modal-dark .option:hover {
+    background-color: #374151 !important;
+>>>>>>> parent of 70b2bab (Merge branch 'live')
 }
