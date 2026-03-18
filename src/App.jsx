@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Card from "./Card.jsx";
-import HistoryCard from "./HistoryCard.jsx";
 import Modal from "react-modal";
+import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./styles.css";
 import NeonClient from "./neon-client";
@@ -10,7 +10,7 @@ import { generateDeviceId, getDeviceId } from "./device-utils";
 // Настройка Modal до определения компонента
 Modal.setAppElement("#root");
 
-const categories = ["Telewizory", "Lodowki", "Ekspresy", "Krzesla", "NM", "LADY", "Historia"];
+const categories = ["Telewizory", "Lodowki", "Ekspresy", "Krzesla", "NM", "LADY"];
 
 const defaultModalData = {
     name: "",
@@ -18,12 +18,11 @@ const defaultModalData = {
     ilosc: 1,
     description: "",
     photo_url: "",
-    photo_url2: "",
     category: "NM",
     wysokosc: 0,
     szerokosc: 0,
     glebokosc: 0,
-    dataWyjazdu: "",
+    dataWyjazdu: null,
     stoisko: "",
     stan: false,
     linknadysk: "",
@@ -94,13 +93,8 @@ export default function App() {
     const fetchItems = async () => {
         setIsLoading(true);
         try {
-            if (selectedCategory === 'Historia') {
-                const history = await NeonClient.getHistory();
-                setItems(history);
-            } else {
-                const items = await NeonClient.getItems(selectedCategory || null);
-                setItems(items);
-            }
+            const items = await NeonClient.getItems(selectedCategory || null);
+            setItems(items);
         } catch (err) {
             console.error("Fetch items error:", err);
             alert("Failed to load items: " + err.message);
@@ -112,21 +106,6 @@ export default function App() {
     useEffect(() => {
         fetchItems();
     }, [selectedCategory]);
-
-    // Log category change
-    useEffect(() => {
-        if (currentUser && selectedCategory) {
-            NeonClient.addHistoryEntry({
-                item_name: selectedCategory,
-                action: 'view_category',
-                field_name: 'category_opened',
-                old_value: '',
-                new_value: selectedCategory,
-                changed_by: currentUser.username,
-                device_id: generateDeviceId()
-            }).catch(() => {}); // Ignore if history table doesn't exist
-        }
-    }, [selectedCategory, currentUser]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -223,7 +202,15 @@ export default function App() {
                 szerokosc: parsePolishNumber(item.szerokosc),
                 glebokosc: parsePolishNumber(item.glebokosc),
                 ilosc: parsePolishNumber(item.ilosc),
-                dataWyjazdu: item.data_wyjazdu || '',
+                dataWyjazdu: item.data_wyjazdu ? (() => {
+                    try {
+                        const date = new Date(item.data_wyjazdu);
+                        return isNaN(date.getTime()) ? null : date;
+                    } catch (e) {
+                        console.error("Invalid date format:", item.data_wyjazdu, e);
+                        return null;
+                    }
+                })() : null,
                 stan: item.stan === 1 || item.stan === true,
             });
         } else {
@@ -236,62 +223,37 @@ export default function App() {
     const closeItemModal = () => setIsItemModalOpen(false);
 
     const handleSaveItem = async () => {
-        if (!modalData.name) {
-            alert("ID (Name) jest wymagany!");
+        if (!modalData.name || !modalData.quantity) {
+            alert("Name and quantity are required");
             return;
         }
         
-        const currentUsername = currentUser?.username || "Unknown";
-        const currentDeviceId = generateDeviceId();
-        
-        // Format date as DD.MM.YYYY (just pass through, no conversion)
-        const dataWyjazduValue = modalData.dataWyjazdu || '';
+        // Safe date handling
+        let dataWyjazduValue = null;
+        if (modalData.dataWyjazdu) {
+            try {
+                const date = new Date(modalData.dataWyjazdu);
+                if (!isNaN(date.getTime())) {
+                    dataWyjazduValue = date.toISOString().split("T")[0];
+                }
+            } catch (e) {
+                console.error("Invalid date in handleSaveItem:", modalData.dataWyjazdu, e);
+                dataWyjazduValue = null;
+            }
+        }
         
         const itemData = {
             ...modalData,
             data_wyjazdu: dataWyjazduValue,
             stan: modalData.stan ? 1 : 0,
-            ilosc: modalData.ilosc || 0,
-            quantity: modalData.quantity || '',
-            description: modalData.description || '',
-            photo_url: modalData.photo_url || '',
-            photo_url2: modalData.photo_url2 || '',
-            linknadysk: modalData.linknadysk || '',
-            stoisko: modalData.stoisko || '',
-            updatedBy: currentUsername,
-            deviceId: currentDeviceId
+            updatedBy: currentUser?.username || "Unknown",
+            deviceId: generateDeviceId()
         };
         try {
             if (editingItem) {
                 await NeonClient.updateItem(editingItem.name, itemData);
             } else {
                 await NeonClient.addItem(itemData);
-            }
-            // Запись в историю - не блокирует сохранение при ошибке
-            try {
-                if (editingItem) {
-                    await NeonClient.addHistoryEntry({
-                        item_name: modalData.name,
-                        action: 'edit',
-                        field_name: 'all',
-                        old_value: editingItem.name !== modalData.name ? editingItem.name : '',
-                        new_value: modalData.name,
-                        changed_by: currentUsername,
-                        device_id: currentDeviceId
-                    });
-                } else {
-                    await NeonClient.addHistoryEntry({
-                        item_name: modalData.name,
-                        action: 'add',
-                        field_name: 'new_item',
-                        old_value: '',
-                        new_value: modalData.category,
-                        changed_by: currentUsername,
-                        device_id: currentDeviceId
-                    });
-                }
-            } catch (historyErr) {
-                console.warn("History logging failed:", historyErr);
             }
             await fetchItems();
             closeItemModal();
@@ -304,23 +266,8 @@ export default function App() {
 
     const handleDeleteItem = async (itemName) => {
         if (!window.confirm("Delete this item?")) return;
-        const currentUsername = currentUser?.username || "Unknown";
-        const currentDeviceId = generateDeviceId();
         try {
             await NeonClient.deleteItem(itemName);
-            try {
-                await NeonClient.addHistoryEntry({
-                    item_name: itemName,
-                    action: 'delete',
-                    field_name: 'all',
-                    old_value: '',
-                    new_value: '',
-                    changed_by: currentUsername,
-                    device_id: currentDeviceId
-                });
-            } catch (historyErr) {
-                console.warn("History logging failed:", historyErr);
-            }
             await fetchItems();
         } catch (err) {
             console.error("Delete item error:", err);
@@ -339,18 +286,12 @@ export default function App() {
             const query = searchQuery.toLowerCase();
             const nameMatch = item.name.toLowerCase().includes(query);
             const descriptionMatch = (item.description || "").toLowerCase().includes(query);
-            const stoiskoMatch = (item.stoisko || "").toLowerCase().includes(query);
             
             // Search in dimensions (wysokosc, szerokosc, glebokosc)
             const dimensionsMatch = 
                 (item.wysokosc && item.wysokosc.toString().includes(query)) ||
                 (item.szerokosc && item.szerokosc.toString().includes(query)) ||
                 (item.glebokosc && item.glebokosc.toString().includes(query));
-            
-            // For LADY category, prioritize stoisko search
-            if (item.category === 'LADY') {
-                return nameMatch || descriptionMatch || stoiskoMatch;
-            }
             
             return nameMatch || descriptionMatch || dimensionsMatch;
         }
@@ -480,7 +421,7 @@ return (
                     </button>
                 </div>
             ) : (
-                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center w-full">
+                <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
                     <input
                         id="search"
                         name="search"
@@ -488,26 +429,25 @@ return (
                         placeholder="Search..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="input input-bordered bg-gray-700 border-gray-600 text-white flex-1 min-w-0"
-                        style={{ minWidth: '200px' }}
+                        className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
                     />
-                    {(currentUser.role === "admin") && selectedCategory !== 'Historia' && (
+                    {(currentUser.role === "admin" || currentUser.role === "moder") && (
                         <button
                             onClick={() => openItemModal()}
-                            className="btn btn-success w-full sm:w-auto ripple hover-lift bounce-in flex-shrink-0"
+                            className="btn btn-success w-full sm:w-auto ripple hover-lift bounce-in"
                         >
                             Add Item
                         </button>
                     )}
-                    {(currentUser.role === "admin" || currentUser.role === "moder") && selectedCategory !== 'Historia' && (
+                    {currentUser.role === "moder" && (
                         <button
                             onClick={() => setIsGetIdModalOpen(true)}
-                            className="btn btn-info w-full sm:w-auto ripple hover-lift bounce-in flex-shrink-0"
+                            className="btn btn-info w-full sm:w-auto ripple hover-lift bounce-in"
                         >
                             Get Free ID
                         </button>
                     )}
-                    <div className="flex flex-col sm:flex-row items-center gap-2 flex-shrink-0">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                         <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Logged in as: {currentUser.username}</span>
                         <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Role: {currentUser.role}</span>
                         <button onClick={handleLogout} className="btn btn-error w-full sm:w-auto">
@@ -521,9 +461,7 @@ return (
         {/* Category Tabs */}
         <div className="tabs-section pb-2">
             <div className="tabs-container flex flex-wrap gap-2 justify-center">
-                {categories
-                    .filter(cat => cat !== 'Historia' || (currentUser && currentUser.role === 'moder'))
-                    .map((category) => (
+                {categories.map((category) => (
                     <button
                         key={category}
                         className={`tab-modern text-sm sm:text-base px-4 py-2 rounded-md ${selectedCategory === category ? "active" : ""} slide-in`}
@@ -629,24 +567,15 @@ return (
             </div>
         ) : (
             <div className="items-grid grid-modern">
-                {selectedCategory === 'Historia' ? (
-                    filteredItems.map((entry) => (
-                        <HistoryCard
-                            key={entry.id}
-                            entry={entry}
-                        />
-                    ))
-                ) : (
-                    filteredItems.map((item) => (
-                        <Card
-                            key={item.name}
-                            item={item}
-                            editItem={openItemModal}
-                            deleteItem={handleDeleteItem}
-                            role={currentUser?.role}
-                        />
-                    ))
-                )}
+                {filteredItems.map((item) => (
+                    <Card
+                        key={item.name}
+                        item={item}
+                        editItem={openItemModal}
+                        deleteItem={handleDeleteItem}
+                        role={currentUser?.role}
+                    />
+                ))}
             </div>
         )}
 
@@ -663,7 +592,7 @@ return (
                     {editingItem ? "Edit Item" : "Add New Item"}
                 </h2>
                 <div className="grid grid-cols-1 gap-3 sm:gap-4 modal-content">
-                    {/* Special field order for Krzesla and LADY categories (no dimensions) */}
+                    {/* Special field order for Krzesla category */}
                     {modalData.category === 'Krzesla' ? (
                         <>
                             {[
@@ -676,19 +605,6 @@ return (
                                 ["Stoisko", "stoisko"],
                                 ["Szerokość (cm)", "szerokosc"],
                                 ["Głębokość (cm)", "glebokosc"],
-                                ["Google Drive Link", "linknadysk"]
-                            ].map(renderItemFormField)}
-                        </>
-                    ) : modalData.category === 'LADY' ? (
-                        <>
-                            {[
-                                ["Name", "name"],
-                                ["Ilość", "ilosc"],
-                                ["Category", "category"],
-                                ["Description", "description", "textarea"],
-                                ["Photo URL 1", "photo_url"],
-                                ["Photo URL 2", "photo_url2"],
-                                ["Stoisko", "stoisko"],
                                 ["Google Drive Link", "linknadysk"]
                             ].map(renderItemFormField)}
                         </>
@@ -711,21 +627,13 @@ return (
                     )}
                     <div className="form-control">
                         <label className="form-label text-white text-sm sm:text-base">Data Wyjazdu</label>
-                        <input
-                            type="text"
-                            value={modalData.dataWyjazdu || ''}
-                            onChange={(e) => {
-                                let value = e.target.value.replace(/[^\d.]/g, '');
-                                if (value.length === 2 || value.length === 5) {
-                                    value += '.';
-                                }
-                                if (value.length <= 10) {
-                                    setModalData({ ...modalData, dataWyjazdu: value });
-                                }
-                            }}
+                        <DatePicker
+                            selected={modalData.dataWyjazdu && new Date(modalData.dataWyjazdu) instanceof Date && !isNaN(new Date(modalData.dataWyjazdu).getTime()) ? new Date(modalData.dataWyjazdu) : null}
+                            onChange={(date) => setModalData({ ...modalData, dataWyjazdu: date })}
                             className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
-                            placeholder="DD.MM.RRRR"
-                            maxLength={10}
+                            dateFormat="yyyy-MM-dd"
+                            isClearable
+                            placeholderText="Select a date"
                         />
                     </div>
                     {/* Only show "Na stanie?" checkbox for non-Krzesla categories */}
@@ -883,7 +791,7 @@ return (
                             }}
                             className="select select-bordered w-full bg-gray-700 border-gray-600 text-white"
                         >
-                            {categories.filter(cat => cat !== 'Historia').map((category) => (
+                            {categories.map((category) => (
                                 <option key={category} value={category}>
                                     {category}
                                 </option>
