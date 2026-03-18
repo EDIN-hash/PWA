@@ -1,7 +1,5 @@
 import React from "react";
 import Modal from "react-modal";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 
 export default function NMModal({ 
     isOpen, 
@@ -84,13 +82,21 @@ export default function NMModal({
                     ].map(renderItemFormField)}
                     <div className="form-control">
                         <label className="form-label text-white text-sm sm:text-base">Data Wyjazdu</label>
-                        <DatePicker
-                            selected={modalData.dataWyjazdu && new Date(modalData.dataWyjazdu) instanceof Date && !isNaN(new Date(modalData.dataWyjazdu).getTime()) ? new Date(modalData.dataWyjazdu) : null}
-                            onChange={(date) => setModalData({ ...modalData, dataWyjazdu: date })}
+                        <input
+                            type="text"
+                            value={modalData.dataWyjazdu || ''}
+                            onChange={(e) => {
+                                let value = e.target.value.replace(/[^\d.]/g, '');
+                                if (value.length === 2 || value.length === 5) {
+                                    value += '.';
+                                }
+                                if (value.length <= 10) {
+                                    setModalData({ ...modalData, dataWyjazdu: value });
+                                }
+                            }}
                             className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
-                            dateFormat="yyyy-MM-dd"
-                            isClearable
-                            placeholderText="Select a date"
+                            placeholder="DD.MM.RRRR"
+                            maxLength={10}
                         />
                     </div>
                     <div className="form-control">

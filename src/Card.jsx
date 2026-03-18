@@ -1,157 +1,665 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, memo } from "react";
+import ReactDOM from "react-dom";
+
+const MAX_IMAGE_WIDTH = 1280;
+const MAX_IMAGE_HEIGHT = 720;
+
+// CSS стили для модального окна
+const modalStyles = `
+.photo-modal-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background-color: rgba(0, 0, 0, 0.95) !important;
+    backdrop-filter: blur(4px) !important;
+    z-index: 9999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 20px !important;
+    box-sizing: border-box !important;
+}
+
+.photo-modal-content {
+    position: relative !important;
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    max-width: 90vw !important;
+    max-height: 90vh !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+.photo-modal-close {
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    width: 40px !important;
+    height: 40px !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: none !important;
+    border-radius: 50% !important;
+    color: white !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    z-index: 10 !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.photo-modal-close:hover {
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    transform: scale(1.1) !important;
+}
+
+.photo-modal-nav {
+    position: absolute !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 48px !important;
+    height: 48px !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
+    border: none !important;
+    border-radius: 50% !important;
+    color: white !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    z-index: 10 !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.photo-modal-nav:hover {
+    background-color: rgba(0, 0, 0, 0.9) !important;
+    transform: translateY(-50%) scale(1.1) !important;
+}
+
+.photo-modal-nav-prev {
+    left: 12px !important;
+}
+
+.photo-modal-nav-next {
+    right: 12px !important;
+}
+
+.photo-modal-image {
+    max-width: 100% !important;
+    max-height: 75vh !important;
+    object-fit: contain !important;
+    display: block !important;
+    margin: 0 auto !important;
+    padding: 20px !important;
+}
+
+.photo-modal-info {
+    background-color: rgba(0, 0, 0, 0.3) !important;
+    padding: 16px 24px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    text-align: center !important;
+}
+
+.photo-modal-title {
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 18px !important;
+    margin: 0 0 8px 0 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+.photo-modal-counter {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 14px !important;
+    margin: 0 0 8px 0 !important;
+}
+
+.photo-modal-description {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 14px !important;
+    margin: 0 !important;
+    line-height: 1.4 !important;
+}
+`;
+
+// Вставляем стили в head при загрузке компонента
+if (typeof document !== 'undefined' && !document.getElementById('photo-modal-styles')) {
+    const styleElement = document.createElement('style');
+    styleElement.id = 'photo-modal-styles';
+    styleElement.textContent = modalStyles;
+    document.head.appendChild(styleElement);
+}
+
+function optimizeImageUrl(url) {
+    if (!url) return url;
+    
+    if (url.includes('drive.google.com')) {
+        const fileIdMatch = url.match(/\/d\/([^/]+)/);
+        if (fileIdMatch) {
+            return `https://drive.google.com/thumbnail?id=${fileIdMatch[1]}&width=${MAX_IMAGE_WIDTH}&height=${MAX_IMAGE_HEIGHT}`;
+        }
+    }
+    
+    if (url.includes('photos.app.goo.gl')) {
+        return url;
+    }
+    
+    if (url.includes('?')) {
+        return `${url}&w=${MAX_IMAGE_WIDTH}&h=${MAX_IMAGE_HEIGHT}`;
+    }
+    
+    return url;
+}
+
+// LazyImage component with IntersectionObserver
+const LazyImage = memo(function LazyImage({ src, alt, className, style, onClick }) {
+    const [isVisible, setIsVisible] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const imgRef = useRef(null);
+    
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '100px', threshold: 0.1 }
+        );
+        
+        if (imgRef.current) {
+            observer.observe(imgRef.current);
+        }
+        
+        return () => observer.disconnect();
+    }, []);
+    
+    return (
+        <div ref={imgRef} className="relative" onClick={onClick}>
+            {isVisible && (
+                <img
+                    src={src}
+                    alt={alt}
+                    className={className}
+                    style={{ ...style, opacity: isLoaded ? 1 : 0 }}
+                    onLoad={() => setIsLoaded(true)}
+                    loading="lazy"
+                    decoding="async"
+                />
+            )}
+            {!isLoaded && isVisible && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-800/50">
+                    <div className="loading-pulse" style={{ width: 30, height: 30 }}></div>
+                </div>
+            )}
+        </div>
+    );
+});
 
 export default function Card({ item, editItem, deleteItem, role }) {
     const [openPhoto, setOpenPhoto] = useState(false);
+    const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+    const cardRef = useRef(null);
+    const [isVisible, setIsVisible] = useState(false);
+    
+    // Lazy load card content
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                const card = entry.target;
+                const images = card.querySelectorAll('img');
+                images.forEach((image) => {
+                    image.src = image.dataset.src;
+                });
+                setIsVisible(true);
+                observer.disconnect();
+            },
+            { rootMargin: '200px', threshold: 0.1 }
+        );
+        
+        if (cardRef.current) {
+            observer.observe(cardRef.current);
+        }
+        
+        return () => observer.disconnect();
+    }, []);
+    
+    const getPhotos = () => {
+        const photos = [];
+        if (item.photo_url) photos.push(item.photo_url);
+        if (item.photo_url2) photos.push(item.photo_url2);
+        return photos;
+    };
+    
+    const photos = getPhotos();
+    const hasMultiplePhotos = photos.length > 1;
+    
+    const handlePrevPhoto = (e) => {
+        e.stopPropagation();
+        setCurrentPhotoIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
+    };
+    
+    const handleNextPhoto = (e) => {
+        e.stopPropagation();
+        setCurrentPhotoIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
+    };
 
     return (
         <>
-            <div className="ecommerce-card ecommerce-fade-in">
-                <div className="ecommerce-card-image">
-                    {item.photo_url ? (
-                        <img
-                            src={item.photo_url}
-                            alt={item.name}
-                            onClick={() => setOpenPhoto(true)}
-                            className="cursor-pointer"
-                        />
-                    ) : (
-                        <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                            <svg className="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                            </svg>
-                        </div>
-                    )}
-                    <div className="absolute top-3 right-3 flex gap-2">
-                        <span className="ecommerce-badge ecommerce-badge-primary">
+            <div ref={cardRef} className="card card-premium card-hover-effect fade-in-up" style={{ contain: 'paint layout' }}>
+                <div className="flex justify-between items-start mb-3">
+                    <div className="flex flex-col gap-1">
+                        <h2 className="card-title truncate max-w-full">{item.name}</h2>
+                        {item.id && (
+                            <div className="id-container">
+                                <span className="id-badge">ID: {item.id}</span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex gap-1 flex-wrap justify-end">
+                        <span className={`badge-modern ${getCategoryColor(item.category)}`}>
                             {item.category}
                         </span>
                         {item.quantity && (
-                            <span className="ecommerce-badge ecommerce-badge-secondary">
+                            <span className="badge-modern bg-purple-900/50 border-purple-500/50 text-purple-400">
                                 {item.quantity}
                             </span>
                         )}
                     </div>
                 </div>
                 
-                <div className="ecommerce-card-content">
-                    <h3 className="ecommerce-card-title">{item.name}</h3>
+                {item.category === 'Krzesla' ? (
+                    <div className="flex justify-center items-center mb-3">
+                        <div className="flex flex-col gap-1 text-center">
+                            <span className="badge-modern quantity-text bg-blue-900/50 border-blue-500/50 text-blue-400">
+                                Ilosc suma: {item.ilosc}
+                            </span>
+                            {item.wysokosc && (
+                                <span className="badge-modern quantity-text bg-purple-900/50 border-purple-500/50 text-purple-400">
+                                    Ilosc wyjechala: {item.wysokosc}
+                                </span>
+                            )}
+                            <span className="badge-modern quantity-text bg-green-900/50 border-green-500/50 text-green-400">
+                                Zostalo: {item.ilosc - (item.wysokosc || 0)}
+                            </span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex justify-between items-center mb-3">
+                        <span className={`badge-modern status-text ${item.stan === 1 || item.stan === true ? 'bg-green-900/50 border-green-500/50 text-green-400' : 'bg-red-900/50 border-red-500/50 text-red-400'}`}>
+                            {item.stan === 1 || item.stan === true ? 'Na stanie' : 'Wyjechało'}
+                        </span>
+                        <span className="badge-modern quantity-text bg-blue-900/50 border-blue-500/50 text-blue-400">
+                            Ilość: {item.ilosc}
+                        </span>
+                    </div>
+                )}
                 
-                <div className="flex gap-2 mb-3">
-                    <span className={`ecommerce-badge ${item.stan ? 'ecommerce-badge-success' : 'ecommerce-badge-danger'}`}>
-                        {item.stan ? 'Na stanie' : 'Wyjechało'}
-                    </span>
-                    <span className="ecommerce-badge ecommerce-badge-primary">
-                        Qty: {item.ilosc}
-                    </span>
-                </div>
-                
-                    {item.description && (
-                        <p className="ecommerce-card-description">{item.description}</p>
-                    )}
-                    
-                    <div className="grid grid-cols-2 gap-3 text-sm text-gray-600 mt-4">
-                        <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121M12 12l2.879 2.879"></path>
-                            </svg>
-                            <div>
-                                <div className="text-xs text-gray-500">Height</div>
-                                <div className="font-medium">{item.wysokosc || '-'}&nbsp;cm</div>
-                            </div>
-                        </div>
+                {photos.length > 0 && isVisible && (
+                    <div className="mb-4 relative group cursor-pointer" onClick={() => setOpenPhoto(true)}>
+                        <LazyImage
+                            src={optimizeImageUrl(photos[currentPhotoIndex])}
+                            alt={item.name}
+                            className="card-image group-hover:opacity-90 transition-opacity w-full"
+                            style={{ maxWidth: '100%', height: 'auto' }}
+                        />
                         
-                        <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121M12 12l2.879 2.879"></path>
-                            </svg>
-                            <div>
-                                <div className="text-xs text-gray-500">Width</div>
-                                <div className="font-medium">{item.szerokosc || '-'}&nbsp;cm</div>
-                            </div>
-                        </div>
+                        {item.category === 'LADY' && hasMultiplePhotos && (
+                            <>
+                                <button
+                                    onClick={handlePrevPhoto}
+                                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full w-8 h-8 flex items-center justify-center transition-opacity opacity-0 group-hover:opacity-100"
+                                >
+                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                                    </svg>
+                                </button>
+                                <button
+                                    onClick={handleNextPhoto}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full w-8 h-8 flex items-center justify-center transition-opacity opacity-0 group-hover:opacity-100"
+                                >
+                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </button>
+                                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 px-3 py-1 rounded-full">
+                                    <span className="text-white text-xs">{currentPhotoIndex + 1} / {photos.length}</span>
+                                </div>
+                            </>
+                        )}
                         
-                        <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121M12 12l2.879 2.879"></path>
-                            </svg>
-                            <div>
-                                <div className="text-xs text-gray-500">Depth</div>
-                                <div className="font-medium">{item.glebokosc || '-'}&nbsp;cm</div>
+                        {item.category !== 'LADY' && (
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-opacity flex items-center justify-center">
+                                <span className="text-white text-sm font-medium bg-black bg-opacity-50 px-3 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Powiększ
+                                </span>
                             </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 col-span-2">
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        )}
+                    </div>
+                )}
+
+                {/* Stoisko section for specific categories */}
+                {['Lodowki', 'Telewizory', 'Ekspresy', 'LADY', 'Krzesla'].includes(item.category) && item.stoisko && (
+                    <div className="stoisko-section">
+                        <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5 stoisko-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             </svg>
                             <div>
-                                <div className="text-xs text-gray-500">Departure Date</div>
-                                <div className="font-medium">{item.data_wyjazdu || '-'}</div>
+                                <div className="stoisko-label">Stoisko</div>
+                                <div className="stoisko-value">{item.stoisko}</div>
                             </div>
                         </div>
                     </div>
+                )}
+                
+                <div className="space-y-2 text-sm">
+                    {item.description && (
+                        <div className="flex items-start gap-2">
+                            <svg className="w-4 h-4 text-slate-400 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p className="card-description">{item.description}</p>
+                        </div>
+                    )}
+                    
+                    {item.category !== 'Krzesla' && item.category !== 'LADY' && (
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-slate-600">
+                            <div className="dimension-item">
+                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121M12 12l2.879 2.879"></path>
+                                </svg>
+                                <div>
+                                    <div className="dimension-label">Wysokość</div>
+                                    <div className="dimension-value">{item.wysokosc || '-'}&nbsp;cm</div>
+                                </div>
+                            </div>
+                            
+                            <div className="dimension-item">
+                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121M12 12l2.879 2.879"></path>
+                                </svg>
+                                <div>
+                                    <div className="dimension-label">Szerokość</div>
+                                    <div className="dimension-value">{item.szerokosc || '-'}&nbsp;cm</div>
+                                </div>
+                            </div>
+                            
+                            <div className="dimension-item">
+                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.121 14.121L19 19m-7-7l7-7m-7 7l-2.879 2.879M12 12L9.121 9.121M12 12l2.879 2.879"></path>
+                                </svg>
+                                <div>
+                                    <div className="dimension-label">Głębokość</div>
+                                    <div className="dimension-value">{item.glebokosc || '-'}&nbsp;cm</div>
+                                </div>
+                            </div>
+                            
+                            <div className="dimension-item col-span-2">
+                                <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <div>
+                                    <div className="dimension-label">Data wyjazdu</div>
+                                    <div className="dimension-value">{item.data_wyjazdu || '-'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     
                     {item.linknadysk && (
-                        <div className="mt-3 pt-3 border-t border-gray-100">
+                        <div className="pt-2">
                             <a
                                 href={item.linknadysk}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-medium text-sm transition-colors"
+                                className="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-medium text-sm transition-colors"
                             >
                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                     <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
                                 </svg>
-                                Google Drive Link
+                                Link na Dysk
                             </a>
                         </div>
                     )}
                     
                     {item.updatedAt && (
-                        <div className="mt-4 pt-3 border-t border-gray-100 text-xs text-gray-500 space-y-2">
-                            <div className="flex justify-between items-center">
-                                <span className="font-medium text-gray-700">Last Edited:</span>
-                                <span className="text-gray-600">{new Date(item.updatedAt).toLocaleString()}</span>
+                        <div className="pt-3 border-t border-slate-100 text-xs text-slate-500 space-y-1">
+                            <div className="flex justify-between">
+                                <span className="font-medium">Ostatnio edytowane:</span>
+                                <span>{new Date(item.updatedAt).toLocaleString()}</span>
                             </div>
-                            <div className="flex justify-between items-center">
-                                <span className="font-medium text-gray-700">By:</span>
-                                <span className="text-gray-600">{item.updatedBy || 'Unknown'}</span>
+                            <div className="flex justify-between">
+                                <span className="font-medium">Przez:</span>
+                                <span>{item.updatedBy || 'Nieznany'}</span>
                             </div>
-                            <div className="flex justify-between items-center">
-                                <span className="font-medium text-gray-700">Device:</span>
-                                <span className="text-gray-600">{item.deviceId || 'Unknown'}</span>
+                            <div className="flex justify-between">
+                                <span className="font-medium">Urządzenie:</span>
+                                <span>{item.deviceId || 'Nieznane'}</span>
                             </div>
-                            <div className="flex justify-between items-center">
-                                <span className="font-medium text-gray-700">Stand:</span>
-                                <span className="text-gray-600">{item.stoisko || '-'}</span>
+                            {item.deviceId && (
+                                <div className="flex justify-between">
+                                    <span className="font-medium">Info urządzenia:</span>
+                                    <span className="text-right">{item.deviceId}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between">
+                                <span className="font-medium">Stoisko:</span>
+                                <span>{item.stoisko || '*Tutaj wpisz stoisko*'}</span>
                             </div>
                         </div>
                     )}
                 </div>
                 
-                {role && role === "admin" && (
-                    <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+                {role && (role === "admin" || role === "moder") && (
+                    <div className="card-footer">
                         <button
-                            className="ecommerce-btn-secondary flex-1"
+                            className="card-action-btn card-edit-btn ripple"
                             onClick={() => editItem(item)}
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                             </svg>
-                            Edit
+                            Edytuj
                         </button>
                         <button
-                            className="ecommerce-btn-danger flex-1"
+                            className="card-action-btn card-delete-btn ripple"
                             onClick={() => deleteItem(item.name)}
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
-                            Delete
+                            Usuń
                         </button>
                     </div>
                 )}
             </div>
+
+            {openPhoto && photos.length > 0 && (
+                ReactDOM.createPortal(
+                    <div 
+                        className="photo-modal-overlay"
+                        style={{
+                            position: 'fixed !important',
+                            top: '0 !important',
+                            left: '0 !important',
+                            right: '0 !important',
+                            bottom: '0 !important',
+                            backgroundColor: 'rgba(0, 0, 0, 0.95) !important',
+                            backdropFilter: 'blur(4px) !important',
+                            zIndex: 9999,
+                            display: 'flex !important',
+                            alignItems: 'center !important',
+                            justifyContent: 'center !important',
+                            padding: '20px !important',
+                            boxSizing: 'border-box !important'
+                        }}
+                        onClick={() => setOpenPhoto(false)}
+                    >
+                        <div 
+                            className="photo-modal-content"
+                            style={{
+                                position: 'relative !important',
+                                backgroundColor: 'rgba(0, 0, 0, 0.9) !important',
+                                borderRadius: '12px !important',
+                                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5) !important',
+                                maxWidth: '90vw !important',
+                                maxHeight: '90vh !important',
+                                overflow: 'hidden !important',
+                                display: 'flex !important',
+                                flexDirection: 'column !important'
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button
+                                className="photo-modal-close"
+                                style={{
+                                    position: 'absolute !important',
+                                    top: '12px !important',
+                                    right: '12px !important',
+                                    width: '40px !important',
+                                    height: '40px !important',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.7) !important',
+                                    border: 'none !important',
+                                    borderRadius: '50% !important',
+                                    color: 'white !important',
+                                    fontSize: '24px !important',
+                                    fontWeight: 'bold !important',
+                                    cursor: 'pointer !important',
+                                    zIndex: 10,
+                                    transition: 'all 0.2s ease !important',
+                                    display: 'flex !important',
+                                    alignItems: 'center !important',
+                                    justifyContent: 'center !important'
+                                }}
+                                onClick={() => setOpenPhoto(false)}
+                            >
+                                ×
+                            </button>
+                            
+                            {item.category === 'LADY' && hasMultiplePhotos && (
+                                <>
+                                    <button
+                                        className="photo-modal-nav photo-modal-nav-prev"
+                                        style={{
+                                            position: 'absolute !important',
+                                            top: '50% !important',
+                                            transform: 'translateY(-50%) !important',
+                                            left: '12px !important',
+                                            width: '48px !important',
+                                            height: '48px !important',
+                                            backgroundColor: 'rgba(0, 0, 0, 0.7) !important',
+                                            border: 'none !important',
+                                            borderRadius: '50% !important',
+                                            color: 'white !important',
+                                            fontSize: '24px !important',
+                                            fontWeight: 'bold !important',
+                                            cursor: 'pointer !important',
+                                            zIndex: 10,
+                                            transition: 'all 0.2s ease !important',
+                                            display: 'flex !important',
+                                            alignItems: 'center !important',
+                                            justifyContent: 'center !important'
+                                        }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setCurrentPhotoIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
+                                        }}
+                                    >
+                                        ‹
+                                    </button>
+                                    <button
+                                        className="photo-modal-nav photo-modal-nav-next"
+                                        style={{
+                                            position: 'absolute !important',
+                                            top: '50% !important',
+                                            transform: 'translateY(-50%) !important',
+                                            right: '12px !important',
+                                            width: '48px !important',
+                                            height: '48px !important',
+                                            backgroundColor: 'rgba(0, 0, 0, 0.7) !important',
+                                            border: 'none !important',
+                                            borderRadius: '50% !important',
+                                            color: 'white !important',
+                                            fontSize: '24px !important',
+                                            fontWeight: 'bold !important',
+                                            cursor: 'pointer !important',
+                                            zIndex: 10,
+                                            transition: 'all 0.2s ease !important',
+                                            display: 'flex !important',
+                                            alignItems: 'center !important',
+                                            justifyContent: 'center !important'
+                                        }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setCurrentPhotoIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
+                                        }}
+                                    >
+                                        ›
+                                    </button>
+                                </>
+                            )}
+                            
+                            <img
+                                src={optimizeImageUrl(photos[currentPhotoIndex])}
+                                alt={item.name}
+                                className="photo-modal-image"
+                                style={{
+                                    maxWidth: '100% !important',
+                                    maxHeight: '75vh !important',
+                                    objectFit: 'contain !important',
+                                    display: 'block !important',
+                                    margin: '0 auto !important',
+                                    padding: '20px !important'
+                                }}
+                            />
+                            
+                            <div className="photo-modal-info" style={{
+                                backgroundColor: 'rgba(0, 0, 0, 0.3) !important',
+                                padding: '16px 24px !important',
+                                borderTop: '1px solid rgba(255, 255, 255, 0.1) !important',
+                                textAlign: 'center !important'
+                            }}>
+                                <h3 className="photo-modal-title" style={{
+                                    color: 'white !important',
+                                    fontWeight: '600 !important',
+                                    fontSize: '18px !important',
+                                    margin: '0 0 8px 0 !important',
+                                    whiteSpace: 'nowrap !important',
+                                    overflow: 'hidden !important',
+                                    textOverflow: 'ellipsis !important'
+                                }}>{item.name}</h3>
+                                {item.category === 'LADY' && hasMultiplePhotos && (
+                                    <p className="photo-modal-counter" style={{
+                                        color: 'rgba(255, 255, 255, 0.8) !important',
+                                        fontSize: '14px !important',
+                                        margin: '0 0 8px 0 !important'
+                                    }}>Фото {currentPhotoIndex + 1} из {photos.length}</p>
+                                )}
+                                <p className="photo-modal-description" style={{
+                                    color: 'rgba(255, 255, 255, 0.8) !important',
+                                    fontSize: '14px !important',
+                                    margin: '0 !important',
+                                    lineHeight: '1.4 !important'
+                                }}>{item.description}</p>
+                            </div>
+                        </div>
+                    </div>,
+                    document.body
+                )
+            )}
         </>
     );
 }
@@ -159,16 +667,18 @@ export default function Card({ item, editItem, deleteItem, role }) {
 function getCategoryColor(category) {
     switch (category) {
         case "Telewizory":
-            return "ecommerce-badge-primary";
+            return "bg-blue-800/50 border-blue-600/50 text-blue-300";
         case "Lodowki":
-            return "ecommerce-badge-secondary";
+            return "bg-green-800/50 border-green-600/50 text-green-300";
         case "Ekspresy":
-            return "ecommerce-badge ecommerce-badge-success";
+            return "bg-gray-700/50 border-gray-500/50 text-gray-300";
         case "Krzesla":
-            return "ecommerce-badge ecommerce-badge-warning";
+            return "bg-gray-600/50 border-gray-400/50 text-gray-200";
         case "NM":
-            return "ecommerce-badge ecommerce-badge-danger";
+            return "bg-indigo-800/50 border-indigo-600/50 text-indigo-300";
+        case "LADY":
+            return "bg-pink-800/50 border-pink-600/50 text-pink-300";
         default:
-            return "ecommerce-badge ecommerce-badge-primary";
+            return "bg-indigo-800/50 border-indigo-600/50 text-indigo-300";
     }
 }

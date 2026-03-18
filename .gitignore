@@ -37,3 +37,4 @@ Thumbs.db
 *.js.map
 # Local Netlify folder
 .netlify
+*.md

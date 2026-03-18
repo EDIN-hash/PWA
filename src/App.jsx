@@ -1,172 +1,174 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Card from "./Card.jsx";
+import HistoryCard from "./HistoryCard.jsx";
 import Modal from "react-modal";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./styles.css";
-import "./ecommerce-styles.css";
 import NeonClient from "./neon-client";
 import { generateDeviceId, getDeviceId } from "./device-utils";
 
 // Настройка Modal до определения компонента
 Modal.setAppElement("#root");
 
-// Константы
-const CATEGORIES = ["Telewizory", "Lodowki", "Ekspresy", "Krzesla", "NM"];
-const STORAGE_KEYS = {
-  DARK_MODE: 'darkMode'
-};
+const categories = ["Telewizory", "Lodowki", "Ekspresy", "Krzesla", "NM", "LADY", "Historia"];
 
-const DEFAULT_MODAL_DATA = {
+const defaultModalData = {
     name: "",
     quantity: "",
     ilosc: 1,
     description: "",
     photo_url: "",
+    photo_url2: "",
     category: "NM",
     wysokosc: 0,
     szerokosc: 0,
     glebokosc: 0,
-    dataWyjazdu: null,
+    dataWyjazdu: "",
     stoisko: "",
     stan: false,
     linknadysk: "",
 };
 
-// Утилиты
-const safeParseDate = (dateString) => {
-  if (!dateString) return null;
-  try {
-    const date = new Date(dateString);
-    return isNaN(date.getTime()) ? null : date;
-  } catch (e) {
-    console.error("Invalid date format:", dateString, e);
-    return null;
-  }
-};
-
-const formatDateToISO = (date) => {
-  if (!date) return null;
-  try {
-    return new Date(date).toISOString().split("T")[0];
-  } catch (e) {
-    console.error("Invalid date in formatDateToISO:", date, e);
-    return null;
-  }
-};
-
 export default function App() {
-    // Состояния
-    const [state, setState] = useState({
-        currentUser: null,
-        username: "",
-        password: "",
-        showLoginModal: false,
-        isRegisterModalOpen: false,
-        registerUsername: "",
-        registerPassword: "",
-        registerRole: "spectator",
-        items: [],
-        searchQuery: "",
-        isLoading: false,
-        modalData: DEFAULT_MODAL_DATA,
-        isItemModalOpen: false,
-        editingItem: null,
-        selectedCategory: "NM",
-        darkMode: false,
-        SERVER_URL: import.meta.env.VITE_SERVER_URL || "http://localhost:3001"
-    });
+    const [currentUser, setCurrentUser] = useState(null);
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
+    const [showLoginModal, setShowLoginModal] = useState(false);
+    const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+    const [registerUsername, setRegisterUsername] = useState("");
+    const [registerPassword, setRegisterPassword] = useState("");
+    const [registerRole, setRegisterRole] = useState("spectator");
+    const [items, setItems] = useState([]);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [modalData, setModalData] = useState(defaultModalData);
+    const [isItemModalOpen, setIsItemModalOpen] = useState(false);
+    const [editingItem, setEditingItem] = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState("NM");
+    const [darkMode, setDarkMode] = useState(false);
+    const [SERVER_URL, setServerUrl] = useState(import.meta.env.VITE_SERVER_URL || "http://localhost:3001");
+    const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+    const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'na-stanie', 'wyjechalo'
+    const [isGetIdModalOpen, setIsGetIdModalOpen] = useState(false);
+    const [selectedCategoryForId, setSelectedCategoryForId] = useState('NM');
+    const [generatedId, setGeneratedId] = useState('');
+    const [tvSize, setTvSize] = useState('55'); // Размер телевизора по умолчанию
 
-    // Мемоизированные значения для оптимизации рендеринга
-    const {
-        currentUser, username, password, showLoginModal, isRegisterModalOpen,
-        registerUsername, registerPassword, registerRole, items, searchQuery,
-        isLoading, modalData, isItemModalOpen, editingItem, selectedCategory,
-        darkMode, SERVER_URL
-    } = state;
-
-    // Оптимизированный useEffect для darkMode
+    // Load dark mode preference from localStorage
     useEffect(() => {
-        // Загрузка предпочтений darkMode из localStorage
-        const savedDarkMode = localStorage.getItem(STORAGE_KEYS.DARK_MODE);
+        const savedDarkMode = localStorage.getItem('darkMode');
         if (savedDarkMode) {
-            setState(prev => ({ ...prev, darkMode: savedDarkMode === 'true' }));
+            setDarkMode(savedDarkMode === 'true');
         }
     }, []);
 
+    // Load saved user session from localStorage on app start
     useEffect(() => {
-        // Применение класса dark-mode к body
-        document.body.classList.toggle('dark-mode', darkMode);
-        localStorage.setItem(STORAGE_KEYS.DARK_MODE, darkMode);
+        const savedUser = localStorage.getItem('inventoryUser');
+        if (savedUser) {
+            try {
+                const user = JSON.parse(savedUser);
+                setCurrentUser(user);
+                console.log('Auto-login successful for user:', user.username);
+            } catch (error) {
+                console.error('Failed to parse saved user:', error);
+                localStorage.removeItem('inventoryUser');
+            }
+        }
+    }, []);
+
+    // Apply dark mode class to body
+    useEffect(() => {
+        if (darkMode) {
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
+        localStorage.setItem('darkMode', darkMode);
     }, [darkMode]);
 
-    // Мемоизированные функции для оптимизации производительности
-    const toggleDarkMode = useCallback(() => {
-        setState(prev => ({ ...prev, darkMode: !prev.darkMode }));
-    }, []);
+    const toggleDarkMode = () => {
+        setDarkMode(!darkMode);
+    };
 
-    // Мемоизированные функции для работы с данными
-    const fetchItems = useCallback(async () => {
-        setState(prev => ({ ...prev, isLoading: true }));
+    const fetchItems = async () => {
+        setIsLoading(true);
         try {
-            const fetchedItems = await NeonClient.getItems(selectedCategory || null);
-            setState(prev => ({ ...prev, items: fetchedItems }));
+            if (selectedCategory === 'Historia') {
+                const history = await NeonClient.getHistory();
+                setItems(history);
+            } else {
+                const items = await NeonClient.getItems(selectedCategory || null);
+                setItems(items);
+            }
         } catch (err) {
             console.error("Fetch items error:", err);
-            alert(`Failed to load items: ${err.message}`);
+            alert("Failed to load items: " + err.message);
         } finally {
-            setState(prev => ({ ...prev, isLoading: false }));
+            setIsLoading(false);
         }
-    }, [selectedCategory]);
+    };
 
     useEffect(() => {
         fetchItems();
-    }, [fetchItems]);
+    }, [selectedCategory]);
 
-    const handleLogin = useCallback(async (e) => {
+    // Log category change
+    useEffect(() => {
+        if (currentUser && selectedCategory) {
+            NeonClient.addHistoryEntry({
+                item_name: selectedCategory,
+                action: 'view_category',
+                field_name: 'category_opened',
+                old_value: '',
+                new_value: selectedCategory,
+                changed_by: currentUser.username,
+                device_id: generateDeviceId()
+            }).catch(() => {}); // Ignore if history table doesn't exist
+        }
+    }, [selectedCategory, currentUser]);
+
+    const handleLogin = async (e) => {
         e.preventDefault();
         try {
             const user = await NeonClient.loginUser(username, password);
             if (user) {
-                setState(prev => ({
-                    ...prev,
-                    currentUser: user,
-                    username: '',
-                    password: '',
-                    showLoginModal: false
-                }));
+                setCurrentUser(user);
+                setUsername('');
+                setPassword('');
+                setShowLoginModal(false);
+                // Save user to localStorage for auto-login
+                localStorage.setItem('inventoryUser', JSON.stringify(user));
+                console.log('User saved to localStorage:', user.username);
             } else {
                 alert('Invalid username or password');
             }
         } catch (err) {
             console.error("Login error:", err);
-            alert(`Login failed: ${err.message}`);
+            alert("Login failed: " + err.message);
         }
-    }, [username, password]);
+    };
 
-    const handleRegister = useCallback(async (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault();
         try {
             await NeonClient.registerUser(registerUsername, registerPassword, registerRole);
             alert("Registration successful. You may log in.");
-            setState(prev => ({
-                ...prev,
-                isRegisterModalOpen: false,
-                registerUsername: "",
-                registerPassword: "",
-                registerRole: "spectator"
-            }));
+            setIsRegisterModalOpen(false);
+            setRegisterUsername("");
+            setRegisterPassword("");
+            setRegisterRole("spectator");
         } catch (err) {
             console.error("Registration error:", err);
             if (err.message.includes('Username already exists')) {
                 alert("This username is already taken. Please choose a different username.");
             } else {
-                alert(`Registration failed: ${err.message}`);
+                alert("Registration failed: " + err.message);
             }
         }
-    }, [registerUsername, registerPassword, registerRole]);
+    };
 
-    const handleLogout = useCallback(async () => {
+    const handleLogout = async () => {
         try {
             const validUrl = getValidServerUrl();
             await fetch(`${validUrl}/users/logout`, {
@@ -176,47 +178,120 @@ export default function App() {
         } catch (err) {
             console.error("Logout error:", err);
         }
-        setState(prev => ({ ...prev, currentUser: null }));
-    }, []);
+        // Clear user from localStorage and state
+        localStorage.removeItem('inventoryUser');
+        setCurrentUser(null);
+        console.log('User logged out and localStorage cleared');
+    };
 
-    const openItemModal = useCallback((item = null) => {
-        setState(prev => ({
-            ...prev,
-            modalData: item
-                ? {
-                    ...item,
-                    dataWyjazdu: safeParseDate(item.data_wyjazdu),
-                    stan: item.stan === 1,
-                }
-                : DEFAULT_MODAL_DATA,
-            editingItem: item || null,
-            isItemModalOpen: true
-        }));
-    }, []);
+    const handleGetNextId = async () => {
+        try {
+            const nextId = await NeonClient.getNextAvailableId(selectedCategoryForId, tvSize);
+            setGeneratedId(nextId);
+        } catch (err) {
+            console.error("Get next ID error:", err);
+            if (err.message.includes('Все ID для телевизоров размера')) {
+                alert(err.message);
+            } else {
+                alert("Failed to get next ID: " + err.message);
+            }
+        }
+    };
 
-    const closeItemModal = useCallback(() => {
-        setState(prev => ({ ...prev, isItemModalOpen: false }));
-    }, []);
+    const handleCopyId = () => {
+        if (generatedId) {
+            navigator.clipboard.writeText(generatedId);
+            alert(`ID ${generatedId} copied to clipboard!`);
+        }
+    };
 
-    const handleSaveItem = useCallback(async () => {
-        if (!modalData.name || !modalData.quantity) {
-            alert("Name and quantity are required");
+    const openItemModal = (item = null) => {
+        if (item) {
+            // Convert numeric fields from strings to numbers, handling Polish decimal format
+            const parsePolishNumber = (value) => {
+                if (value === null || value === undefined || value === '') return 0;
+                // Replace Polish comma with dot for parsing, then convert to number
+                const numericValue = typeof value === 'string' 
+                    ? parseFloat(value.replace(',', '.')) 
+                    : Number(value);
+                return isNaN(numericValue) ? 0 : numericValue;
+            };
+
+            setModalData({
+                ...item,
+                wysokosc: parsePolishNumber(item.wysokosc),
+                szerokosc: parsePolishNumber(item.szerokosc),
+                glebokosc: parsePolishNumber(item.glebokosc),
+                ilosc: parsePolishNumber(item.ilosc),
+                dataWyjazdu: item.data_wyjazdu || '',
+                stan: item.stan === 1 || item.stan === true,
+            });
+        } else {
+            setModalData(defaultModalData);
+        }
+        setEditingItem(item || null);
+        setIsItemModalOpen(true);
+    };
+
+    const closeItemModal = () => setIsItemModalOpen(false);
+
+    const handleSaveItem = async () => {
+        if (!modalData.name) {
+            alert("ID (Name) jest wymagany!");
             return;
         }
-
+        
+        const currentUsername = currentUser?.username || "Unknown";
+        const currentDeviceId = generateDeviceId();
+        
+        // Format date as DD.MM.YYYY (just pass through, no conversion)
+        const dataWyjazduValue = modalData.dataWyjazdu || '';
+        
         const itemData = {
             ...modalData,
-            data_wyjazdu: formatDateToISO(modalData.dataWyjazdu),
+            data_wyjazdu: dataWyjazduValue,
             stan: modalData.stan ? 1 : 0,
-            updatedBy: currentUser?.username || "Unknown",
-            deviceId: generateDeviceId()
+            ilosc: modalData.ilosc || 0,
+            quantity: modalData.quantity || '',
+            description: modalData.description || '',
+            photo_url: modalData.photo_url || '',
+            photo_url2: modalData.photo_url2 || '',
+            linknadysk: modalData.linknadysk || '',
+            stoisko: modalData.stoisko || '',
+            updatedBy: currentUsername,
+            deviceId: currentDeviceId
         };
-
         try {
             if (editingItem) {
                 await NeonClient.updateItem(editingItem.name, itemData);
             } else {
                 await NeonClient.addItem(itemData);
+            }
+            // Запись в историю - не блокирует сохранение при ошибке
+            try {
+                if (editingItem) {
+                    await NeonClient.addHistoryEntry({
+                        item_name: modalData.name,
+                        action: 'edit',
+                        field_name: 'all',
+                        old_value: editingItem.name !== modalData.name ? editingItem.name : '',
+                        new_value: modalData.name,
+                        changed_by: currentUsername,
+                        device_id: currentDeviceId
+                    });
+                } else {
+                    await NeonClient.addHistoryEntry({
+                        item_name: modalData.name,
+                        action: 'add',
+                        field_name: 'new_item',
+                        old_value: '',
+                        new_value: modalData.category,
+                        changed_by: currentUsername,
+                        device_id: currentDeviceId
+                    });
+                }
+            } catch (historyErr) {
+                console.warn("History logging failed:", historyErr);
             }
             await fetchItems();
             closeItemModal();
@@ -224,13 +299,28 @@ export default function App() {
             console.error("Save item error:", err);
             alert(err.message);
         }
-    }, [modalData, editingItem, currentUser, fetchItems, closeItemModal]);
+    };
 
 
     const handleDeleteItem = async (itemName) => {
         if (!window.confirm("Delete this item?")) return;
+        const currentUsername = currentUser?.username || "Unknown";
+        const currentDeviceId = generateDeviceId();
         try {
             await NeonClient.deleteItem(itemName);
+            try {
+                await NeonClient.addHistoryEntry({
+                    item_name: itemName,
+                    action: 'delete',
+                    field_name: 'all',
+                    old_value: '',
+                    new_value: '',
+                    changed_by: currentUsername,
+                    device_id: currentDeviceId
+                });
+            } catch (historyErr) {
+                console.warn("History logging failed:", historyErr);
+            }
             await fetchItems();
         } catch (err) {
             console.error("Delete item error:", err);
@@ -238,66 +328,98 @@ export default function App() {
         }
     };
 
-    // Мемоизированная фильтрация элементов для оптимизации производительности
-    const filteredItems = useMemo(() => {
-        const itemsArray = Array.isArray(items) ? items : [];
-        
-        if (!searchQuery.trim()) return itemsArray;
-        
-        const query = searchQuery.toLowerCase();
-        
-        return itemsArray.filter((item) => {
+    // Ensure items is an array before filtering
+    const itemsArray = Array.isArray(items) ? items : [];
+    
+    // Filter by search query
+    const searchFilteredItems = itemsArray.filter(
+        (item) => {
             if (!item || !item.name) return false;
             
+            const query = searchQuery.toLowerCase();
             const nameMatch = item.name.toLowerCase().includes(query);
             const descriptionMatch = (item.description || "").toLowerCase().includes(query);
+            const stoiskoMatch = (item.stoisko || "").toLowerCase().includes(query);
             
-            // Поиск по размерам (wysokosc, szerokosc, glebokosc)
+            // Search in dimensions (wysokosc, szerokosc, glebokosc)
             const dimensionsMatch = 
                 (item.wysokosc && item.wysokosc.toString().includes(query)) ||
                 (item.szerokosc && item.szerokosc.toString().includes(query)) ||
                 (item.glebokosc && item.glebokosc.toString().includes(query));
             
+            // For LADY category, prioritize stoisko search
+            if (item.category === 'LADY') {
+                return nameMatch || descriptionMatch || stoiskoMatch;
+            }
+            
             return nameMatch || descriptionMatch || dimensionsMatch;
-        });
-    }, [items, searchQuery]);
-
-    // Мемоизированный рендеринг полей формы для оптимизации производительности
-    const renderItemFormField = useCallback(([label, key, type = "input"]) => {
-        const numericFields = ["ilosc", "wysokosc", "szerokosc", "glebokosc"];
-        const textFields = ["name", "quantity", "description", "photo_url", "linknadysk", "stoisko"];
+        }
+    );
+    
+    // Filter by status
+    const statusFilteredItems = searchFilteredItems.filter(item => {
+        if (statusFilter === 'all') return true;
+        if (statusFilter === 'na-stanie') return item.stan === 1 || item.stan === true;
+        if (statusFilter === 'wyjechalo') return item.stan === 0 || item.stan === false || item.stan === null || item.stan === undefined;
+        return true;
+    });
+    
+    // Sort items
+    const filteredItems = [...statusFilteredItems].sort((a, b) => {
+        if (!sortConfig.key) {
+            // По умолчанию сортировать по имени (ID) в алфавитном порядке
+            return a.name.localeCompare(b.name);
+        }
         
-        const handleChange = (e) => {
-            setState(prev => ({
-                ...prev,
-                modalData: {
-                    ...prev.modalData,
-                    [key]: textFields.includes(key) ? e.target.value : Number(e.target.value)
-                }
-            }));
+        // Преобразовать значение в число, обрабатывая польский формат (запятая вместо точки)
+        const getNumericValue = (value) => {
+            if (value === null || value === undefined || value === '') return 0;
+            // Заменить польскую запятую на точку для корректного преобразования
+            const numericValue = typeof value === 'string' 
+                ? parseFloat(value.replace(',', '.')) 
+                : Number(value);
+            return isNaN(numericValue) ? 0 : numericValue;
         };
+        
+        const aValue = getNumericValue(a[sortConfig.key]);
+        const bValue = getNumericValue(b[sortConfig.key]);
+        
+        if (aValue < bValue) {
+            return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+            return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+    });
 
+    const renderItemFormField = ([label, key, type = "input"]) => {
+        // Special handling for Krzesla category
+        let displayLabel = label;
+        if (modalData.category === 'Krzesla') {
+            if (key === 'wysokosc') {
+                displayLabel = 'Ilosc wyjechala';
+            }
+        }
+        
         return (
             <div className="form-control" key={key}>
                 <label className="label">
-                    <span className="label-text text-white">{label}</span>
+                    <span className="label-text text-white">{displayLabel}</span>
                 </label>
                 {type === "textarea" ? (
                     <textarea
-                        value={state.modalData[key]}
-                        onChange={handleChange}
+                        value={modalData[key]}
+                        onChange={(e) => setModalData({ ...modalData, [key]: e.target.value })}
                         className="textarea textarea-bordered h-24 w-full bg-gray-700 border-gray-600 text-white"
                     />
                 ) : key === "category" ? (
                     <select
-                        value={state.modalData[key]}
-                        onChange={(e) => setState(prev => ({
-                            ...prev,
-                            modalData: { ...prev.modalData, [key]: e.target.value }
-                        }))}
+                        value={modalData[key]}
+                        onChange={(e) => setModalData({ ...modalData, [key]: e.target.value })}
                         className="select select-bordered w-full bg-gray-700 border-gray-600 text-white"
                     >
-                        {CATEGORIES.map((category) => (
+                        {categories.map((category) => (
                             <option key={category} value={category}>
                                 {category}
                             </option>
@@ -305,108 +427,106 @@ export default function App() {
                     </select>
                 ) : (
                     <input
-                        type={numericFields.includes(key) ? "number" : "text"}
-                        value={state.modalData[key]}
-                        onChange={handleChange}
+                        type={
+                            ["ilosc", "wysokosc", "szerokosc", "glebokosc"].includes(key)
+                                ? "number"
+                                : "text"
+                        }
+                        value={modalData[key]}
+                        onChange={(e) =>
+                            setModalData({
+                                ...modalData,
+                                [key]:
+                                    ["name", "quantity", "description", "photo_url", "linknadysk", "stoisko"].includes(key)
+                                        ? e.target.value
+                                        : (() => {
+                                            const value = e.target.value;
+                                            if (value === '') return 0;
+                                            // Handle Polish decimal format (comma) and convert to number
+                                            const numericValue = parseFloat(value.replace(',', '.'));
+                                            return isNaN(numericValue) ? 0 : numericValue;
+                                        })(),
+                            })
+                        }
                         className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
                     />
                 )}
             </div>
         );
-    }, [state.modalData]);
+    };
 
 return (
-    <div className="min-h-screen ecommerce-body p-2 sm:p-6 transition-colors duration-300 ecommerce-container flex flex-col">
-        <header className="ecommerce-header">
-            <div className="ecommerce-navbar">
-                <div className="flex items-center gap-4 w-full">
-                    <a href="/" className="ecommerce-logo">
-                        <div className="ecommerce-logo-icon">
-                        <svg className="w-6 h-6 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"/>
-                        </svg>
-                    </div>
-                            Inventory Pro
-                        </a>
-                        
-                        {!currentUser ? (
+    <div className="min-h-screen bg-[#1a1b26] p-2 sm:p-6 transition-colors duration-300 main-container flex flex-col gradient-bg">
+        <header className="header-section flex flex-col sm:flex-row justify-between items-center mb-4 gap-2 header-modern glass-effect">
+            <div className="flex items-center gap-4 w-full">
+                <h1 className="text-2xl sm:text-3xl font-bold main-title text-center sm:text-left text-gradient fade-in-up tokyo-accent">
+                    Inventory Management
+                </h1>
+                 </div>
+            
+            {!currentUser ? (
                 <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto auth-section">
                     <button
                         onClick={() => setShowLoginModal(true)}
-                        className="ecommerce-btn-primary w-full sm:w-auto"
+                        className="btn btn-primary w-full sm:w-auto ripple hover-lift"
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                        </svg>
                         Login
                     </button>
                     <button
                         onClick={() => setIsRegisterModalOpen(true)}
-                        className="ecommerce-btn-secondary w-full sm:w-auto"
+                        className="btn btn-secondary w-full sm:w-auto ripple hover-lift"
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                        </svg>
                         Register
                     </button>
                 </div>
             ) : (
-                <div className="flex flex-col sm:flex-row gap-2 items-center w-full sm:w-auto">
-                    <div className="ecommerce-search">
-                        <svg className="ecommerce-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                        </svg>
-                        <input
-                            type="text"
-                            placeholder="Search products..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="ecommerce-search-input w-full"
-                        />
-                    </div>
-                    {currentUser.role === "admin" && (
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center w-full">
+                    <input
+                        id="search"
+                        name="search"
+                        type="text"
+                        placeholder="Search..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="input input-bordered bg-gray-700 border-gray-600 text-white flex-1 min-w-0"
+                        style={{ minWidth: '200px' }}
+                    />
+                    {(currentUser.role === "admin") && selectedCategory !== 'Historia' && (
                         <button
                             onClick={() => openItemModal()}
-                            className="ecommerce-btn-primary w-full sm:w-auto"
+                            className="btn btn-success w-full sm:w-auto ripple hover-lift bounce-in flex-shrink-0"
                         >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-                            </svg>
-                            Add Product
+                            Add Item
                         </button>
                     )}
-                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                                <svg className="w-5 h-5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                                </svg>
-                            </div>
-                            <div>
-                                <div className="font-semibold text-white">{currentUser.username}</div>
-                                <div className="text-sm text-indigo-100 capitalize">{currentUser.role}</div>
-                            </div>
-                        </div>
-                        <button onClick={handleLogout} className="ecommerce-btn-secondary w-full sm:w-auto">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                            </svg>
+                    {(currentUser.role === "admin" || currentUser.role === "moder") && selectedCategory !== 'Historia' && (
+                        <button
+                            onClick={() => setIsGetIdModalOpen(true)}
+                            className="btn btn-info w-full sm:w-auto ripple hover-lift bounce-in flex-shrink-0"
+                        >
+                            Get Free ID
+                        </button>
+                    )}
+                    <div className="flex flex-col sm:flex-row items-center gap-2 flex-shrink-0">
+                        <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Logged in as: {currentUser.username}</span>
+                        <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Role: {currentUser.role}</span>
+                        <button onClick={handleLogout} className="btn btn-error w-full sm:w-auto">
                             Logout
                         </button>
                     </div>
                 </div>
             )}
-                    </div>
-                </div>
-            </header>
+        </header>
 
         {/* Category Tabs */}
-        <div className="ecommerce-section">
-            <div className="ecommerce-tabs">
-                {CATEGORIES.map((category) => (
+        <div className="tabs-section pb-2">
+            <div className="tabs-container flex flex-wrap gap-2 justify-center">
+                {categories
+                    .filter(cat => cat !== 'Historia' || (currentUser && currentUser.role === 'moder'))
+                    .map((category) => (
                     <button
                         key={category}
-                        className={`ecommerce-tab ${selectedCategory === category ? "active" : ""}`}
+                        className={`tab-modern text-sm sm:text-base px-4 py-2 rounded-md ${selectedCategory === category ? "active" : ""} slide-in`}
                         onClick={() => setSelectedCategory(category)}
                     >
                         {category}
@@ -415,27 +535,118 @@ return (
             </div>
         </div>
 
+        {/* Sorting and Filter Controls */}
+        <div className="controls-section mb-4 p-3 bg-gray-900/50 rounded-lg border border-gray-700">
+            <div className="flex flex-wrap gap-3 items-center justify-center">
+                {/* Status Filter */}
+                <div className="filter-group">
+                    <span className="text-white text-sm font-medium mr-2">Status:</span>
+                    <button
+                        className={`filter-btn ${statusFilter === 'all' ? 'active-filter' : ''}`}
+                        onClick={() => setStatusFilter('all')}
+                    >
+                        Wszystkie
+                    </button>
+                    <button
+                        className={`filter-btn ${statusFilter === 'na-stanie' ? 'active-filter' : ''} bg-green-900/50 border-green-500/50 text-green-400`}
+                        onClick={() => setStatusFilter('na-stanie')}
+                    >
+                        Na stanie
+                    </button>
+                    <button
+                        className={`filter-btn ${statusFilter === 'wyjechalo' ? 'active-filter' : ''} bg-red-900/50 border-red-500/50 text-red-400`}
+                        onClick={() => setStatusFilter('wyjechalo')}
+                    >
+                        Wyjechało
+                    </button>
+                </div>
+
+                {/* Sorting Controls */}
+                <div className="sort-group">
+                    <span className="text-white text-sm font-medium mr-2">Sortuj:</span>
+                    <button
+                        className={`sort-btn ${sortConfig.key === 'wysokosc' ? 'active-sort' : ''}`}
+                        onClick={() => {
+                            if (sortConfig.key === 'wysokosc') {
+                                setSortConfig({ key: 'wysokosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+                            } else {
+                                setSortConfig({ key: 'wysokosc', direction: 'asc' });
+                            }
+                        }}
+                    >
+                        Wysokość {sortConfig.key === 'wysokosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </button>
+                    <button
+                        className={`sort-btn ${sortConfig.key === 'szerokosc' ? 'active-sort' : ''}`}
+                        onClick={() => {
+                            if (sortConfig.key === 'szerokosc') {
+                                setSortConfig({ key: 'szerokosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+                            } else {
+                                setSortConfig({ key: 'szerokosc', direction: 'asc' });
+                            }
+                        }}
+                    >
+                        Szerokość {sortConfig.key === 'szerokosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </button>
+                    <button
+                        className={`sort-btn ${sortConfig.key === 'glebokosc' ? 'active-sort' : ''}`}
+                        onClick={() => {
+                            if (sortConfig.key === 'glebokosc') {
+                                setSortConfig({ key: 'glebokosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+                            } else {
+                                setSortConfig({ key: 'glebokosc', direction: 'asc' });
+                            }
+                        }}
+                    >
+                        Głębokość {sortConfig.key === 'glebokosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </button>
+                    <button
+                        className={`sort-btn ${sortConfig.key === 'ilosc' ? 'active-sort' : ''}`}
+                        onClick={() => {
+                            if (sortConfig.key === 'ilosc') {
+                                setSortConfig({ key: 'ilosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+                            } else {
+                                setSortConfig({ key: 'ilosc', direction: 'asc' });
+                            }
+                        }}
+                    >
+                        Ilość {sortConfig.key === 'ilosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                    </button>
+                    <button
+                        className={`sort-btn ${sortConfig.key === null ? 'active-sort' : ''}`}
+                        onClick={() => setSortConfig({ key: null, direction: 'asc' })}
+                    >
+                        Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
         {/* Items Grid */}
         {isLoading ? (
             <div className="flex justify-center py-8">
-                <div className="ecommerce-fade-in">
-                    <svg className="w-12 h-12 text-indigo-600 animate-spin" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                </div>
+                <div className="loading-pulse"></div>
             </div>
         ) : (
-            <div className="ecommerce-grid">
-                {filteredItems.map((item) => (
-                    <Card
-                        key={item.name}
-                        item={item}
-                        editItem={openItemModal}
-                        deleteItem={handleDeleteItem}
-                        role={currentUser?.role}
-                    />
-                ))}
+            <div className="items-grid grid-modern">
+                {selectedCategory === 'Historia' ? (
+                    filteredItems.map((entry) => (
+                        <HistoryCard
+                            key={entry.id}
+                            entry={entry}
+                        />
+                    ))
+                ) : (
+                    filteredItems.map((item) => (
+                        <Card
+                            key={item.name}
+                            item={item}
+                            editItem={openItemModal}
+                            deleteItem={handleDeleteItem}
+                            role={currentUser?.role}
+                        />
+                    ))
+                )}
             </div>
         )}
 
@@ -443,111 +654,101 @@ return (
         <Modal
             isOpen={isItemModalOpen}
             onRequestClose={closeItemModal}
-            className="ecommerce-modal mx-auto mt-8 mb-4"
-            overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 login-modal-dark"
+            overlayClassName="modal-backdrop p-2 sm:p-0"
             contentLabel="Item Modal"
         >
             <>
-                <div className="ecommerce-modal-header">
-                    <h2 className="ecommerce-modal-title">
-                        {editingItem ? "Edit Product" : "Add New Product"}
-                    </h2>
-                    <button onClick={closeItemModal} className="ecommerce-modal-close">
-                        ×
-                    </button>
-                </div>
-                <div className="space-y-4">
-                    <div className="ecommerce-form-group">
-                        <label className="ecommerce-form-label">Product Name</label>
-                        <input
-                            type="text"
-                            value={modalData.name}
-                            onChange={(e) => setModalData({ ...modalData, name: e.target.value })}
-                            className="ecommerce-form-input"
-                            placeholder="Enter product name"
-                            required
-                        />
-                    </div>
-                    
-                    <div className="ecommerce-form-group">
-                        <label className="ecommerce-form-label">Quantity</label>
-                        <input
-                            type="number"
-                            value={modalData.ilosc}
-                            onChange={(e) => setModalData({ ...modalData, ilosc: Number(e.target.value) })}
-                            className="ecommerce-form-input"
-                            placeholder="Enter quantity"
-                            min="0"
-                        />
-                    </div>
-                    
-                    <div className="ecommerce-form-group">
-                        <label className="ecommerce-form-label">Category</label>
-                        <select
-                            value={modalData.category}
-                            onChange={(e) => setModalData({ ...modalData, category: e.target.value })}
-                            className="ecommerce-form-input"
-                        >
-                            {CATEGORIES.map((category) => (
-                                <option key={category} value={category}>
-                                    {category}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    
-                    <div className="ecommerce-form-group">
-                        <label className="ecommerce-form-label">Description</label>
-                        <textarea
-                            value={modalData.description}
-                            onChange={(e) => setModalData({ ...modalData, description: e.target.value })}
-                            className="ecommerce-form-input h-32"
-                            placeholder="Enter product description"
-                        />
-                    </div>
-                    
-                    <div className="ecommerce-form-group">
-                        <label className="ecommerce-form-label">Photo URL</label>
-                        <input
-                            type="text"
-                            value={modalData.photo_url}
-                            onChange={(e) => setModalData({ ...modalData, photo_url: e.target.value })}
-                            className="ecommerce-form-input"
-                            placeholder="https://example.com/image.jpg"
-                        />
-                    </div>
+                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">
+                    {editingItem ? "Edit Item" : "Add New Item"}
+                </h2>
+                <div className="grid grid-cols-1 gap-3 sm:gap-4 modal-content">
+                    {/* Special field order for Krzesla and LADY categories (no dimensions) */}
+                    {modalData.category === 'Krzesla' ? (
+                        <>
+                            {[
+                                ["Name", "name"],
+                                ["Ilość", "ilosc"],
+                                ["Category", "category"],
+                                ["Ilosc wyjechala", "wysokosc"], // Moved to top for Krzesla
+                                ["Description", "description", "textarea"],
+                                ["Photo URL", "photo_url"],
+                                ["Stoisko", "stoisko"],
+                                ["Szerokość (cm)", "szerokosc"],
+                                ["Głębokość (cm)", "glebokosc"],
+                                ["Google Drive Link", "linknadysk"]
+                            ].map(renderItemFormField)}
+                        </>
+                    ) : modalData.category === 'LADY' ? (
+                        <>
+                            {[
+                                ["Name", "name"],
+                                ["Ilość", "ilosc"],
+                                ["Category", "category"],
+                                ["Description", "description", "textarea"],
+                                ["Photo URL 1", "photo_url"],
+                                ["Photo URL 2", "photo_url2"],
+                                ["Stoisko", "stoisko"],
+                                ["Google Drive Link", "linknadysk"]
+                            ].map(renderItemFormField)}
+                        </>
+                    ) : (
+                        <>
+                            {[
+                                ["Name", "name"],
+                                ["Ilość", "ilosc"],
+                                ["Category", "category"],
+                                ["Description", "description", "textarea"],
+                                ["Photo URL", "photo_url"],
+                                ["Stoisko", "stoisko"],
+                                ["Wysokość (cm)", "wysokosc"],
+                                ["Szerokość (cm)", "szerokosc"],
+                                ["Głębokość (cm)", "glebokosc"],
+                                ["Google Drive Link", "linknadysk"],
+                                ["Quantity (разновидность)", "quantity"],
+                            ].map(renderItemFormField)}
+                        </>
+                    )}
                     <div className="form-control">
                         <label className="form-label text-white text-sm sm:text-base">Data Wyjazdu</label>
-                        <DatePicker
-                            selected={modalData.dataWyjazdu && new Date(modalData.dataWyjazdu) instanceof Date && !isNaN(new Date(modalData.dataWyjazdu).getTime()) ? new Date(modalData.dataWyjazdu) : null}
-                            onChange={(date) => setModalData({ ...modalData, dataWyjazdu: date })}
+                        <input
+                            type="text"
+                            value={modalData.dataWyjazdu || ''}
+                            onChange={(e) => {
+                                let value = e.target.value.replace(/[^\d.]/g, '');
+                                if (value.length === 2 || value.length === 5) {
+                                    value += '.';
+                                }
+                                if (value.length <= 10) {
+                                    setModalData({ ...modalData, dataWyjazdu: value });
+                                }
+                            }}
                             className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
-                            dateFormat="yyyy-MM-dd"
-                            isClearable
-                            placeholderText="Select a date"
+                            placeholder="DD.MM.RRRR"
+                            maxLength={10}
                         />
                     </div>
-                    <div className="form-control">
-                        <label className="form-label cursor-pointer text-white text-sm sm:text-base">
-                            <span className="label-text text-white">Na stanie?</span>
-                            <input
-                                type="checkbox"
-                                checked={modalData.stan}
-                                onChange={(e) => setModalData({ ...modalData, stan: e.target.checked })}
-                                className="checkbox"
-                            />
-                        </label>
-                    </div>
+                    {/* Only show "Na stanie?" checkbox for non-Krzesla categories */}
+                    {modalData.category !== 'Krzesla' && (
+                        <div className="form-control">
+                            <label className="form-label cursor-pointer text-white text-sm sm:text-base">
+                                <span className="label-text text-white">Na stanie?</span>
+                                <input
+                                    type="checkbox"
+                                    checked={modalData.stan}
+                                    onChange={(e) => setModalData({ ...modalData, stan: e.target.checked })}
+                                    className="checkbox"
+                                />
+                            </label>
+                        </div>
+                    )}
                 </div>
-                <div className="flex gap-2 mt-6">
-                    <button onClick={closeItemModal} className="ecommerce-btn-secondary w-full sm:w-auto">
+                <div className="button-group mt-4 flex gap-2">
+                    <button onClick={closeItemModal} className="btn btn-ghost bg-gray-600 hover:bg-gray-500 text-white w-full sm:w-auto">
                         Cancel
                     </button>
-                    <button onClick={handleSaveItem} className="ecommerce-btn-primary w-full sm:w-auto">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
-                        </svg>
-                        Save Product
+                    <button onClick={handleSaveItem} className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
+                        Save
                     </button>
                 </div>
             </>
@@ -557,52 +758,42 @@ return (
         <Modal
             isOpen={showLoginModal}
             onRequestClose={() => setShowLoginModal(false)}
-            className="ecommerce-modal mx-auto mt-8 mb-4"
-            overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 login-modal-dark"
+            overlayClassName="modal-backdrop p-2 sm:p-0"
             contentLabel="Login Modal"
         >
             <>
-                <div className="ecommerce-modal-header">
-                    <h2 className="ecommerce-modal-title">Welcome Back</h2>
-                    <button onClick={() => setShowLoginModal(false)} className="ecommerce-modal-close">
-                        ×
-                    </button>
-                </div>
-                <form onSubmit={handleLogin} className="space-y-4">
-                    <div className="ecommerce-form-group">
-                        <label className="ecommerce-form-label">Username</label>
+                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">Login</h2>
+                <form onSubmit={handleLogin} className="space-y-3 sm:space-y-4">
+                    <div className="form-control">
+                        <label className="form-label text-sm sm:text-base text-white">Username</label>
                         <input
                             type="text"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
-                            className="ecommerce-form-input"
-                            placeholder="Enter your username"
+                            className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
                             required
                         />
                     </div>
-                    <div className="ecommerce-form-group">
-                        <label className="ecommerce-form-label">Password</label>
+                    <div className="form-control">
+                        <label className="form-label text-sm sm:text-base text-white">Password</label>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="ecommerce-form-input"
-                            placeholder="Enter your password"
+                            className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
                             required
                         />
                     </div>
-                    <div className="flex gap-2 mt-6">
+                    <div className="button-group mt-4 flex gap-2">
                         <button
                             type="button"
                             onClick={() => setShowLoginModal(false)}
-                            className="ecommerce-btn-secondary w-full sm:w-auto"
+                            className="btn btn-ghost bg-gray-600 hover:bg-gray-500 text-white w-full sm:w-auto"
                         >
                             Cancel
                         </button>
-                        <button type="submit" className="ecommerce-btn-primary w-full sm:w-auto">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-                            </svg>
+                        <button type="submit" className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
                             Login
                         </button>
                     </div>
@@ -614,67 +805,142 @@ return (
         <Modal
             isOpen={isRegisterModalOpen}
             onRequestClose={() => setIsRegisterModalOpen(false)}
-            className="ecommerce-modal mx-auto mt-8 mb-4"
-            overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
+            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 login-modal-dark"
+            overlayClassName="modal-backdrop p-2 sm:p-0"
             contentLabel="Register Modal"
         >
             <>
-                <div className="ecommerce-modal-header">
-                    <h2 className="ecommerce-modal-title">Create Account</h2>
-                    <button onClick={() => setIsRegisterModalOpen(false)} className="ecommerce-modal-close">
-                        ×
-                    </button>
-                </div>
-                <form onSubmit={handleRegister} className="space-y-4">
-                    <div className="ecommerce-form-group">
-                        <label className="ecommerce-form-label">Username</label>
+                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">Register New User</h2>
+                <form onSubmit={handleRegister} className="space-y-3 sm:space-y-4">
+                    <div className="form-control">
+                        <label className="form-label text-sm sm:text-base text-white">Username</label>
                         <input
                             type="text"
                             value={registerUsername}
                             onChange={(e) => setRegisterUsername(e.target.value)}
-                            className="ecommerce-form-input"
-                            placeholder="Choose a username"
+                            className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
                             required
                         />
                     </div>
-                    <div className="ecommerce-form-group">
-                        <label className="ecommerce-form-label">Password</label>
+                    <div className="form-control">
+                        <label className="form-label text-sm sm:text-base text-white">Password</label>
                         <input
                             type="password"
                             value={registerPassword}
                             onChange={(e) => setRegisterPassword(e.target.value)}
-                            className="ecommerce-form-input"
-                            placeholder="Create a password"
+                            className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
                             required
                         />
                     </div>
-                    <div className="ecommerce-form-group">
-                        <label className="ecommerce-form-label">Role</label>
+                    <div className="form-control">
+                        <label className="form-label text-sm sm:text-base text-white">Role</label>
                         <select
                             value={registerRole}
                             onChange={(e) => setRegisterRole(e.target.value)}
-                            className="ecommerce-form-input"
+                            className="select select-bordered w-full bg-gray-700 border-gray-600 text-white"
                         >
                             <option value="spectator">Spectator</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
-                    <div className="flex gap-2 mt-6">
+                    <div className="button-group mt-4 flex gap-2">
                         <button
                             type="button"
                             onClick={() => setIsRegisterModalOpen(false)}
-                            className="ecommerce-btn-secondary w-full sm:w-auto"
+                            className="btn btn-ghost bg-gray-600 hover:bg-gray-500 text-white w-full sm:w-auto"
                         >
                             Cancel
                         </button>
-                        <button type="submit" className="ecommerce-btn-primary w-full sm:w-auto">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
-                            </svg>
-                            Create Account
+                        <button type="submit" className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
+                            Register
                         </button>
                     </div>
                 </form>
+            </>
+        </Modal>
+
+        {/* Get Free ID Modal */}
+        <Modal
+            isOpen={isGetIdModalOpen}
+            onRequestClose={() => setIsGetIdModalOpen(false)}
+            className="modal-box w-full max-w-none sm:max-w-md p-4 sm:p-6 login-modal-dark get-free-id-modal"
+            overlayClassName="modal-backdrop p-2 sm:p-0"
+            contentLabel="Get Free ID Modal"
+        >
+            <>
+                <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-white">Get Free ID</h2>
+                <div className="space-y-3 sm:space-y-4 modal-content">
+                    <div className="form-control">
+                        <label className="form-label text-sm sm:text-base text-white">Category</label>
+                        <select
+                            value={selectedCategoryForId}
+                            onChange={(e) => {
+                                setSelectedCategoryForId(e.target.value);
+                                // Сбросить размер телевизора при смене категории
+                                if (e.target.value !== 'Telewizory') {
+                                    setTvSize('55');
+                                }
+                            }}
+                            className="select select-bordered w-full bg-gray-700 border-gray-600 text-white"
+                        >
+                            {categories.filter(cat => cat !== 'Historia').map((category) => (
+                                <option key={category} value={category}>
+                                    {category}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    {selectedCategoryForId === 'Telewizory' && (
+                        <div className="form-control">
+                            <label className="form-label text-sm sm:text-base text-white">Размер экрана (дюймы)</label>
+                            <input
+                                type="text"
+                                value={tvSize}
+                                onChange={(e) => setTvSize(e.target.value)}
+                                placeholder="Введите размер (например, 55)"
+                                className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
+                            />
+                        </div>
+                    )}
+                    <div className="form-control">
+                        <button
+                            onClick={handleGetNextId}
+                            className="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
+                        >
+                            Get Free ID
+                        </button>
+                    </div>
+                    {generatedId && (
+                        <div className="form-control generated-id-section">
+                            <label className="form-label text-sm sm:text-base text-white">Generated ID</label>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <input
+                                    type="text"
+                                    value={generatedId}
+                                    readOnly
+                                    className="input input-bordered w-full bg-gray-700 border-gray-600 text-white"
+                                />
+                                <div className="copy-button-container">
+                                    <button
+                                        onClick={handleCopyId}
+                                        className="btn btn-info bg-blue-500 hover:bg-blue-600 text-white w-full sm:w-auto"
+                                    >
+                                        Copy
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <div className="button-group mt-4 flex gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setIsGetIdModalOpen(false)}
+                            className="btn btn-ghost bg-gray-600 hover:bg-gray-500 text-white w-full sm:w-auto"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
             </>
         </Modal>
     </div>
