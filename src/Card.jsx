@@ -406,7 +406,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
                             <p className="text-sm text-white/80 mt-2">{item.description}</p>
                         </div>
                     </div>
-                </div>
+                </div>, document.body
             )}
         </>
     );
