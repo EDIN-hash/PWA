@@ -94,3 +94,71 @@ export function getDeviceId() {
         return 'Unknown Device';
     }
 }
+
+/**
+ * Get optimized Cloudinary URL with transformations
+ * @param {string} url - Original Cloudinary URL
+ * @param {object} options - Transformation options
+ * @returns {string} - Optimized URL
+ */
+export function getOptimizedImageUrl(url, options = {}) {
+    if (!url || !url.includes('cloudinary.com')) {
+        return url;
+    }
+    
+    const {
+        width = 800,
+        height,
+        quality = 'auto',
+        format = 'auto',
+        crop = 'fill'
+    } = options;
+    
+    const parts = url.split('/upload/');
+    if (parts.length !== 2) {
+        return url;
+    }
+    
+    const transformations = [];
+    if (width) transformations.push(`w_${width}`);
+    if (height) transformations.push(`h_${height}`);
+    if (quality) transformations.push(`q_${quality}`);
+    if (format) transformations.push(`f_${format}`);
+    if (crop) transformations.push(`c_${crop}`);
+    
+    return `${parts[0]}/upload/${transformations.join(',')}/${parts[1]}`;
+}
+
+/**
+ * Get thumbnail URL for list view
+ */
+export function getThumbnailUrl(url) {
+    if (!url) return url;
+    
+    if (url.includes('drive.google.com')) {
+        const fileIdMatch = url.match(/\/d\/([^/]+)/);
+        if (fileIdMatch) {
+            return `https://drive.google.com/thumbnail?id=${fileIdMatch[1]}&sz=w800`;
+        }
+        return url;
+    }
+    
+    return getOptimizedImageUrl(url, { width: 800, quality: 'auto', height: 600 });
+}
+
+/**
+ * Get full-size optimized URL for modal/lightbox
+ */
+export function getFullImageUrl(url) {
+    if (!url) return url;
+    
+    if (url.includes('drive.google.com')) {
+        const fileIdMatch = url.match(/\/d\/([^/]+)/);
+        if (fileIdMatch) {
+            return `https://drive.google.com/uc?export=view&id=${fileIdMatch[1]}`;
+        }
+        return url;
+    }
+    
+    return getOptimizedImageUrl(url, { width: 1920, quality: 'auto' });
+}

@@ -9,7 +9,8 @@ function optimizeImageUrl(url) {
     if (url.includes('drive.google.com')) {
         const fileIdMatch = url.match(/\/d\/([^/]+)/);
         if (fileIdMatch) {
-            return `https://drive.google.com/thumbnail?id=${fileIdMatch[1]}&width=${MAX_IMAGE_WIDTH}&height=${MAX_IMAGE_HEIGHT}`;
+            const size = isFullSize ? 'w1920' : 'w800';
+            return `https://drive.google.com/thumbnail?id=${fileIdMatch[1]}&sz=${size}`;
         }
     }
     

@@ -184,7 +184,7 @@ export default function TelewizoryCard({ item, editItem, deleteItem, role }) {
                         <img
                             src={item.photo_url}
                             alt={item.name}
-                            className="object-contain max-h-[75vh] w-auto mx-auto p-6"
+                            className="object-contain max-h-[90vh] max-w-[90vw] w-auto mx-auto p-4"
                         />
                         <div className="bg-black/30 px-6 py-4 border-t border-white/10">
                             <h3 className="font-semibold text-white truncate text-gradient green-accent">{item.name}</h3>
