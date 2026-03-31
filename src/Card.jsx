@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, memo } from "react";
-import ReactDOM from "react-dom";
+import { createPortal } from "react-dom";
 import { getOptimizedImageUrl, getThumbnailUrl, getFullImageUrl } from "./device-utils";
 
 const MAX_IMAGE_WIDTH = 1280;
@@ -501,7 +501,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
                 )}
             </div>
 
-            {openPhoto && photos.length > 0 && ReactDOM.createPortal(
+            {openPhoto && photos.length > 0 && createPortal(
                 <div 
                     className="photo-modal-overlay"
                     style={{
