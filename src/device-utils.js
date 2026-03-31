@@ -133,6 +133,16 @@ export function getOptimizedImageUrl(url, options = {}) {
  * Get thumbnail URL for list view
  */
 export function getThumbnailUrl(url) {
+    if (!url) return url;
+    
+    if (url.includes('drive.google.com')) {
+        const fileIdMatch = url.match(/\/d\/([^/]+)/);
+        if (fileIdMatch) {
+            return `https://drive.google.com/thumbnail?id=${fileIdMatch[1]}&sz=w800`;
+        }
+        return url;
+    }
+    
     return getOptimizedImageUrl(url, { width: 800, quality: 'auto', height: 600 });
 }
 
@@ -140,5 +150,15 @@ export function getThumbnailUrl(url) {
  * Get full-size optimized URL for modal/lightbox
  */
 export function getFullImageUrl(url) {
+    if (!url) return url;
+    
+    if (url.includes('drive.google.com')) {
+        const fileIdMatch = url.match(/\/d\/([^/]+)/);
+        if (fileIdMatch) {
+            return `https://drive.google.com/uc?export=view&id=${fileIdMatch[1]}`;
+        }
+        return url;
+    }
+    
     return getOptimizedImageUrl(url, { width: 1920, quality: 'auto' });
 }
