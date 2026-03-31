@@ -95,7 +95,7 @@ const modalStyles = `
 
 .photo-modal-image {
     max-width: 100% !important;
-    max-height: 75vh !important;
+    max-height: 90vh !important;
     object-fit: contain !important;
     display: block !important;
     margin: 0 auto !important;
@@ -631,7 +631,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
                             className="photo-modal-image"
                             style={{
                                 maxWidth: '100% !important',
-                                maxHeight: '75vh !important',
+                                maxHeight: '90vh !important',
                                 objectFit: 'contain !important',
                                 display: 'block !important',
                                 margin: '0 auto !important',
