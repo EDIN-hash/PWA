@@ -133,12 +133,12 @@ export function getOptimizedImageUrl(url, options = {}) {
  * Get thumbnail URL for list view
  */
 export function getThumbnailUrl(url) {
-    return getOptimizedImageUrl(url, { width: 400, quality: 'auto:low', height: 300 });
+    return getOptimizedImageUrl(url, { width: 800, quality: 'auto', height: 600 });
 }
 
 /**
  * Get full-size optimized URL for modal/lightbox
  */
 export function getFullImageUrl(url) {
-    return getOptimizedImageUrl(url, { width: 1200, quality: 'auto' });
+    return getOptimizedImageUrl(url, { width: 1920, quality: 'auto' });
 }

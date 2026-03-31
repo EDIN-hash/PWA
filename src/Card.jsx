@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef, memo } from "react";
 import { createPortal } from "react-dom";
 import { getOptimizedImageUrl, getThumbnailUrl, getFullImageUrl } from "./device-utils";
 
-const MAX_IMAGE_WIDTH = 1280;
-const MAX_IMAGE_HEIGHT = 720;
+const MAX_IMAGE_WIDTH = 1920;
+const MAX_IMAGE_HEIGHT = 1080;
 
 // CSS стили для модального окна
 const modalStyles = `
