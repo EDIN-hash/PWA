@@ -177,7 +177,7 @@ export function getOptimizedImageUrl(url, options = {}) {
         height,
         quality = 'auto',
         format = 'auto',
-        crop = 'fill'
+        crop = 'fit'
     } = options;
     
     const parts = url.split('/upload/');
@@ -209,7 +209,7 @@ export function getThumbnailUrl(url) {
         return url;
     }
     
-    return getOptimizedImageUrl(url, { width: 800, quality: 'auto', height: 600 });
+    return getOptimizedImageUrl(url, { width: 800, quality: 'auto', crop: 'fit' });
 }
 
 /**
