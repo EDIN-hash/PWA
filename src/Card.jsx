@@ -20,7 +20,7 @@ const modalStyles = `
 
 .photo-modal-content {
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     max-width: 90vw;
     max-height: none;
 }
