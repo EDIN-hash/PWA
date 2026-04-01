@@ -534,6 +534,20 @@ return (
                             Get Free ID
                         </button>
                     )}
+                    <button
+                        onClick={() => {
+                            if (navigator.serviceWorker.controller) {
+                                navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+                                window.location.reload();
+                            } else {
+                                window.location.reload();
+                            }
+                        }}
+                        className="btn btn-ghost btn-sm text-xs"
+                        title="Обновить приложение"
+                    >
+                        ↻
+                    </button>
                     <div className="flex flex-col sm:flex-row items-center gap-2 flex-shrink-0">
                         <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Logged in as: {currentUser.username}</span>
                         <span className="text-sm sm:text-base text-slate-600 dark:text-slate-300">Role: {currentUser.role}</span>
