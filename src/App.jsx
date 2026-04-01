@@ -8,7 +8,7 @@ import NeonClient from "./neon-client";
 import { generateDeviceId, getDeviceId } from "./device-utils";
 
 // Настройка Modal до определения компонента
-Modal.setAppElement("#root");
+Modal.setAppElement(document.getElementById('root'));
 
 const categories = ["Telewizory", "Lodowki", "Ekspresy", "Krzesla", "NM", "LADY", "Historia"];
 
