@@ -173,13 +173,13 @@ const LazyImage = memo(function LazyImage({ src, alt, className, style, onClick 
     }, []);
     
     return (
-        <div ref={imgRef} className="relative" onClick={onClick} style={{ aspectRatio: '4/3' }}>
+        <div ref={imgRef} className="relative" onClick={onClick}>
             {isVisible && (
                 <img
                     src={src}
                     alt={alt}
                     className={className}
-                    style={{ ...style, opacity: isLoaded ? 1 : 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                    style={{ ...style, opacity: isLoaded ? 1 : 0, width: '100%', height: 'auto', objectFit: 'contain' }}
                     onLoad={() => setIsLoaded(true)}
                     loading="lazy"
                     decoding="async"
