@@ -656,8 +656,8 @@ body {
 /* Card image styling */
 .card-image {
     border-radius: 0.5rem;
-    object-fit: cover;
-    height: 20rem;
+    object-fit: contain;
+    height: auto;
     width: 100%;
     border: 1px solid rgba(76, 100, 241, 0.1);
 }
