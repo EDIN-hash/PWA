@@ -48,6 +48,11 @@ export default function App() {
     const [SERVER_URL, setServerUrl] = useState(import.meta.env.VITE_SERVER_URL || "http://localhost:3001");
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
     const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'na-stanie', 'wyjechalo'
+    
+    // History filters
+    const [historySort, setHistorySort] = useState('date_desc'); // 'date_desc', 'date_asc', 'user'
+    const [historyUserFilter, setHistoryUserFilter] = useState('all');
+    const [historyDeviceFilter, setHistoryDeviceFilter] = useState('all');
     const [isGetIdModalOpen, setIsGetIdModalOpen] = useState(false);
     const [selectedCategoryForId, setSelectedCategoryForId] = useState('NM');
     const [generatedId, setGeneratedId] = useState('');
@@ -374,33 +379,60 @@ export default function App() {
     });
     
     // Sort items
-    const filteredItems = [...statusFilteredItems].sort((a, b) => {
-        if (!sortConfig.key) {
-            // По умолчанию сортировать по имени (ID) в алфавитном порядке
-            return a.name.localeCompare(b.name);
+    let filteredItems;
+    
+    if (selectedCategory === 'Historia') {
+        // History sorting logic
+        filteredItems = [...statusFilteredItems];
+        
+        // Filter by user
+        if (historyUserFilter !== 'all') {
+            filteredItems = filteredItems.filter(item => item.changed_by === historyUserFilter);
         }
         
-        // Преобразовать значение в число, обрабатывая польский формат (запятая вместо точки)
-        const getNumericValue = (value) => {
-            if (value === null || value === undefined || value === '') return 0;
-            // Заменить польскую запятую на точку для корректного преобразования
-            const numericValue = typeof value === 'string' 
-                ? parseFloat(value.replace(',', '.')) 
-                : Number(value);
-            return isNaN(numericValue) ? 0 : numericValue;
-        };
-        
-        const aValue = getNumericValue(a[sortConfig.key]);
-        const bValue = getNumericValue(b[sortConfig.key]);
-        
-        if (aValue < bValue) {
-            return sortConfig.direction === 'asc' ? -1 : 1;
+        // Filter by device
+        if (historyDeviceFilter !== 'all') {
+            filteredItems = filteredItems.filter(item => item.device_id === historyDeviceFilter);
         }
-        if (aValue > bValue) {
-            return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
-    });
+        
+        // Sort
+        filteredItems.sort((a, b) => {
+            if (historySort === 'date_desc') {
+                return new Date(b.timestamp) - new Date(a.timestamp);
+            } else if (historySort === 'date_asc') {
+                return new Date(a.timestamp) - new Date(b.timestamp);
+            } else if (historySort === 'user') {
+                return (a.changed_by || '').localeCompare(b.changed_by || '');
+            }
+            return 0;
+        });
+    } else {
+        // Regular items sorting
+        filteredItems = [...statusFilteredItems].sort((a, b) => {
+            if (!sortConfig.key) {
+                return a.name.localeCompare(b.name);
+            }
+            
+            const getNumericValue = (value) => {
+                if (value === null || value === undefined || value === '') return 0;
+                const numericValue = typeof value === 'string' 
+                    ? parseFloat(value.replace(',', '.')) 
+                    : Number(value);
+                return isNaN(numericValue) ? 0 : numericValue;
+            };
+            
+            const aValue = getNumericValue(a[sortConfig.key]);
+            const bValue = getNumericValue(b[sortConfig.key]);
+            
+            if (aValue < bValue) {
+                return sortConfig.direction === 'asc' ? -1 : 1;
+            }
+            if (aValue > bValue) {
+                return sortConfig.direction === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
+    }
 
     const renderItemFormField = ([label, key, type = "input"]) => {
         // Special handling for Krzesla category
@@ -546,89 +578,142 @@ return (
 
         {/* Sorting and Filter Controls */}
         <div className="controls-section mb-4 p-3 bg-gray-900/50 rounded-lg border border-gray-700">
-            <div className="flex flex-wrap gap-3 items-center justify-center">
-                {/* Status Filter */}
-                <div className="filter-group">
-                    <span className="text-white text-sm font-medium mr-2">Status:</span>
-                    <button
-                        className={`filter-btn ${statusFilter === 'all' ? 'active-filter' : ''}`}
-                        onClick={() => setStatusFilter('all')}
-                    >
-                        Wszystkie
-                    </button>
-                    <button
-                        className={`filter-btn ${statusFilter === 'na-stanie' ? 'active-filter' : ''} bg-green-900/50 border-green-500/50 text-green-400`}
-                        onClick={() => setStatusFilter('na-stanie')}
-                    >
-                        Na stanie
-                    </button>
-                    <button
-                        className={`filter-btn ${statusFilter === 'wyjechalo' ? 'active-filter' : ''} bg-red-900/50 border-red-500/50 text-red-400`}
-                        onClick={() => setStatusFilter('wyjechalo')}
-                    >
-                        Wyjechało
-                    </button>
-                </div>
+            {selectedCategory === 'Historia' ? (
+                // History specific controls
+                <div className="flex flex-wrap gap-3 items-center justify-center">
+                    {/* Sort by date */}
+                    <div className="filter-group">
+                        <span className="text-white text-sm font-medium mr-2">Sortuj:</span>
+                        <button
+                            className={`sort-btn ${historySort === 'date_desc' ? 'active-sort' : ''}`}
+                            onClick={() => setHistorySort('date_desc')}
+                        >
+                            Nowe ↓
+                        </button>
+                        <button
+                            className={`sort-btn ${historySort === 'date_asc' ? 'active-sort' : ''}`}
+                            onClick={() => setHistorySort('date_asc')}
+                        >
+                            Stare ↑
+                        </button>
+                    </div>
 
-                {/* Sorting Controls */}
-                <div className="sort-group">
-                    <span className="text-white text-sm font-medium mr-2">Sortuj:</span>
-                    <button
-                        className={`sort-btn ${sortConfig.key === 'wysokosc' ? 'active-sort' : ''}`}
-                        onClick={() => {
-                            if (sortConfig.key === 'wysokosc') {
-                                setSortConfig({ key: 'wysokosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
-                            } else {
-                                setSortConfig({ key: 'wysokosc', direction: 'asc' });
-                            }
-                        }}
-                    >
-                        Wysokość {sortConfig.key === 'wysokosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                    </button>
-                    <button
-                        className={`sort-btn ${sortConfig.key === 'szerokosc' ? 'active-sort' : ''}`}
-                        onClick={() => {
-                            if (sortConfig.key === 'szerokosc') {
-                                setSortConfig({ key: 'szerokosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
-                            } else {
-                                setSortConfig({ key: 'szerokosc', direction: 'asc' });
-                            }
-                        }}
-                    >
-                        Szerokość {sortConfig.key === 'szerokosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                    </button>
-                    <button
-                        className={`sort-btn ${sortConfig.key === 'glebokosc' ? 'active-sort' : ''}`}
-                        onClick={() => {
-                            if (sortConfig.key === 'glebokosc') {
-                                setSortConfig({ key: 'glebokosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
-                            } else {
-                                setSortConfig({ key: 'glebokosc', direction: 'asc' });
-                            }
-                        }}
-                    >
-                        Głębokość {sortConfig.key === 'glebokosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                    </button>
-                    <button
-                        className={`sort-btn ${sortConfig.key === 'ilosc' ? 'active-sort' : ''}`}
-                        onClick={() => {
-                            if (sortConfig.key === 'ilosc') {
-                                setSortConfig({ key: 'ilosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
-                            } else {
-                                setSortConfig({ key: 'ilosc', direction: 'asc' });
-                            }
-                        }}
-                    >
-                        Ilość {sortConfig.key === 'ilosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
-                    </button>
-                    <button
-                        className={`sort-btn ${sortConfig.key === null ? 'active-sort' : ''}`}
-                        onClick={() => setSortConfig({ key: null, direction: 'asc' })}
-                    >
-                        Reset
-                    </button>
+                    {/* Filter by user */}
+                    <div className="filter-group">
+                        <span className="text-white text-sm font-medium mr-2">Użytkownik:</span>
+                        <select
+                            className="bg-gray-800 text-white text-sm rounded px-2 py-1 border border-gray-600"
+                            value={historyUserFilter}
+                            onChange={(e) => setHistoryUserFilter(e.target.value)}
+                        >
+                            <option value="all">Wszyscy</option>
+                            {[...new Set(items.map(i => i.changed_by).filter(Boolean))].map(user => (
+                                <option key={user} value={user}>{user}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Filter by device */}
+                    <div className="filter-group">
+                        <span className="text-white text-sm font-medium mr-2">Urządzenie:</span>
+                        <select
+                            className="bg-gray-800 text-white text-sm rounded px-2 py-1 border border-gray-600"
+                            value={historyDeviceFilter}
+                            onChange={(e) => setHistoryDeviceFilter(e.target.value)}
+                        >
+                            <option value="all">Wszystkie</option>
+                            {[...new Set(items.map(i => i.device_id).filter(Boolean))].map(device => (
+                                <option key={device} value={device}>{device}</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
-            </div>
+            ) : (
+                // Regular item controls
+                <div className="flex flex-wrap gap-3 items-center justify-center">
+                    {/* Status Filter */}
+                    <div className="filter-group">
+                        <span className="text-white text-sm font-medium mr-2">Status:</span>
+                        <button
+                            className={`filter-btn ${statusFilter === 'all' ? 'active-filter' : ''}`}
+                            onClick={() => setStatusFilter('all')}
+                        >
+                            Wszystkie
+                        </button>
+                        <button
+                            className={`filter-btn ${statusFilter === 'na-stanie' ? 'active-filter' : ''} bg-green-900/50 border-green-500/50 text-green-400`}
+                            onClick={() => setStatusFilter('na-stanie')}
+                        >
+                            Na stanie
+                        </button>
+                        <button
+                            className={`filter-btn ${statusFilter === 'wyjechalo' ? 'active-filter' : ''} bg-red-900/50 border-red-500/50 text-red-400`}
+                            onClick={() => setStatusFilter('wyjechalo')}
+                        >
+                            Wyjechało
+                        </button>
+                    </div>
+
+                    {/* Sorting Controls */}
+                    <div className="sort-group">
+                        <span className="text-white text-sm font-medium mr-2">Sortuj:</span>
+                        <button
+                            className={`sort-btn ${sortConfig.key === 'wysokosc' ? 'active-sort' : ''}`}
+                            onClick={() => {
+                                if (sortConfig.key === 'wysokosc') {
+                                    setSortConfig({ key: 'wysokosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+                                } else {
+                                    setSortConfig({ key: 'wysokosc', direction: 'asc' });
+                                }
+                            }}
+                        >
+                            Wysokość {sortConfig.key === 'wysokosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                        </button>
+                        <button
+                            className={`sort-btn ${sortConfig.key === 'szerokosc' ? 'active-sort' : ''}`}
+                            onClick={() => {
+                                if (sortConfig.key === 'szerokosc') {
+                                    setSortConfig({ key: 'szerokosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+                                } else {
+                                    setSortConfig({ key: 'szerokosc', direction: 'asc' });
+                                }
+                            }}
+                        >
+                            Szerokość {sortConfig.key === 'szerokosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                        </button>
+                        <button
+                            className={`sort-btn ${sortConfig.key === 'glebokosc' ? 'active-sort' : ''}`}
+                            onClick={() => {
+                                if (sortConfig.key === 'glebokosc') {
+                                    setSortConfig({ key: 'glebokosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+                                } else {
+                                    setSortConfig({ key: 'glebokosc', direction: 'asc' });
+                                }
+                            }}
+                        >
+                            Głębokość {sortConfig.key === 'glebokosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                        </button>
+                        <button
+                            className={`sort-btn ${sortConfig.key === 'ilosc' ? 'active-sort' : ''}`}
+                            onClick={() => {
+                                if (sortConfig.key === 'ilosc') {
+                                    setSortConfig({ key: 'ilosc', direction: sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+                                } else {
+                                    setSortConfig({ key: 'ilosc', direction: 'asc' });
+                                }
+                            }}
+                        >
+                            Ilość {sortConfig.key === 'ilosc' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                        </button>
+                        <button
+                            className={`sort-btn ${sortConfig.key === null ? 'active-sort' : ''}`}
+                            onClick={() => setSortConfig({ key: null, direction: 'asc' })}
+                        >
+                            Reset
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
 
         {/* Items Grid */}
