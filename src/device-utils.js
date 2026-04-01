@@ -1,59 +1,66 @@
 // Utility functions for device identification and tracking
 
+const DEVICE_ID_KEY = 'inventory_device_id';
+
 /**
- * Generate a device fingerprint based on various browser/device characteristics
- * This helps track which devices are used to edit items
+ * Generate a stable device fingerprint based on hardware characteristics
+ * Only uses stable data that doesn't change between sessions
+ */
+function generateFingerprint() {
+    try {
+        const data = {
+            platform: navigator.platform,
+            hardwareConcurrency: navigator.hardwareConcurrency,
+            deviceMemory: navigator.deviceMemory,
+            language: navigator.language,
+            screenWidth: window.screen.width,
+            screenHeight: window.screen.height,
+            colorDepth: window.screen.colorDepth,
+        };
+        
+        const str = JSON.stringify(data);
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        
+        return `DEV-${Math.abs(hash).toString(36).substring(0, 8).toUpperCase()}`;
+    } catch (error) {
+        return 'DEV-UNKNOWN';
+    }
+}
+
+/**
+ * Get or generate a stable device ID
+ * Saved in localStorage so it persists across sessions
  */
 export function generateDeviceId() {
     try {
-        // Basic user agent information
-        const userAgent = navigator.userAgent;
+        let deviceId = localStorage.getItem(DEVICE_ID_KEY);
         
-        // Screen information
-        const screenInfo = {
-            width: window.screen.width,
-            height: window.screen.height,
-            colorDepth: window.screen.colorDepth,
-            pixelDepth: window.screen.pixelDepth
-        };
-        
-        // Browser capabilities
-        const capabilities = {
-            cookiesEnabled: navigator.cookieEnabled,
-            javaEnabled: navigator.javaEnabled(),
-            language: navigator.language || navigator.userLanguage,
-            platform: navigator.platform,
-            hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
-            deviceMemory: navigator.deviceMemory || 'unknown',
-            maxTouchPoints: navigator.maxTouchPoints || 0
-        };
-        
-        // Create a fingerprint string
-        const fingerprintData = {
-            userAgent,
-            screen: screenInfo,
-            capabilities,
-            timestamp: new Date().getTime()
-        };
-        
-        // Convert to JSON and create a hash-like string
-        const fingerprintString = JSON.stringify(fingerprintData);
-        
-        // Simple hash function for the fingerprint
-        let hash = 0;
-        for (let i = 0; i < fingerprintString.length; i++) {
-            const char = fingerprintString.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32bit integer
+        if (!deviceId) {
+            deviceId = generateFingerprint();
+            localStorage.setItem(DEVICE_ID_KEY, deviceId);
         }
         
-        // Return a formatted device ID
-        return `DEV-${Math.abs(hash).toString(36).substring(0, 8).toUpperCase()}`;
-        
+        return deviceId;
     } catch (error) {
-        console.error('Error generating device ID:', error);
-        // Fallback to simple user agent if fingerprinting fails
-        return navigator.userAgent || 'Unknown-Device';
+        return generateFingerprint();
+    }
+}
+
+/**
+ * Reset device ID - generates new one
+ */
+export function resetDeviceId() {
+    try {
+        const newId = generateFingerprint();
+        localStorage.setItem(DEVICE_ID_KEY, newId);
+        return newId;
+    } catch (error) {
+        return generateFingerprint();
     }
 }
 
