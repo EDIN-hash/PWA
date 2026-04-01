@@ -1,17 +1,14 @@
 // service-worker.js
-const CACHE_NAME = "inventory-pwa-v2";
+const CACHE_NAME = "inventory-pwa-v3";
 const urlsToCache = [
   "/",
   "/index.html",
   "/manifest.webmanifest",
   "/favicon.ico",
-  "/src/styles.css",
-  "/src/Card.jsx",
-  "/src/App.jsx",
-  "/src/main.jsx",
 ];
 
 self.addEventListener("install", (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -40,6 +37,6 @@ self.addEventListener("activate", (event) => {
           }
         })
       );
-    })
+    }).then(() => self.clients.claim())
   );
 });
