@@ -38,6 +38,8 @@ export async function handler(event, context) {
       
       // History queries use sql.unsafe with param substitution
       if (type === 'history') {
+        console.log('History query:', query);
+        console.log('History params:', params);
         if (params.length > 0) {
           let builtQuery = query;
           params.forEach((p, i) => {
@@ -51,6 +53,7 @@ export async function handler(event, context) {
               builtQuery = builtQuery.replace(regex, `'${String(p).replace(/'/g, "''")}'`);
             }
           });
+          console.log('Built query:', builtQuery);
           result = await sql.unsafe(builtQuery);
         } else {
           result = await sql.unsafe(query);
@@ -73,6 +76,7 @@ export async function handler(event, context) {
 
     return { statusCode: 200, body: JSON.stringify({ ok: true }) };
   } catch (error) {
-    return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
+    console.error('Proxy error:', error);
+    return { statusCode: 500, body: JSON.stringify({ error: error.message, stack: error.stack }) };
   }
 }
