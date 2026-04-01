@@ -1,19 +1,8 @@
 import React, { useState, useEffect, useRef, memo } from "react";
-import { createPortal } from "react-dom";
 import { getOptimizedImageUrl, getThumbnailUrl, getFullImageUrl } from "./device-utils";
 
 const MAX_IMAGE_WIDTH = 1920;
 const MAX_IMAGE_HEIGHT = 1080;
-
-let photoPortalContainer = null;
-const getPhotoPortalContainer = () => {
-    if (!photoPortalContainer) {
-        photoPortalContainer = document.createElement('div');
-        photoPortalContainer.id = 'photo-portal-root';
-        document.body.appendChild(photoPortalContainer);
-    }
-    return photoPortalContainer;
-};
 
 // CSS стили для модального окна
 const modalStyles = `
@@ -512,177 +501,78 @@ export default function Card({ item, editItem, deleteItem, role }) {
                 )}
             </div>
 
-            {openPhoto && photos.length > 0 && createPortal(
-                <div 
-                    className="photo-modal-overlay"
-                    style={{
-                        position: 'fixed !important',
-                        top: '0 !important',
-                        left: '0 !important',
-                        right: '0 !important',
-                        bottom: '0 !important',
-                        backgroundColor: 'rgba(0, 0, 0, 0.95) !important',
-                        backdropFilter: 'blur(4px) !important',
-                        zIndex: 9999,
-                        display: 'flex !important',
-                        alignItems: 'center !important',
-                        justifyContent: 'center !important',
-                        padding: '20px !important',
-                        boxSizing: 'border-box !important'
-                    }}
-                    onClick={() => setOpenPhoto(false)}
-                >
-                    <div 
-                        className="photo-modal-content"
-                        style={{
-                            position: 'relative !important',
-                            backgroundColor: 'rgba(0, 0, 0, 0.9) !important',
-                            borderRadius: '12px !important',
-                            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5) !important',
-                            maxWidth: '90vw !important',
-                            maxHeight: '90vh !important',
-                            overflow: 'hidden !important',
-                            display: 'flex !important',
-                            flexDirection: 'column !important'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            className="photo-modal-close"
-                            style={{
-                                position: 'absolute !important',
-                                top: '12px !important',
-                                right: '12px !important',
-                                width: '40px !important',
-                                height: '40px !important',
-                                backgroundColor: 'rgba(0, 0, 0, 0.7) !important',
-                                border: 'none !important',
-                                borderRadius: '50% !important',
-                                color: 'white !important',
-                                fontSize: '24px !important',
-                                fontWeight: 'bold !important',
-                                cursor: 'pointer !important',
-                                zIndex: 10,
-                                transition: 'all 0.2s ease !important',
-                                display: 'flex !important',
-                                alignItems: 'center !important',
-                                justifyContent: 'center !important'
-                            }}
-                            onClick={() => setOpenPhoto(false)}
-                        >
-                            ×
-                        </button>
-                        
-                        {item.category === 'LADY' && hasMultiplePhotos && (
-                            <>
-                                <button
-                                    className="photo-modal-nav photo-modal-nav-prev"
-                                    style={{
-                                        position: 'absolute !important',
-                                        top: '50% !important',
-                                        transform: 'translateY(-50%) !important',
-                                        left: '12px !important',
-                                        width: '48px !important',
-                                        height: '48px !important',
-                                        backgroundColor: 'rgba(0, 0, 0, 0.7) !important',
-                                        border: 'none !important',
-                                        borderRadius: '50% !important',
-                                        color: 'white !important',
-                                        fontSize: '24px !important',
-                                        fontWeight: 'bold !important',
-                                        cursor: 'pointer !important',
-                                        zIndex: 10,
-                                        transition: 'all 0.2s ease !important',
-                                        display: 'flex !important',
-                                        alignItems: 'center !important',
-                                        justifyContent: 'center !important'
-                                    }}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setCurrentPhotoIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
-                                    }}
-                                >
-                                    ‹
-                                </button>
-                                <button
-                                    className="photo-modal-nav photo-modal-nav-next"
-                                    style={{
-                                        position: 'absolute !important',
-                                        top: '50% !important',
-                                        transform: 'translateY(-50%) !important',
-                                        right: '12px !important',
-                                        width: '48px !important',
-                                        height: '48px !important',
-                                        backgroundColor: 'rgba(0, 0, 0, 0.7) !important',
-                                        border: 'none !important',
-                                        borderRadius: '50% !important',
-                                        color: 'white !important',
-                                        fontSize: '24px !important',
-                                        fontWeight: 'bold !important',
-                                        cursor: 'pointer !important',
-                                        zIndex: 10,
-                                        transition: 'all 0.2s ease !important',
-                                        display: 'flex !important',
-                                        alignItems: 'center !important',
-                                        justifyContent: 'center !important'
-                                    }}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setCurrentPhotoIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
-                                    }}
-                                >
-                                    ›
-                                </button>
-                            </>
-                        )}
-                        
-                        <img
-                            src={optimizeImageUrl(currentPhoto?.full || currentPhoto?.original, true)}
-                            alt={item.name}
-                            className="photo-modal-image"
-                            style={{
-                                maxWidth: '100% !important',
-                                maxHeight: '90vh !important',
-                                objectFit: 'contain !important',
-                                display: 'block !important',
-                                margin: '0 auto !important',
-                                padding: '20px !important'
-                            }}
-                        />
-                        
-                        <div className="photo-modal-info" style={{
-                            backgroundColor: 'rgba(0, 0, 0, 0.3) !important',
-                            padding: '16px 24px !important',
-                            borderTop: '1px solid rgba(255, 255, 255, 0.1) !important',
-                            textAlign: 'center !important'
-                        }}>
-                            <h3 className="photo-modal-title" style={{
-                                color: 'white !important',
-                                fontWeight: '600 !important',
-                                fontSize: '18px !important',
-                                margin: '0 0 8px 0 !important',
-                                whiteSpace: 'nowrap !important',
-                                overflow: 'hidden !important',
-                                textOverflow: 'ellipsis !important'
-                            }}>{item.name}</h3>
-                            {item.category === 'LADY' && hasMultiplePhotos && (
-                                <p className="photo-modal-counter" style={{
-                                    color: 'rgba(255, 255, 255, 0.8) !important',
-                                    fontSize: '14px !important',
-                                    margin: '0 0 8px 0 !important'
-                                }}>Фото {currentPhotoIndex + 1} из {photos.length}</p>
-                            )}
-                            <p className="photo-modal-description" style={{
-                                color: 'rgba(255, 255, 255, 0.8) !important',
-                                fontSize: '14px !important',
-                                margin: '0 !important',
-                                lineHeight: '1.4 !important'
-                            }}>{item.description}</p>
-                        </div>
-                    </div>
-                </div>, getPhotoPortalContainer())
+            {openPhoto && photos.length > 0 && (
+                <PhotoModal
+                    photos={photos}
+                    currentIndex={currentPhotoIndex}
+                    setCurrentIndex={setCurrentPhotoIndex}
+                    onClose={() => setOpenPhoto(false)}
+                    itemName={item.name}
+                    itemCategory={item.category}
+                    description={item.description}
+                />
             )}
         </>
+    );
+}
+
+function PhotoModal({ photos, currentIndex, setCurrentIndex, onClose, itemName, itemCategory, description }) {
+    const hasMultiplePhotos = photos.length > 1;
+    
+    return (
+        <div
+            className="photo-modal-overlay"
+            onClick={onClose}
+        >
+            <div
+                className="photo-modal-content"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <button
+                    className="photo-modal-close"
+                    onClick={onClose}
+                >
+                    ×
+                </button>
+                
+                {hasMultiplePhotos && (
+                    <>
+                        <button
+                            className="photo-modal-nav-prev"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentIndex(currentIndex === 0 ? photos.length - 1 : currentIndex - 1);
+                            }}
+                        >
+                            ‹
+                        </button>
+                        <button
+                            className="photo-modal-nav-next"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentIndex(currentIndex === photos.length - 1 ? 0 : currentIndex + 1);
+                            }}
+                        >
+                            ›
+                        </button>
+                    </>
+                )}
+                
+                <img
+                    src={optimizeImageUrl(photos[currentIndex])}
+                    alt={itemName}
+                    className="photo-modal-image"
+                />
+                
+                <div className="photo-modal-info">
+                    <h3 className="photo-modal-title">{itemName}</h3>
+                    {hasMultiplePhotos && (
+                        <p className="photo-modal-counter">Фото {currentIndex + 1} из {photos.length}</p>
+                    )}
+                    <p className="photo-modal-description">{description}</p>
+                </div>
+            </div>
+        </div>
     );
 }
 
