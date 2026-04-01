@@ -303,7 +303,7 @@ const NeonClient = {
     // История изменений
     async addHistoryEntry(entry) {
         const query = `
-            INSERT INTO history (item_name, action, field_name, old_value, new_value, changed_by, device_id, timestamp) 
+            INSERT INTO history_log (item_name, action, field_name, old_value, new_value, changed_by, device_id, timestamp) 
             VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) 
             RETURNING *
         `;
@@ -330,11 +330,10 @@ const NeonClient = {
     async getHistory(itemName = null) {
         try {
             if (itemName && itemName.trim()) {
-                const safeName = itemName.replace(/'/g, "''");
-                const query = `SELECT * FROM history WHERE item_name = '${safeName}'`;
-                return await neonQuery(query);
+                const query = `SELECT * FROM history_log WHERE item_name = $1`;
+                return await neonQuery(query, [itemName]);
             } else {
-                const query = `SELECT * FROM history`;
+                const query = `SELECT * FROM history_log`;
                 return await neonQuery(query);
             }
         } catch (error) {
@@ -345,7 +344,7 @@ const NeonClient = {
 
     // Очистка истории
     async clearHistory() {
-        const query = 'DELETE FROM history RETURNING *';
+        const query = 'DELETE FROM history_log RETURNING *';
         try {
             return await neonQuery(query);
         } catch (error) {
