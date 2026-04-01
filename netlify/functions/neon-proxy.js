@@ -26,7 +26,7 @@ export async function handler(event, context) {
       }
       
       const body = JSON.parse(event.body);
-      let query = body.query || '';
+      const query = body.query || '';
       const params = Array.isArray(body.params) ? body.params : [];
       
       if (!query || query.trim() === '') {
@@ -35,9 +35,9 @@ export async function handler(event, context) {
       
       let result;
       if (params.length > 0) {
-        result = await sql.unsafe(query, params);
+        result = await sql(query, params);
       } else {
-        result = await sql.unsafe(query);
+        result = await sql(query);
       }
 
       return {
