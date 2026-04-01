@@ -5,37 +5,42 @@ export default function UserDevicesSettings() {
     const [users, setUsers] = useState([]);
     const [selectedUser, setSelectedUser] = useState('');
     const [userDevices, setUserDevices] = useState([]);
-    const [deviceNames, setDeviceNames] = useState({});
+    const [nicknames, setNicknames] = useState({});
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
-        loadUserDevices();
+        loadData();
     }, []);
+
+    const loadData = async () => {
+        try {
+            const [usersData, nicknamesData] = await Promise.all([
+                NeonClient.getUserDevices(),
+                NeonClient.getDeviceNicknames()
+            ]);
+            
+            const uniqueUsers = [...new Set(usersData.map(d => d.changed_by).filter(Boolean))];
+            setUsers(uniqueUsers);
+            
+            const nicknamesMap = {};
+            nicknamesData.forEach(n => {
+                nicknamesMap[n.device_id] = n.nickname;
+            });
+            setNicknames(nicknamesMap);
+            
+            setLoading(false);
+        } catch (error) {
+            console.error('Error loading data:', error);
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (selectedUser) {
             loadDevicesForUser(selectedUser);
         }
     }, [selectedUser]);
-
-    useEffect(() => {
-        const saved = localStorage.getItem('device_nicknames');
-        if (saved) {
-            setDeviceNames(JSON.parse(saved));
-        }
-    }, []);
-
-    const loadUserDevices = async () => {
-        try {
-            const data = await NeonClient.getUserDevices();
-            const uniqueUsers = [...new Set(data.map(d => d.changed_by).filter(Boolean))];
-            setUsers(uniqueUsers);
-            setLoading(false);
-        } catch (error) {
-            console.error('Error loading users:', error);
-            setLoading(false);
-        }
-    };
 
     const loadDevicesForUser = async (username) => {
         try {
@@ -47,14 +52,30 @@ export default function UserDevicesSettings() {
         }
     };
 
-    const saveDeviceNickname = (deviceId, nickname) => {
-        const updated = { ...deviceNames, [deviceId]: nickname };
-        setDeviceNames(updated);
-        localStorage.setItem('device_nicknames', JSON.stringify(updated));
+    const handleSaveNickname = async (deviceId, nickname) => {
+        setSaving(true);
+        try {
+            await NeonClient.saveDeviceNickname(selectedUser, deviceId, nickname);
+            setNicknames(prev => ({ ...prev, [deviceId]: nickname }));
+        } catch (error) {
+            console.error('Error saving nickname:', error);
+        }
+        setSaving(false);
     };
 
-    const getDeviceDisplayName = (deviceId) => {
-        return deviceNames[deviceId] || deviceId;
+    const handleDeleteNickname = async (deviceId) => {
+        setSaving(true);
+        try {
+            await NeonClient.deleteDeviceNickname(selectedUser, deviceId);
+            setNicknames(prev => {
+                const updated = { ...prev };
+                delete updated[deviceId];
+                return updated;
+            });
+        } catch (error) {
+            console.error('Error deleting nickname:', error);
+        }
+        setSaving(false);
     };
 
     if (loading) {
@@ -118,15 +139,24 @@ export default function UserDevicesSettings() {
                                                 type="text"
                                                 className="w-full bg-gray-700 text-white rounded px-3 py-2 border border-gray-600"
                                                 placeholder="Np. Komputer biurowy"
-                                                value={deviceNames[deviceId] || ''}
-                                                onChange={(e) => saveDeviceNickname(deviceId, e.target.value)}
+                                                defaultValue={nicknames[deviceId] || ''}
+                                                onBlur={(e) => handleSaveNickname(deviceId, e.target.value)}
                                             />
                                         </div>
-                                        {deviceNames[deviceId] && (
+                                        {nicknames[deviceId] && (
+                                            <button
+                                                onClick={() => handleDeleteNickname(deviceId)}
+                                                className="text-red-400 hover:text-red-300 text-sm"
+                                                disabled={saving}
+                                            >
+                                                Usuń
+                                            </button>
+                                        )}
+                                        {nicknames[deviceId] && (
                                             <div className="flex-1">
                                                 <div className="text-green-400 text-xs mb-1">Będzie wyświetlane jako:</div>
                                                 <div className="text-green-300 font-medium">
-                                                    {selectedUser} ({deviceNames[deviceId]})
+                                                    {nicknames[deviceId]} ({selectedUser})
                                                 </div>
                                             </div>
                                         )}
@@ -145,16 +175,16 @@ export default function UserDevicesSettings() {
             )}
 
             <div className="mt-6 bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-                <h4 className="text-white font-medium mb-2">Podgląd nicknames:</h4>
-                {Object.keys(deviceNames).length === 0 ? (
+                <h4 className="text-white font-medium mb-2">Wszystkie nicknames ({Object.keys(nicknames).length}):</h4>
+                {Object.keys(nicknames).length === 0 ? (
                     <p className="text-slate-400 text-sm">Brak przypisanych nicknames</p>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {Object.entries(deviceNames).map(([deviceId, nickname]) => (
-                            <div key={deviceId} className="text-sm">
-                                <span className="text-green-400">{nickname}</span>
-                                <span className="text-slate-500"> ← </span>
-                                <span className="text-slate-400 font-mono text-xs">{deviceId.substring(0, 20)}...</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+                        {Object.entries(nicknames).map(([deviceId, nickname]) => (
+                            <div key={deviceId} className="text-sm bg-gray-800 rounded p-2">
+                                <span className="text-green-400 font-medium">{nickname}</span>
+                                <span className="text-slate-500 mx-2">→</span>
+                                <span className="text-slate-400 font-mono text-xs">{deviceId.substring(0, 25)}...</span>
                             </div>
                         ))}
                     </div>

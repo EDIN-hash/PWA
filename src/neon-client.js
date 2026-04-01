@@ -375,6 +375,44 @@ const NeonClient = {
             console.warn('Get user devices error:', error.message);
             return [];
         }
+    },
+
+    // Получить все nicknames
+    async getDeviceNicknames() {
+        const query = `SELECT username, device_id, nickname FROM device_nicknames`;
+        try {
+            return await neonQuery(query);
+        } catch (error) {
+            console.warn('Get nicknames error:', error.message);
+            return [];
+        }
+    },
+
+    // Сохранить nickname для устройства
+    async saveDeviceNickname(username, deviceId, nickname) {
+        const query = `
+            INSERT INTO device_nicknames (username, device_id, nickname) 
+            VALUES ($1, $2, $3)
+            ON CONFLICT (username, device_id) 
+            DO UPDATE SET nickname = $3
+        `;
+        try {
+            return await neonQuery(query, [username, deviceId, nickname]);
+        } catch (error) {
+            console.warn('Save nickname error:', error.message);
+            return null;
+        }
+    },
+
+    // Удалить nickname
+    async deleteDeviceNickname(username, deviceId) {
+        const query = `DELETE FROM device_nicknames WHERE username = $1 AND device_id = $2`;
+        try {
+            return await neonQuery(query, [username, deviceId]);
+        } catch (error) {
+            console.warn('Delete nickname error:', error.message);
+            return null;
+        }
     }
 };
 
