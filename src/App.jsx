@@ -464,7 +464,7 @@ export default function App() {
                             setModalData({
                                 ...modalData,
                                 [key]:
-                                    ["name", "quantity", "description", "photo_url", "linknadysk", "stoisko"].includes(key)
+                                    ["name", "quantity", "description", "photo_url", "photo_url2", "linknadysk", "stoisko", "dataWyjazdu"].includes(key)
                                         ? e.target.value
                                         : (() => {
                                             const value = e.target.value;
