@@ -28,7 +28,6 @@ export async function handler(event, context) {
       const body = JSON.parse(event.body);
       let query = body.query || '';
       const params = Array.isArray(body.params) ? body.params : [];
-      const type = body.type || 'default';
       
       if (!query || query.trim() === '') {
         return { statusCode: 400, body: JSON.stringify({ error: 'Empty query' }) };
@@ -36,28 +35,20 @@ export async function handler(event, context) {
       
       let result;
       
-      if (type === 'history') {
-        // History uses sql.unsafe
-        params.forEach((p, i) => {
-          const placeholder = `$${i+1}`;
-          const regex = new RegExp(placeholder.replace('$', '\\$'), 'g');
-          if (p === null || p === undefined) {
-            query = query.replace(regex, 'NULL');
-          } else if (typeof p === 'number') {
-            query = query.replace(regex, String(p));
-          } else {
-            query = query.replace(regex, `'${String(p).replace(/'/g, "''")}'`);
-          }
-        });
-        result = await sql.unsafe(query);
-      } else {
-        // Default - original working code
-        if (params.length > 0) {
-          result = await sql.query(query, params);
+      // Substitute params in query
+      params.forEach((p, i) => {
+        const placeholder = `$${i+1}`;
+        const regex = new RegExp(placeholder.replace('$', '\\$'), 'g');
+        if (p === null || p === undefined) {
+          query = query.replace(regex, 'NULL');
+        } else if (typeof p === 'number') {
+          query = query.replace(regex, String(p));
         } else {
-          result = await sql(query);
+          query = query.replace(regex, `'${String(p).replace(/'/g, "''")}'`);
         }
-      }
+      });
+      
+      result = await sql.unsafe(query);
       
       return {
         statusCode: 200,
