@@ -331,10 +331,10 @@ const NeonClient = {
         try {
             if (itemName && itemName.trim()) {
                 const safeName = itemName.replace(/'/g, "''");
-                const query = `SELECT id, item_name, action, field_name, old_value, new_value, changed_by, device_id, timestamp FROM history WHERE item_name = '${safeName}'`;
+                const query = `SELECT * FROM history WHERE item_name = '${safeName}'`;
                 return await neonQuery(query);
             } else {
-                const query = `SELECT id, item_name, action, field_name, old_value, new_value, changed_by, device_id, timestamp FROM history`;
+                const query = `SELECT * FROM history`;
                 return await neonQuery(query);
             }
         } catch (error) {
