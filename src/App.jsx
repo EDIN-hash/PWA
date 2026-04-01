@@ -395,17 +395,12 @@ export default function App() {
             filteredItems = filteredItems.filter(item => item.device_id === historyDeviceFilter);
         }
         
-        // Sort
-        filteredItems.sort((a, b) => {
-            if (historySort === 'date_desc') {
-                return new Date(b.timestamp) - new Date(a.timestamp);
-            } else if (historySort === 'date_asc') {
-                return new Date(a.timestamp) - new Date(b.timestamp);
-            } else if (historySort === 'user') {
-                return (a.changed_by || '').localeCompare(b.changed_by || '');
-            }
-            return 0;
-        });
+        // Sort - data is already sorted by date DESC from DB
+        if (historySort === 'date_asc') {
+            filteredItems.reverse();
+        } else if (historySort === 'user') {
+            filteredItems.sort((a, b) => (a.changed_by || '').localeCompare(b.changed_by || ''));
+        }
     } else {
         // Regular items sorting
         filteredItems = [...statusFilteredItems].sort((a, b) => {
@@ -724,7 +719,7 @@ return (
         ) : (
             <div className="items-grid grid-modern">
                 {selectedCategory === 'Historia' ? (
-                    filteredItems.map((entry) => (
+                    filteredItems.slice(0, 300).map((entry) => (
                         <HistoryCard
                             key={entry.id}
                             entry={entry}
