@@ -141,7 +141,7 @@ if (typeof document !== 'undefined' && !document.getElementById('photo-modal-sty
 }
 
 function optimizeImageUrl(url, isFullSize = false) {
-    if (!url) return url;
+    if (!url || typeof url !== 'string') return '';
     
     if (url.includes('drive.google.com')) {
         const fileIdMatch = url.match(/\/d\/([^/]+)/);
@@ -559,7 +559,7 @@ function PhotoModal({ photos, currentIndex, setCurrentIndex, onClose, itemName, 
                 )}
                 
                 <img
-                    src={optimizeImageUrl(photos[currentIndex])}
+                    src={optimizeImageUrl(photos[currentIndex] || '')}
                     alt={itemName}
                     className="photo-modal-image"
                 />
