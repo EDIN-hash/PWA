@@ -680,7 +680,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
                             }}>{item.description}</p>
                         </div>
                     </div>
-                </div>), getPhotoPortalContainer()))
+                </div>, getPhotoPortalContainer())
             )}
         </>
     );
