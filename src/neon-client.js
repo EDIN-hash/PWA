@@ -25,7 +25,7 @@ const neonQuery = async (sql, params = [], type = 'default') => {
         }
 
         const data = await response.json();
-        return data;
+        return data.rows || data;
     } catch (error) {
         console.error('Neon query error:', error);
         throw error;
