@@ -1,5 +1,5 @@
 // Функция для выполнения SQL запросов к Neon через Netlify функцию
-const neonQuery = async (sql, params = []) => {
+const neonQuery = async (sql, params = [], type = 'default') => {
     // В разработке используем локальный URL, в продакшене - Netlify функцию
     const functionUrl = import.meta.env.DEV 
         ? 'http://localhost:8888/.netlify/functions/neon-proxy'
@@ -14,7 +14,8 @@ const neonQuery = async (sql, params = []) => {
             },
             body: JSON.stringify({
                 query: sql,
-                params: params
+                params: params,
+                type: type
             })
         });
 
@@ -24,7 +25,7 @@ const neonQuery = async (sql, params = []) => {
         }
 
         const data = await response.json();
-        return data;
+        return data.rows || data;
     } catch (error) {
         console.error('Neon query error:', error);
         throw error;
@@ -35,6 +36,7 @@ const neonQuery = async (sql, params = []) => {
 const NeonClient = {
     // Экспортируем функцию для тестирования
     query: neonQuery,
+    
     // Получение всех предметов
     async getItems(category = null) {
         let query = 'SELECT * FROM items';
@@ -42,29 +44,29 @@ const NeonClient = {
             query += ' WHERE category = $1';
             return neonQuery(query, [category]);
         }
-        return neonQuery(query, []);
+        return neonQuery(query);
     },
 
     // Добавление предмета
     async addItem(item) {
-        // Try with deviceId first, fallback to version without it if column doesn't exist
+        // Try with deviceId and photo_url2 first, fallback to version without them if columns don't exist
         const queryWithDeviceId = `
             INSERT INTO items (
-                name, quantity, ilosc, description, photo_url, category,
+                name, quantity, ilosc, description, photo_url, photo_url2, category,
                 wysokosc, szerokosc, glebokosc, data_wyjazdu, stan, linknadysk,
                 updatedAt, updatedBy, deviceId, stoisko
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
             ) RETURNING *
         `;
         
         const queryWithoutDeviceId = `
             INSERT INTO items (
-                name, quantity, ilosc, description, photo_url, category,
+                name, quantity, ilosc, description, photo_url, photo_url2, category,
                 wysokosc, szerokosc, glebokosc, data_wyjazdu, stan, linknadysk,
                 updatedAt, updatedBy, stoisko
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
             ) RETURNING *
         `;
         
@@ -74,6 +76,7 @@ const NeonClient = {
             item.ilosc || 0,
             item.description || '',
             item.photo_url || '',
+            item.photo_url2 || '',
             item.category || 'NM',
             item.wysokosc || 0,
             item.szerokosc || 0,
@@ -93,6 +96,7 @@ const NeonClient = {
             item.ilosc || 0,
             item.description || '',
             item.photo_url || '',
+            item.photo_url2 || '',
             item.category || 'NM',
             item.wysokosc || 0,
             item.szerokosc || 0,
@@ -118,25 +122,26 @@ const NeonClient = {
 
     // Обновление предмета
     async updateItem(name, item) {
-        // Try with deviceId first, fallback to version without it if column doesn't exist
+        // Try with deviceId and photo_url2 first, fallback to version without them if columns don't exist
         const queryWithDeviceId = `
             UPDATE items SET
                 quantity = $1,
                 ilosc = $2,
                 description = $3,
                 photo_url = $4,
-                category = $5,
-                wysokosc = $6,
-                szerokosc = $7,
-                glebokosc = $8,
-                data_wyjazdu = $9,
-                stan = $10,
-                linknadysk = $11,
-                updatedAt = $12,
-                updatedBy = $13,
-                deviceId = $14,
-                stoisko = $15
-            WHERE name = $16 RETURNING *
+                photo_url2 = $5,
+                category = $6,
+                wysokosc = $7,
+                szerokosc = $8,
+                glebokosc = $9,
+                data_wyjazdu = $10,
+                stan = $11,
+                linknadysk = $12,
+                updatedAt = $13,
+                updatedBy = $14,
+                deviceId = $15,
+                stoisko = $16
+            WHERE name = $17 RETURNING *
         `;
         
         const queryWithoutDeviceId = `
@@ -145,17 +150,18 @@ const NeonClient = {
                 ilosc = $2,
                 description = $3,
                 photo_url = $4,
-                category = $5,
-                wysokosc = $6,
-                szerokosc = $7,
-                glebokosc = $8,
-                data_wyjazdu = $9,
-                stan = $10,
-                linknadysk = $11,
-                updatedAt = $12,
-                updatedBy = $13,
-                stoisko = $14
-            WHERE name = $15 RETURNING *
+                photo_url2 = $5,
+                category = $6,
+                wysokosc = $7,
+                szerokosc = $8,
+                glebokosc = $9,
+                data_wyjazdu = $10,
+                stan = $11,
+                linknadysk = $12,
+                updatedAt = $13,
+                updatedBy = $14,
+                stoisko = $15
+            WHERE name = $16 RETURNING *
         `;
         
         const paramsWithDeviceId = [
@@ -163,6 +169,7 @@ const NeonClient = {
             item.ilosc || 0,
             item.description || '',
             item.photo_url || '',
+            item.photo_url2 || '',
             item.category || 'NM',
             item.wysokosc || 0,
             item.szerokosc || 0,
@@ -182,6 +189,7 @@ const NeonClient = {
             item.ilosc || 0,
             item.description || '',
             item.photo_url || '',
+            item.photo_url2 || '',
             item.category || 'NM',
             item.wysokosc || 0,
             item.szerokosc || 0,
@@ -290,6 +298,121 @@ const NeonClient = {
         const query = 'SELECT * FROM users WHERE username = $1 AND password = $2';
         const result = await neonQuery(query, [username, password]);
         return result.length > 0 ? result[0] : null;
+    },
+
+    // История изменений
+    async addHistoryEntry(entry) {
+        const query = `
+            INSERT INTO history (item_name, action, field_name, old_value, new_value, changed_by, device_id, timestamp) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) 
+            RETURNING *
+        `;
+        
+        const params = [
+            entry.item_name || '',
+            entry.action || 'edit',
+            entry.field_name || '',
+            entry.old_value || '',
+            entry.new_value || '',
+            entry.changed_by || 'Unknown',
+            entry.device_id || 'Unknown'
+        ];
+        
+        try {
+            return await neonQuery(query, params);
+        } catch (error) {
+            console.warn('History logging failed:', error.message);
+            return null;
+        }
+    },
+
+    // Получить историю (все или для конкретного товара)
+    async getHistory(itemName = null) {
+        try {
+            if (itemName && itemName.trim()) {
+                const query = `SELECT * FROM history WHERE item_name = $1 ORDER BY timestamp DESC LIMIT 100`;
+                const result = await neonQuery(query, [itemName]);
+                return result.map(r => ({ ...r, name: r.item_name }));
+            } else {
+                const query = `SELECT * FROM history ORDER BY timestamp DESC LIMIT 500`;
+                const result = await neonQuery(query);
+                return result.map(r => ({ ...r, name: r.item_name }));
+            }
+        } catch (error) {
+            console.warn('History query error:', error.message);
+            return [];
+        }
+    },
+
+    // Очистка истории
+    async clearHistory() {
+        const query = 'DELETE FROM history RETURNING *';
+        try {
+            return await neonQuery(query);
+        } catch (error) {
+            console.warn('Could not clear history:', error.message);
+            return [];
+        }
+    },
+
+    // Получить все уникальные пользователей и их устройства
+    async getUserDevices() {
+        const query = `SELECT DISTINCT changed_by, device_id FROM history ORDER BY changed_by, device_id`;
+        try {
+            return await neonQuery(query);
+        } catch (error) {
+            console.warn('Get user devices error:', error.message);
+            return [];
+        }
+    },
+
+    // Получить все devices для конкретного пользователя
+    async getUserDevicesByUser(username) {
+        const query = `SELECT DISTINCT device_id FROM history WHERE changed_by = $1`;
+        try {
+            return await neonQuery(query, [username]);
+        } catch (error) {
+            console.warn('Get user devices error:', error.message);
+            return [];
+        }
+    },
+
+    // Получить все nicknames
+    async getDeviceNicknames() {
+        const query = `SELECT username, device_id, nickname FROM device_nicknames`;
+        try {
+            return await neonQuery(query);
+        } catch (error) {
+            console.warn('Get nicknames error:', error.message);
+            return [];
+        }
+    },
+
+    // Сохранить nickname для устройства
+    async saveDeviceNickname(username, deviceId, nickname) {
+        const query = `
+            INSERT INTO device_nicknames (username, device_id, nickname) 
+            VALUES ($1, $2, $3)
+            ON CONFLICT (username, device_id) 
+            DO UPDATE SET nickname = $3
+        `;
+        try {
+            return await neonQuery(query, [username, deviceId, nickname]);
+        } catch (error) {
+            console.warn('Save nickname error:', error.message);
+            return null;
+        }
+    },
+
+    // Удалить nickname
+    async deleteDeviceNickname(username, deviceId) {
+        const query = `DELETE FROM device_nicknames WHERE username = $1 AND device_id = $2`;
+        try {
+            return await neonQuery(query, [username, deviceId]);
+        } catch (error) {
+            console.warn('Delete nickname error:', error.message);
+            return null;
+        }
     }
 };
 

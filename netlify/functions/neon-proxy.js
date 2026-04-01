@@ -1,9 +1,6 @@
 import { neon } from '@neondatabase/serverless';
 
-const VERSION = 'v3';
-
 export async function handler(event, context) {
-  // CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -24,22 +21,34 @@ export async function handler(event, context) {
 
   try {
     if (event.httpMethod === 'POST') {
+      if (!event.body) {
+        return { statusCode: 400, body: JSON.stringify({ error: 'No body' }) };
+      }
+      
       const body = JSON.parse(event.body);
-      const { query, params = [] } = body;
-
-      // Используем sql() функцию для выполнения запроса
-      const result = await sql.query(query, params);
+      const query = body.query || '';
+      const params = Array.isArray(body.params) ? body.params : [];
+      
+      if (!query || query.trim() === '') {
+        return { statusCode: 400, body: JSON.stringify({ error: 'Empty query' }) };
+      }
+      
+      let result;
+      if (params.length > 0) {
+        result = await sql.query(query, params);
+      } else {
+        result = await sql.query(query, []);
+      }
       
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-        body: JSON.stringify(Array.isArray(result) ? result : [result])
+        body: JSON.stringify(result)
       };
     }
 
-    const result = await sql('SELECT 1 as test');
-    return { statusCode: 200, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result) };
+    return { statusCode: 200, body: JSON.stringify({ ok: true }) };
   } catch (error) {
-    return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: error.message }) };
+    return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
   }
 }

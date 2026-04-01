@@ -1,59 +1,125 @@
 // Utility functions for device identification and tracking
 
+const DEVICE_ID_KEY = 'inventory_device_id';
+const DEVICE_NAME_KEY = 'inventory_device_name';
+
 /**
- * Generate a device fingerprint based on various browser/device characteristics
- * This helps track which devices are used to edit items
+ * Generate a stable device fingerprint based on hardware characteristics
+ * Only uses stable data that doesn't change between sessions
+ */
+function generateFingerprint() {
+    try {
+        const data = {
+            platform: navigator.platform,
+            hardwareConcurrency: navigator.hardwareConcurrency,
+            deviceMemory: navigator.deviceMemory,
+            language: navigator.language,
+            screenWidth: window.screen.width,
+            screenHeight: window.screen.height,
+            colorDepth: window.screen.colorDepth,
+        };
+        
+        const str = JSON.stringify(data);
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        
+        return `DEV-${Math.abs(hash).toString(36).substring(0, 8).toUpperCase()}`;
+    } catch (error) {
+        return 'DEV-UNKNOWN';
+    }
+}
+
+/**
+ * Get or generate a stable device ID
+ * Saved in localStorage so it persists across sessions
  */
 export function generateDeviceId() {
     try {
-        // Basic user agent information
-        const userAgent = navigator.userAgent;
+        let deviceId = localStorage.getItem(DEVICE_ID_KEY);
         
-        // Screen information
-        const screenInfo = {
-            width: window.screen.width,
-            height: window.screen.height,
-            colorDepth: window.screen.colorDepth,
-            pixelDepth: window.screen.pixelDepth
-        };
-        
-        // Browser capabilities
-        const capabilities = {
-            cookiesEnabled: navigator.cookieEnabled,
-            javaEnabled: navigator.javaEnabled(),
-            language: navigator.language || navigator.userLanguage,
-            platform: navigator.platform,
-            hardwareConcurrency: navigator.hardwareConcurrency || 'unknown',
-            deviceMemory: navigator.deviceMemory || 'unknown',
-            maxTouchPoints: navigator.maxTouchPoints || 0
-        };
-        
-        // Create a fingerprint string
-        const fingerprintData = {
-            userAgent,
-            screen: screenInfo,
-            capabilities,
-            timestamp: new Date().getTime()
-        };
-        
-        // Convert to JSON and create a hash-like string
-        const fingerprintString = JSON.stringify(fingerprintData);
-        
-        // Simple hash function for the fingerprint
-        let hash = 0;
-        for (let i = 0; i < fingerprintString.length; i++) {
-            const char = fingerprintString.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32bit integer
+        if (!deviceId) {
+            deviceId = generateFingerprint();
+            localStorage.setItem(DEVICE_ID_KEY, deviceId);
         }
         
-        // Return a formatted device ID
-        return `DEV-${Math.abs(hash).toString(36).substring(0, 8).toUpperCase()}`;
-        
+        return deviceId;
     } catch (error) {
-        console.error('Error generating device ID:', error);
-        // Fallback to simple user agent if fingerprinting fails
-        return navigator.userAgent || 'Unknown-Device';
+        return generateFingerprint();
+    }
+}
+
+/**
+ * Get or set device nickname
+ */
+export function getDeviceName() {
+    return localStorage.getItem(DEVICE_NAME_KEY) || '';
+}
+
+export function setDeviceName(name) {
+    localStorage.setItem(DEVICE_NAME_KEY, name);
+}
+
+/**
+ * Get base device ID without nickname
+ */
+export function getDeviceBaseId() {
+    return generateDeviceId();
+}
+
+/**
+ * Get device nickname by username and device ID
+ */
+export function getDeviceNickname(username, deviceId) {
+    try {
+        const nicknames = JSON.parse(localStorage.getItem('device_nicknames') || '{}');
+        return nicknames[deviceId] || null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Get combined device identifier for history
+ * Format: "Nickname (Browser/OS)" or "DEV-ID (Browser/OS)"
+ */
+export function getDeviceDisplayId() {
+    const deviceId = generateDeviceId();
+    const deviceName = getDeviceName();
+    
+    let browser = 'Unknown';
+    const ua = navigator.userAgent;
+    if (ua.includes('Chrome')) browser = 'Chrome';
+    else if (ua.includes('Firefox')) browser = 'Firefox';
+    else if (ua.includes('Safari')) browser = 'Safari';
+    else if (ua.includes('Edge')) browser = 'Edge';
+    
+    let os = 'Unknown';
+    if (ua.includes('Windows')) os = 'Win';
+    else if (ua.includes('Mac')) os = 'Mac';
+    else if (ua.includes('Linux')) os = 'Linux';
+    else if (ua.includes('Android')) os = 'Android';
+    else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+    
+    if (deviceName) {
+        return `${deviceName} (${browser}/${os})`;
+    }
+    return `${deviceId} (${browser}/${os})`;
+}
+
+/**
+ * Reset device ID - generates new one
+ */
+export function resetDeviceId() {
+    try {
+        const newId = generateFingerprint();
+        localStorage.setItem(DEVICE_ID_KEY, newId);
+        return newId;
+    } catch (error) {
+        return generateFingerprint();
     }
 }
 
@@ -93,4 +159,72 @@ export function getDeviceId() {
         console.error('Error getting device info:', error);
         return 'Unknown Device';
     }
+}
+
+/**
+ * Get optimized Cloudinary URL with transformations
+ * @param {string} url - Original Cloudinary URL
+ * @param {object} options - Transformation options
+ * @returns {string} - Optimized URL
+ */
+export function getOptimizedImageUrl(url, options = {}) {
+    if (!url || !url.includes('cloudinary.com')) {
+        return url;
+    }
+    
+    const {
+        width = 800,
+        height,
+        quality = 'auto',
+        format = 'auto',
+        crop = 'fill'
+    } = options;
+    
+    const parts = url.split('/upload/');
+    if (parts.length !== 2) {
+        return url;
+    }
+    
+    const transformations = [];
+    if (width) transformations.push(`w_${width}`);
+    if (height) transformations.push(`h_${height}`);
+    if (quality) transformations.push(`q_${quality}`);
+    if (format) transformations.push(`f_${format}`);
+    if (crop) transformations.push(`c_${crop}`);
+    
+    return `${parts[0]}/upload/${transformations.join(',')}/${parts[1]}`;
+}
+
+/**
+ * Get thumbnail URL for list view
+ */
+export function getThumbnailUrl(url) {
+    if (!url) return url;
+    
+    if (url.includes('drive.google.com')) {
+        const fileIdMatch = url.match(/\/d\/([^/]+)/);
+        if (fileIdMatch) {
+            return `https://drive.google.com/thumbnail?id=${fileIdMatch[1]}&sz=w800`;
+        }
+        return url;
+    }
+    
+    return getOptimizedImageUrl(url, { width: 800, quality: 'auto', height: 600 });
+}
+
+/**
+ * Get full-size optimized URL for modal/lightbox
+ */
+export function getFullImageUrl(url) {
+    if (!url) return url;
+    
+    if (url.includes('drive.google.com')) {
+        const fileIdMatch = url.match(/\/d\/([^/]+)/);
+        if (fileIdMatch) {
+            return `https://drive.google.com/uc?export=view&id=${fileIdMatch[1]}`;
+        }
+        return url;
+    }
+    
+    return getOptimizedImageUrl(url, { width: 1920, quality: 'auto' });
 }

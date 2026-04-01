@@ -1,11 +1,259 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef, memo } from "react";
+import { createPortal } from "react-dom";
+import { getOptimizedImageUrl, getThumbnailUrl, getFullImageUrl } from "./device-utils";
+
+const MAX_IMAGE_WIDTH = 1920;
+const MAX_IMAGE_HEIGHT = 1080;
+
+// CSS стили для модального окна
+const modalStyles = `
+.photo-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-modal-content {
+    position: relative;
+    overflow: hidden;
+    max-width: 90vw;
+    max-height: none;
+}
+
+.photo-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 9999px;
+    color: white;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-modal-close:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.photo-modal-nav-prev,
+.photo-modal-nav-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 9999px;
+    color: white;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-modal-nav-prev:hover,
+.photo-modal-nav-next:hover {
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.photo-modal-nav-prev {
+    left: 16px;
+}
+
+.photo-modal-nav-next {
+    right: 16px;
+}
+
+.photo-modal-image {
+    object-fit: contain;
+    max-height: 75vh;
+    width: auto;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.photo-modal-info {
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 16px 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.photo-modal-title {
+    font-weight: 600;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.photo-modal-counter {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 4px;
+}
+
+.photo-modal-description {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 8px;
+}
+`;
+
+// Вставляем стили в head при загрузке компонента
+if (typeof document !== 'undefined' && !document.getElementById('photo-modal-styles')) {
+    const styleElement = document.createElement('style');
+    styleElement.id = 'photo-modal-styles';
+    styleElement.textContent = modalStyles;
+    document.head.appendChild(styleElement);
+}
+
+function optimizeImageUrl(url, isFullSize = false) {
+    if (!url || typeof url !== 'string') return '';
+    
+    if (url.includes('drive.google.com')) {
+        const fileIdMatch = url.match(/\/d\/([^/]+)/);
+        if (fileIdMatch) {
+            const size = isFullSize ? 'w1920' : 'w800';
+            return `https://drive.google.com/thumbnail?id=${fileIdMatch[1]}&sz=${size}`;
+        }
+    }
+    
+    if (url.includes('photos.app.goo.gl')) {
+        return url;
+    }
+    
+    if (url.includes('cloudinary.com')) {
+        return isFullSize ? getFullImageUrl(url) : getThumbnailUrl(url);
+    }
+    
+    if (url.includes('?')) {
+        return `${url}&w=${MAX_IMAGE_WIDTH}&h=${MAX_IMAGE_HEIGHT}`;
+    }
+    
+    return url;
+}
+
+// LazyImage component with IntersectionObserver
+const LazyImage = memo(function LazyImage({ src, alt, className, style, onClick }) {
+    const [isVisible, setIsVisible] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(false);
+    const imgRef = useRef(null);
+    
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsVisible(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '100px', threshold: 0.1 }
+        );
+        
+        if (imgRef.current) {
+            observer.observe(imgRef.current);
+        }
+        
+        return () => observer.disconnect();
+    }, []);
+    
+    return (
+        <div ref={imgRef} className="relative" onClick={onClick} style={{ aspectRatio: '4/3' }}>
+            {isVisible && (
+                <img
+                    src={src}
+                    alt={alt}
+                    className={className}
+                    style={{ ...style, opacity: isLoaded ? 1 : 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                    onLoad={() => setIsLoaded(true)}
+                    loading="lazy"
+                    decoding="async"
+                />
+            )}
+            {!isLoaded && isVisible && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-800/50">
+                    <div className="loading-pulse" style={{ width: 30, height: 30 }}></div>
+                </div>
+            )}
+        </div>
+    );
+});
 
 export default function Card({ item, editItem, deleteItem, role }) {
     const [openPhoto, setOpenPhoto] = useState(false);
+    const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+    const cardRef = useRef(null);
+    const [isVisible, setIsVisible] = useState(false);
+    
+    // Lazy load card content
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                const card = entry.target;
+                const images = card.querySelectorAll('img');
+                images.forEach((image) => {
+                    image.src = image.dataset.src;
+                });
+                setIsVisible(true);
+                observer.disconnect();
+            },
+            { rootMargin: '200px', threshold: 0.1 }
+        );
+        
+        if (cardRef.current) {
+            observer.observe(cardRef.current);
+        }
+        
+        return () => observer.disconnect();
+    }, []);
+    
+    const getPhotos = () => {
+        const photos = [];
+        if (item.photo_url) photos.push({
+            thumbnail: item.photo_url,
+            full: getFullImageUrl(item.photo_url),
+            original: item.photo_url
+        });
+        if (item.photo_url2) photos.push({
+            thumbnail: item.photo_url2,
+            full: getFullImageUrl(item.photo_url2),
+            original: item.photo_url2
+        });
+        return photos;
+    };
+    
+    const photos = getPhotos();
+    const hasMultiplePhotos = photos.length > 1;
+    const currentPhoto = photos[currentPhotoIndex];
+    
+    const handlePrevPhoto = (e) => {
+        e.stopPropagation();
+        setCurrentPhotoIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1));
+    };
+    
+    const handleNextPhoto = (e) => {
+        e.stopPropagation();
+        setCurrentPhotoIndex((prev) => (prev === photos.length - 1 ? 0 : prev + 1));
+    };
 
     return (
         <>
-            <div className="card card-premium card-hover-effect fade-in-up">
+            <div ref={cardRef} className="card card-premium card-hover-effect fade-in-up" style={{ contain: 'paint layout' }}>
                 <div className="flex justify-between items-start mb-3">
                     <div className="flex flex-col gap-1">
                         <h2 className="card-title truncate max-w-full">{item.name}</h2>
@@ -54,19 +302,46 @@ export default function Card({ item, editItem, deleteItem, role }) {
                     </div>
                 )}
                 
-                {item.photo_url && (
+                {photos.length > 0 && isVisible && (
                     <div className="mb-4 relative group cursor-pointer" onClick={() => setOpenPhoto(true)}>
-                        <img
-                            src={item.photo_url}
+                        <LazyImage
+                            src={optimizeImageUrl(currentPhoto?.thumbnail || currentPhoto?.original)}
                             alt={item.name}
                             className="card-image group-hover:opacity-90 transition-opacity w-full"
                             style={{ maxWidth: '100%', height: 'auto' }}
                         />
-                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-opacity flex items-center justify-center">
-                            <span className="text-white text-sm font-medium bg-black bg-opacity-50 px-3 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                Powiększ
-                            </span>
-                        </div>
+                        
+                        {item.category === 'LADY' && hasMultiplePhotos && (
+                            <>
+                                <button
+                                    onClick={handlePrevPhoto}
+                                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full w-8 h-8 flex items-center justify-center transition-opacity opacity-0 group-hover:opacity-100"
+                                >
+                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                                    </svg>
+                                </button>
+                                <button
+                                    onClick={handleNextPhoto}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 rounded-full w-8 h-8 flex items-center justify-center transition-opacity opacity-0 group-hover:opacity-100"
+                                >
+                                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                                    </svg>
+                                </button>
+                                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 px-3 py-1 rounded-full">
+                                    <span className="text-white text-xs">{currentPhotoIndex + 1} / {photos.length}</span>
+                                </div>
+                            </>
+                        )}
+                        
+                        {item.category !== 'LADY' && (
+                            <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-opacity flex items-center justify-center">
+                                <span className="text-white text-sm font-medium bg-black bg-opacity-50 px-3 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Powiększ
+                                </span>
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -96,7 +371,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
                         </div>
                     )}
                     
-                    {item.category !== 'Krzesla' && (
+                    {item.category !== 'Krzesla' && item.category !== 'LADY' && (
                         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-slate-600">
                             <div className="dimension-item">
                                 <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -208,37 +483,100 @@ export default function Card({ item, editItem, deleteItem, role }) {
                 )}
             </div>
 
-            {openPhoto && item.photo_url && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-90 backdrop-blur-lg flex items-center justify-center z-50 p-4 slide-up"
-                    onClick={() => setOpenPhoto(false)}
-                >
-                    <div
-                        className="relative max-w-[90vw] max-h-[90vh] modal-modern overflow-hidden"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 rounded-full w-10 h-10 flex items-center justify-center shadow-lg transition-all z-10"
-                            onClick={() => setOpenPhoto(false)}
-                        >
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                        <img
-                            src={item.photo_url}
-                            alt={item.name}
-                            className="object-contain max-h-[75vh] w-auto mx-auto p-6"
-                        />
-                        <div className="bg-black/30 px-6 py-4 border-t border-white/10">
-                            <h3 className="font-semibold text-white truncate text-gradient green-accent">{item.name}</h3>
-                            <p className="text-sm text-white/80 mt-2">{item.description}</p>
-                        </div>
-                    </div>
-                </div>
+            {openPhoto && photos.length > 0 && (
+                <PhotoModal
+                    photos={photos}
+                    currentIndex={currentPhotoIndex}
+                    setCurrentIndex={setCurrentPhotoIndex}
+                    onClose={() => setOpenPhoto(false)}
+                    itemName={item.name}
+                    itemCategory={item.category}
+                    description={item.description}
+                />
             )}
         </>
     );
+}
+
+function PhotoModal({ photos, currentIndex, setCurrentIndex, onClose, itemName, itemCategory, description }) {
+    const [container] = useState(() => {
+        const div = document.createElement('div');
+        div.id = 'photo-modal-portal';
+        return div;
+    });
+
+    useEffect(() => {
+        document.body.appendChild(container);
+        return () => {
+            document.body.removeChild(container);
+        };
+    }, [container]);
+
+    const hasMultiplePhotos = photos.length > 1;
+    
+    const modalContent = (
+        <div
+            className="photo-modal-overlay"
+            onClick={onClose}
+        >
+            <div
+                className="photo-modal-content"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <button
+                    className="photo-modal-close"
+                    onClick={onClose}
+                >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+                
+                {hasMultiplePhotos && (
+                    <>
+                        <button
+                            className="photo-modal-nav-prev"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentIndex(currentIndex === 0 ? photos.length - 1 : currentIndex - 1);
+                            }}
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <button
+                            className="photo-modal-nav-next"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentIndex(currentIndex === photos.length - 1 ? 0 : currentIndex + 1);
+                            }}
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </>
+                )}
+                
+                <img
+                    src={optimizeImageUrl(photos[currentIndex]?.original || photos[currentIndex]?.full || '')}
+                    alt={itemName}
+                    className="photo-modal-image"
+                />
+                
+                <div className="photo-modal-info">
+                    <h3 className="photo-modal-title">{itemName}</h3>
+                    {hasMultiplePhotos && (
+                        <p className="photo-modal-counter">Фото {currentIndex + 1} из {photos.length}</p>
+                    )}
+                    <p className="photo-modal-description">{description}</p>
+                </div>
+            </div>
+        </div>
+    );
+
+    return createPortal(modalContent, container);
 }
 
 function getCategoryColor(category) {
