@@ -35,9 +35,20 @@ export async function handler(event, context) {
       
       let result;
       if (params.length > 0) {
-        result = await sql.query(query, params);
+        // Build query with inlined params for v2 compatibility
+        let builtQuery = query;
+        params.forEach((p, i) => {
+          if (p === null || p === undefined) {
+            builtQuery = builtQuery.replace(`$${i+1}`, 'NULL');
+          } else if (typeof p === 'number') {
+            builtQuery = builtQuery.replace(`$${i+1}`, String(p));
+          } else {
+            builtQuery = builtQuery.replace(`$${i+1}`, `'${String(p).replace(/'/g, "''")}'`);
+          }
+        });
+        result = await sql.unsafe(builtQuery);
       } else {
-        result = await sql(query);
+        result = await sql.unsafe(query);
       }
       
       return {
