@@ -719,7 +719,7 @@ return (
         ) : (
             <div className="items-grid grid-modern">
                 {selectedCategory === 'Historia' ? (
-                    filteredItems.slice(0, 300).map((entry) => (
+                    filteredItems.map((entry) => (
                         <HistoryCard
                             key={entry.id}
                             entry={entry}
