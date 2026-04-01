@@ -64,8 +64,27 @@ export function setDeviceName(name) {
 }
 
 /**
+ * Get base device ID without nickname
+ */
+export function getDeviceBaseId() {
+    return generateDeviceId();
+}
+
+/**
+ * Get device nickname by username and device ID
+ */
+export function getDeviceNickname(username, deviceId) {
+    try {
+        const nicknames = JSON.parse(localStorage.getItem('device_nicknames') || '{}');
+        return nicknames[deviceId] || null;
+    } catch {
+        return null;
+    }
+}
+
+/**
  * Get combined device identifier for history
- * Format: "DeviceName | Browser | OS"
+ * Format: "Nickname (Browser/OS)" or "DEV-ID (Browser/OS)"
  */
 export function getDeviceDisplayId() {
     const deviceId = generateDeviceId();

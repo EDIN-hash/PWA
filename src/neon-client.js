@@ -353,6 +353,28 @@ const NeonClient = {
             console.warn('Could not clear history:', error.message);
             return [];
         }
+    },
+
+    // Получить все уникальные пользователей и их устройства
+    async getUserDevices() {
+        const query = `SELECT DISTINCT changed_by, device_id FROM history ORDER BY changed_by, device_id`;
+        try {
+            return await neonQuery(query);
+        } catch (error) {
+            console.warn('Get user devices error:', error.message);
+            return [];
+        }
+    },
+
+    // Получить все devices для конкретного пользователя
+    async getUserDevicesByUser(username) {
+        const query = `SELECT DISTINCT device_id FROM history WHERE changed_by = $1`;
+        try {
+            return await neonQuery(query, [username]);
+        } catch (error) {
+            console.warn('Get user devices error:', error.message);
+            return [];
+        }
     }
 };
 

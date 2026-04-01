@@ -4,12 +4,13 @@ import HistoryCard from "./HistoryCard.jsx";
 import Modal from "react-modal";
 import "./styles.css";
 import NeonClient from "./neon-client";
+import UserDevicesSettings from "./UserDevicesSettings.jsx";
 import { generateDeviceId, getDeviceDisplayId, getDeviceName, setDeviceName } from "./device-utils";
 
 // Настройка Modal до определения компонента
 Modal.setAppElement("#root");
 
-const categories = ["Telewizory", "Lodowki", "Ekspresy", "Krzesla", "NM", "LADY", "Historia"];
+const categories = ["Telewizory", "Lodowki", "Ekspresy", "Krzesla", "NM", "LADY", "Historia", "Ustawienia"];
 
 const defaultModalData = {
     name: "",
@@ -558,7 +559,11 @@ return (
         <div className="tabs-section pb-2">
             <div className="tabs-container flex flex-wrap gap-2 justify-center">
                 {categories
-                    .filter(cat => cat !== 'Historia' || (currentUser && currentUser.role === 'moder'))
+                    .filter(cat => {
+                        if (cat === 'Historia') return currentUser && currentUser.role === 'moder';
+                        if (cat === 'Ustawienia') return currentUser && currentUser.username === 'moder';
+                        return true;
+                    })
                     .map((category) => (
                     <button
                         key={category}
@@ -725,6 +730,8 @@ return (
                             entry={entry}
                         />
                     ))
+                ) : selectedCategory === 'Ustawienia' ? (
+                    <UserDevicesSettings />
                 ) : (
                     filteredItems.map((item) => (
                         <Card
