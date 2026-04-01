@@ -561,7 +561,7 @@ return (
                 {categories
                     .filter(cat => {
                         if (cat === 'Historia') return currentUser && currentUser.role === 'moder';
-                        if (cat === 'Ustawienia') return currentUser && currentUser.username === 'moder';
+                        if (cat === 'Ustawienia') return currentUser && currentUser.role === 'moder';
                         return true;
                     })
                     .map((category) => (
