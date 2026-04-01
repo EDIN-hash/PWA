@@ -573,7 +573,7 @@ function PhotoModal({ photos, currentIndex, setCurrentIndex, onClose, itemName, 
                 )}
                 
                 <img
-                    src={optimizeImageUrl(photos[currentIndex] || '')}
+                    src={optimizeImageUrl(photos[currentIndex]?.original || photos[currentIndex]?.full || '')}
                     alt={itemName}
                     className="photo-modal-image"
                 />
