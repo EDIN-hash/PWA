@@ -1,5 +1,12 @@
 import { neon } from '@neondatabase/serverless';
 
+const safeValue = (val) => {
+  if (val === null || val === undefined) return 'NULL';
+  if (typeof val === 'number') return val;
+  if (typeof val === 'boolean') return val ? 'TRUE' : 'FALSE';
+  return `'${String(val).replace(/'/g, "''")}'`;
+};
+
 export async function handler(event, context) {
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -26,19 +33,20 @@ export async function handler(event, context) {
       }
       
       const body = JSON.parse(event.body);
-      const query = body.query || '';
+      let query = body.query || '';
       const params = Array.isArray(body.params) ? body.params : [];
       
       if (!query || query.trim() === '') {
         return { statusCode: 400, body: JSON.stringify({ error: 'Empty query' }) };
       }
       
-      let result;
-      if (query.includes('$1') || query.includes('$2') || query.includes('$3')) {
-        result = await sql.query(query, params.length > 0 ? params : [null]);
-      } else {
-        result = await sql(query);
-      }
+      // Substitute $1, $2, etc. with safe values
+      let processedQuery = query;
+      params.forEach((param, index) => {
+        processedQuery = processedQuery.replace(`$${index + 1}`, safeValue(param));
+      });
+      
+      const result = await sql.unsafe(processedQuery);
       
       return {
         statusCode: 200,
