@@ -67,7 +67,7 @@ export default function HistoryCard({ entry }) {
                     </svg>
                     <div>
                         <div className="text-slate-500 text-xs">Urządzenie</div>
-                        <div className="text-slate-300">{entry.device_id || 'Nieznane'}</div>
+                        <div className="text-slate-300 text-xs">{entry.device_id || 'Nieznane'}</div>
                     </div>
                 </div>
                 

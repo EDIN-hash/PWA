@@ -4,7 +4,7 @@ import HistoryCard from "./HistoryCard.jsx";
 import Modal from "react-modal";
 import "./styles.css";
 import NeonClient from "./neon-client";
-import { generateDeviceId, getDeviceId } from "./device-utils";
+import { generateDeviceId, getDeviceDisplayId, getDeviceName, setDeviceName } from "./device-utils";
 
 // Настройка Modal до определения компонента
 Modal.setAppElement("#root");
@@ -256,7 +256,7 @@ export default function App() {
         }
         
         const currentUsername = currentUser?.username || "Unknown";
-        const currentDeviceId = generateDeviceId();
+        const currentDeviceId = getDeviceDisplayId();
         
         // Format date as DD.MM.YYYY (just pass through, no conversion)
         const dataWyjazduValue = modalData.dataWyjazdu || '';
@@ -319,7 +319,7 @@ export default function App() {
     const handleDeleteItem = async (itemName) => {
         if (!window.confirm("Delete this item?")) return;
         const currentUsername = currentUser?.username || "Unknown";
-        const currentDeviceId = generateDeviceId();
+        const currentDeviceId = getDeviceDisplayId();
         try {
             await NeonClient.deleteItem(itemName);
             try {

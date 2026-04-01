@@ -1,6 +1,7 @@
 // Utility functions for device identification and tracking
 
 const DEVICE_ID_KEY = 'inventory_device_id';
+const DEVICE_NAME_KEY = 'inventory_device_name';
 
 /**
  * Generate a stable device fingerprint based on hardware characteristics
@@ -49,6 +50,45 @@ export function generateDeviceId() {
     } catch (error) {
         return generateFingerprint();
     }
+}
+
+/**
+ * Get or set device nickname
+ */
+export function getDeviceName() {
+    return localStorage.getItem(DEVICE_NAME_KEY) || '';
+}
+
+export function setDeviceName(name) {
+    localStorage.setItem(DEVICE_NAME_KEY, name);
+}
+
+/**
+ * Get combined device identifier for history
+ * Format: "DeviceName | Browser | OS"
+ */
+export function getDeviceDisplayId() {
+    const deviceId = generateDeviceId();
+    const deviceName = getDeviceName();
+    
+    let browser = 'Unknown';
+    const ua = navigator.userAgent;
+    if (ua.includes('Chrome')) browser = 'Chrome';
+    else if (ua.includes('Firefox')) browser = 'Firefox';
+    else if (ua.includes('Safari')) browser = 'Safari';
+    else if (ua.includes('Edge')) browser = 'Edge';
+    
+    let os = 'Unknown';
+    if (ua.includes('Windows')) os = 'Win';
+    else if (ua.includes('Mac')) os = 'Mac';
+    else if (ua.includes('Linux')) os = 'Linux';
+    else if (ua.includes('Android')) os = 'Android';
+    else if (ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
+    
+    if (deviceName) {
+        return `${deviceName} (${browser}/${os})`;
+    }
+    return `${deviceId} (${browser}/${os})`;
 }
 
 /**
