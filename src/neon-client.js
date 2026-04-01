@@ -330,8 +330,8 @@ const NeonClient = {
     async getHistory(itemName = null) {
         try {
             if (itemName && itemName.trim()) {
-                const query = `SELECT * FROM history_log WHERE item_name = $1`;
-                return await neonQuery(query, [itemName]);
+                const query = `SELECT * FROM history_log WHERE item_name = '${itemName}'`;
+                return await neonQuery(query);
             } else {
                 const query = `SELECT * FROM history_log`;
                 return await neonQuery(query);
