@@ -58,6 +58,26 @@ export default function App() {
     const [selectedCategoryForId, setSelectedCategoryForId] = useState('NM');
     const [generatedId, setGeneratedId] = useState('');
     const [tvSize, setTvSize] = useState('55'); // Размер телевизора по умолчанию
+    const [showUpdateBanner, setShowUpdateBanner] = useState(false);
+
+    // Check for PWA updates
+    useEffect(() => {
+        const handleUpdate = () => setShowUpdateBanner(true);
+        window.addEventListener('swUpdateAvailable', handleUpdate);
+        
+        if (window.swUpdateAvailable) {
+            setShowUpdateBanner(true);
+        }
+        
+        return () => window.removeEventListener('swUpdateAvailable', handleUpdate);
+    }, []);
+
+    const handleUpdateApp = () => {
+        if (window.swRegistration?.waiting) {
+            window.swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+        window.location.reload();
+    };
 
     // Load dark mode preference from localStorage
     useEffect(() => {
@@ -558,6 +578,19 @@ return (
                 </div>
             )}
         </header>
+
+        {/* Update Banner */}
+        {showUpdateBanner && (
+            <div className="bg-blue-600 text-white px-4 py-2 text-center">
+                <span>Dostępna nowa wersja aplikacji! </span>
+                <button
+                    onClick={handleUpdateApp}
+                    className="bg-white text-blue-600 px-4 py-1 rounded font-bold ml-2 hover:bg-blue-100"
+                >
+                    Aktualizuj
+                </button>
+            </div>
+        )}
 
         {/* Category Tabs */}
         <div className="tabs-section pb-2">

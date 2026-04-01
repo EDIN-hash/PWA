@@ -14,14 +14,19 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js')
             .then(reg => {
                 console.log('SW registered:', reg.scope);
+                window.swRegistration = reg;
+                
                 reg.addEventListener('updatefound', () => {
                     const newWorker = reg.installing;
                     newWorker.addEventListener('statechange', () => {
                         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            window.location.reload();
+                            window.swUpdateAvailable = true;
+                            window.dispatchEvent(new CustomEvent('swUpdateAvailable'));
                         }
                     });
                 });
+                
+                setInterval(() => reg.update(), 60 * 60 * 1000);
             })
             .catch(err => console.log('SW registration failed:', err));
     });
