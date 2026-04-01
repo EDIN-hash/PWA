@@ -38,12 +38,14 @@ export async function handler(event, context) {
         // Build query with inlined params for v2 compatibility
         let builtQuery = query;
         params.forEach((p, i) => {
+          const placeholder = `$${i+1}`;
+          const regex = new RegExp(placeholder.replace('$', '\\$'), 'g');
           if (p === null || p === undefined) {
-            builtQuery = builtQuery.replace(`$${i+1}`, 'NULL');
+            builtQuery = builtQuery.replace(regex, 'NULL');
           } else if (typeof p === 'number') {
-            builtQuery = builtQuery.replace(`$${i+1}`, String(p));
+            builtQuery = builtQuery.replace(regex, String(p));
           } else {
-            builtQuery = builtQuery.replace(`$${i+1}`, `'${String(p).replace(/'/g, "''")}'`);
+            builtQuery = builtQuery.replace(regex, `'${String(p).replace(/'/g, "''")}'`);
           }
         });
         result = await sql.unsafe(builtQuery);
