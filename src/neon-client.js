@@ -330,10 +330,10 @@ const NeonClient = {
     async getHistory(itemName = null) {
         try {
             if (itemName && itemName.trim()) {
-                const query = `SELECT * FROM history WHERE item_name = $1 ORDER BY timestamp DESC LIMIT 100`;
-                return await neonQuery(query, [itemName], 'history');
+                const query = `SELECT * FROM history WHERE item_name = '${itemName.replace(/'/g, "''")}' LIMIT 100`;
+                return await neonQuery(query, [], 'history');
             } else {
-                const query = `SELECT * FROM history ORDER BY timestamp DESC LIMIT 200`;
+                const query = `SELECT * FROM history LIMIT 200`;
                 return await neonQuery(query, [], 'history');
             }
         } catch (error) {
