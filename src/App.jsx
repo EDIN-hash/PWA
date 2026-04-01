@@ -184,16 +184,6 @@ export default function App() {
     };
 
     const handleLogout = async () => {
-        try {
-            const validUrl = getValidServerUrl();
-            await fetch(`${validUrl}/users/logout`, {
-                method: "POST",
-                credentials: "include",
-            });
-        } catch (err) {
-            console.error("Logout error:", err);
-        }
-        // Clear user from localStorage and state
         localStorage.removeItem('inventoryUser');
         setCurrentUser(null);
         console.log('User logged out and localStorage cleared');
