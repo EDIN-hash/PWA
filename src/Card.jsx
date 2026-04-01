@@ -8,128 +8,109 @@ const MAX_IMAGE_HEIGHT = 1080;
 // CSS стили для модального окна
 const modalStyles = `
 .photo-modal-overlay {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    background-color: rgba(0, 0, 0, 0.95) !important;
-    backdrop-filter: blur(4px) !important;
-    z-index: 9999 !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 20px !important;
-    box-sizing: border-box !important;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .photo-modal-content {
-    position: relative !important;
-    background-color: rgba(0, 0, 0, 0.9) !important;
-    border-radius: 12px !important;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
-    max-width: 90vw !important;
-    max-height: 90vh !important;
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
+    position: relative;
+    overflow: hidden;
+    max-width: 90vw;
+    max-height: none;
 }
 
 .photo-modal-close {
-    position: absolute !important;
-    top: 12px !important;
-    right: 12px !important;
-    width: 40px !important;
-    height: 40px !important;
-    background-color: rgba(0, 0, 0, 0.7) !important;
-    border: none !important;
-    border-radius: 50% !important;
-    color: white !important;
-    font-size: 24px !important;
-    font-weight: bold !important;
-    cursor: pointer !important;
-    z-index: 10 !important;
-    transition: all 0.2s ease !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 9999px;
+    color: white;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .photo-modal-close:hover {
-    background-color: rgba(0, 0, 0, 0.9) !important;
-    transform: scale(1.1) !important;
+    background-color: rgba(0, 0, 0, 0.7);
 }
 
-.photo-modal-nav {
-    position: absolute !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    width: 48px !important;
-    height: 48px !important;
-    background-color: rgba(0, 0, 0, 0.7) !important;
-    border: none !important;
-    border-radius: 50% !important;
-    color: white !important;
-    font-size: 24px !important;
-    font-weight: bold !important;
-    cursor: pointer !important;
-    z-index: 10 !important;
-    transition: all 0.2s ease !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+.photo-modal-nav-prev,
+.photo-modal-nav-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 48px;
+    height: 48px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: none;
+    border-radius: 9999px;
+    color: white;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.photo-modal-nav:hover {
-    background-color: rgba(0, 0, 0, 0.9) !important;
-    transform: translateY(-50%) scale(1.1) !important;
+.photo-modal-nav-prev:hover,
+.photo-modal-nav-next:hover {
+    background-color: rgba(0, 0, 0, 0.7);
 }
 
 .photo-modal-nav-prev {
-    left: 12px !important;
+    left: 16px;
 }
 
 .photo-modal-nav-next {
-    right: 12px !important;
+    right: 16px;
 }
 
 .photo-modal-image {
-    max-width: 100% !important;
-    max-height: 90vh !important;
-    object-fit: contain !important;
-    display: block !important;
-    margin: 0 auto !important;
-    padding: 20px !important;
+    object-fit: contain;
+    max-height: 75vh;
+    width: auto;
+    margin: 0 auto;
+    padding: 24px;
 }
 
 .photo-modal-info {
-    background-color: rgba(0, 0, 0, 0.3) !important;
-    padding: 16px 24px !important;
-    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
-    text-align: center !important;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 16px 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .photo-modal-title {
-    color: white !important;
-    font-weight: 600 !important;
-    font-size: 18px !important;
-    margin: 0 0 8px 0 !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    font-weight: 600;
+    color: white;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .photo-modal-counter {
-    color: rgba(255, 255, 255, 0.8) !important;
-    font-size: 14px !important;
-    margin: 0 0 8px 0 !important;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 4px;
 }
 
 .photo-modal-description {
-    color: rgba(255, 255, 255, 0.8) !important;
-    font-size: 14px !important;
-    margin: 0 !important;
-    line-height: 1.4 !important;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 8px;
 }
 `;
 
@@ -546,7 +527,9 @@ function PhotoModal({ photos, currentIndex, setCurrentIndex, onClose, itemName, 
                     className="photo-modal-close"
                     onClick={onClose}
                 >
-                    ×
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
                 </button>
                 
                 {hasMultiplePhotos && (
@@ -558,7 +541,9 @@ function PhotoModal({ photos, currentIndex, setCurrentIndex, onClose, itemName, 
                                 setCurrentIndex(currentIndex === 0 ? photos.length - 1 : currentIndex - 1);
                             }}
                         >
-                            ‹
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
                         </button>
                         <button
                             className="photo-modal-nav-next"
@@ -567,7 +552,9 @@ function PhotoModal({ photos, currentIndex, setCurrentIndex, onClose, itemName, 
                                 setCurrentIndex(currentIndex === photos.length - 1 ? 0 : currentIndex + 1);
                             }}
                         >
-                            ›
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
                         </button>
                     </>
                 )}
