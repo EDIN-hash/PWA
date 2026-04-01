@@ -655,16 +655,23 @@ body {
 
 /* Card image styling */
 .card-image {
-    border-radius: 0.5rem;
-    object-fit: contain;
-    height: auto;
-    width: 100%;
-    border: 1px solid rgba(76, 100, 241, 0.1);
+    border-radius: 0.5rem !important;
+    object-fit: contain !important;
+    height: auto !important;
+    width: 100% !important;
+    border: 1px solid rgba(76, 100, 241, 0.1) !important;
 }
 
 .card-image:hover {
     opacity: 0.9;
     transition: opacity 0.2s ease;
+}
+
+/* Force all images in cards to preserve aspect ratio */
+.card-premium img {
+    object-fit: contain !important;
+    height: auto !important;
+    max-height: none !important;
 }
 
 /* Dimension display */
