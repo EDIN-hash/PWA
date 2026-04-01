@@ -26,7 +26,7 @@ export async function handler(event, context) {
       }
       
       const body = JSON.parse(event.body);
-      let query = body.query || '';
+      const query = body.query || '';
       const params = Array.isArray(body.params) ? body.params : [];
       
       if (!query || query.trim() === '') {
@@ -34,21 +34,11 @@ export async function handler(event, context) {
       }
       
       let result;
-      
-      // Substitute params in query
-      params.forEach((p, i) => {
-        const placeholder = `$${i+1}`;
-        const regex = new RegExp(placeholder.replace('$', '\\$'), 'g');
-        if (p === null || p === undefined) {
-          query = query.replace(regex, 'NULL');
-        } else if (typeof p === 'number') {
-          query = query.replace(regex, String(p));
-        } else {
-          query = query.replace(regex, `'${String(p).replace(/'/g, "''")}'`);
-        }
-      });
-      
-      result = await sql.unsafe(query);
+      if (params.length > 0) {
+        result = await sql.query(query, params);
+      } else {
+        result = await sql(query);
+      }
       
       return {
         statusCode: 200,
