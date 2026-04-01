@@ -25,6 +25,7 @@ const neonQuery = async (sql, params = [], type = 'default') => {
         }
 
         const data = await response.json();
+        console.log('neonQuery response:', data);
         return data.rows || data;
     } catch (error) {
         console.error('Neon query error:', error);
@@ -331,10 +332,14 @@ const NeonClient = {
         try {
             if (itemName && itemName.trim()) {
                 const query = `SELECT * FROM history_log WHERE item_name = $1 LIMIT 100`;
-                return await neonQuery(query, [itemName]);
+                const result = await neonQuery(query, [itemName]);
+                console.log('getHistory result:', result);
+                return result;
             } else {
                 const query = `SELECT * FROM history_log LIMIT 200`;
-                return await neonQuery(query);
+                const result = await neonQuery(query);
+                console.log('getHistory all result:', result);
+                return result;
             }
         } catch (error) {
             console.warn('History query error:', error.message);
