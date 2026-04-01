@@ -5,6 +5,16 @@ import { getOptimizedImageUrl, getThumbnailUrl, getFullImageUrl } from "./device
 const MAX_IMAGE_WIDTH = 1920;
 const MAX_IMAGE_HEIGHT = 1080;
 
+let photoPortalContainer = null;
+const getPhotoPortalContainer = () => {
+    if (!photoPortalContainer) {
+        photoPortalContainer = document.createElement('div');
+        photoPortalContainer.id = 'photo-portal-root';
+        document.body.appendChild(photoPortalContainer);
+    }
+    return photoPortalContainer;
+};
+
 // CSS стили для модального окна
 const modalStyles = `
 .photo-modal-overlay {
@@ -670,7 +680,7 @@ export default function Card({ item, editItem, deleteItem, role }) {
                             }}>{item.description}</p>
                         </div>
                     </div>
-                </div>
+                </div>, getPhotoPortalContainer())
             )}
         </>
     );
