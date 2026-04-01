@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, memo } from "react";
+import { createPortal } from "react-dom";
 import { getOptimizedImageUrl, getThumbnailUrl, getFullImageUrl } from "./device-utils";
 
 const MAX_IMAGE_WIDTH = 1920;
@@ -517,9 +518,22 @@ export default function Card({ item, editItem, deleteItem, role }) {
 }
 
 function PhotoModal({ photos, currentIndex, setCurrentIndex, onClose, itemName, itemCategory, description }) {
+    const [container] = useState(() => {
+        const div = document.createElement('div');
+        div.id = 'photo-modal-portal';
+        return div;
+    });
+
+    useEffect(() => {
+        document.body.appendChild(container);
+        return () => {
+            document.body.removeChild(container);
+        };
+    }, [container]);
+
     const hasMultiplePhotos = photos.length > 1;
     
-    return (
+    const modalContent = (
         <div
             className="photo-modal-overlay"
             onClick={onClose}
@@ -574,6 +588,8 @@ function PhotoModal({ photos, currentIndex, setCurrentIndex, onClose, itemName, 
             </div>
         </div>
     );
+
+    return createPortal(modalContent, container);
 }
 
 function getCategoryColor(category) {
