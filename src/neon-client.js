@@ -1,5 +1,5 @@
 // Функция для выполнения SQL запросов к Neon через Netlify функцию
-const neonQuery = async (sql, params = []) => {
+const neonQuery = async (sql, params = [], type = 'default') => {
     // В разработке используем локальный URL, в продакшене - Netlify функцию
     const functionUrl = import.meta.env.DEV 
         ? 'http://localhost:8888/.netlify/functions/neon-proxy'
@@ -14,7 +14,8 @@ const neonQuery = async (sql, params = []) => {
             },
             body: JSON.stringify({
                 query: sql,
-                params: params
+                params: params,
+                type: type
             })
         });
 
@@ -330,10 +331,10 @@ const NeonClient = {
         try {
             if (itemName && itemName.trim()) {
                 const query = `SELECT * FROM history WHERE item_name = $1 ORDER BY timestamp DESC LIMIT 100`;
-                return await neonQuery(query, [itemName]);
+                return await neonQuery(query, [itemName], 'history');
             } else {
                 const query = `SELECT * FROM history ORDER BY timestamp DESC LIMIT 200`;
-                return await neonQuery(query, []);
+                return await neonQuery(query, [], 'history');
             }
         } catch (error) {
             console.warn('History query error:', error.message);

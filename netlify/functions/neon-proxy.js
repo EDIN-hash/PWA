@@ -28,29 +28,40 @@ export async function handler(event, context) {
       const body = JSON.parse(event.body);
       const query = body.query || '';
       const params = Array.isArray(body.params) ? body.params : [];
+      const type = body.type || 'default';
       
       if (!query || query.trim() === '') {
         return { statusCode: 400, body: JSON.stringify({ error: 'Empty query' }) };
       }
       
       let result;
-      if (params.length > 0) {
-        // Build query with inlined params for v2 compatibility
-        let builtQuery = query;
-        params.forEach((p, i) => {
-          const placeholder = `$${i+1}`;
-          const regex = new RegExp(placeholder.replace('$', '\\$'), 'g');
-          if (p === null || p === undefined) {
-            builtQuery = builtQuery.replace(regex, 'NULL');
-          } else if (typeof p === 'number') {
-            builtQuery = builtQuery.replace(regex, String(p));
-          } else {
-            builtQuery = builtQuery.replace(regex, `'${String(p).replace(/'/g, "''")}'`);
-          }
-        });
-        result = await sql.unsafe(builtQuery);
+      
+      // History queries use sql.unsafe with param substitution
+      if (type === 'history') {
+        if (params.length > 0) {
+          let builtQuery = query;
+          params.forEach((p, i) => {
+            const placeholder = `$${i+1}`;
+            const regex = new RegExp(placeholder.replace('$', '\\$'), 'g');
+            if (p === null || p === undefined) {
+              builtQuery = builtQuery.replace(regex, 'NULL');
+            } else if (typeof p === 'number') {
+              builtQuery = builtQuery.replace(regex, String(p));
+            } else {
+              builtQuery = builtQuery.replace(regex, `'${String(p).replace(/'/g, "''")}'`);
+            }
+          });
+          result = await sql.unsafe(builtQuery);
+        } else {
+          result = await sql.unsafe(query);
+        }
       } else {
-        result = await sql.unsafe(query);
+        // Default queries - original working code
+        if (params.length > 0) {
+          result = await sql.query(query, params);
+        } else {
+          result = await sql(query);
+        }
       }
       
       return {
